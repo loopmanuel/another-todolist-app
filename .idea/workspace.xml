@@ -5,23 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3b9b94c7-8d64-4794-8e85-da8609a987a0" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/(root)/(main)/_layout.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/(root)/(main)/lists/[id].tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/(root)/(main)/lists/new.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/(root)/(main)/task/new.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/(root)/_layout.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/components/new-fab.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/lib/utils.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/ui/back-button.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(root)/(main)/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(root)/(main)/(tabs)/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(root)/(main)/(tabs)/details.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(root)/(main)/(tabs)/update.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(root)/(main)/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(root)/(main)/(tabs)/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(root)/(main)/lists/[id].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(root)/(main)/lists/[id].tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(root)/(main)/task/new.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(root)/(main)/task/new.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bun.lock" beforeDir="false" afterPath="$PROJECT_DIR$/bun.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/Container.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/Container.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/ui/button.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tailwind.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/tailwind.config.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -125,7 +114,7 @@
       <option name="presentableId" value="Default" />
       <updated>1762090316530</updated>
       <workItem from="1762090318320" duration="5287000" />
-      <workItem from="1762096055342" duration="11941000" />
+      <workItem from="1762096055342" duration="14480000" />
     </task>
     <servers />
   </component>

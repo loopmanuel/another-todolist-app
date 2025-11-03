@@ -65,7 +65,9 @@ export default function Home() {
             <Text className={'border-none text-xl font-semibold text-gray-600'}>Favorites</Text>
           </View>
 
-          <TouchableOpacity className={'mb-2 flex flex-row items-center gap-4'}>
+          <TouchableOpacity
+            className={'mb-2 flex flex-row items-center gap-4'}
+            onPress={() => router.push('/lists/1')}>
             <View className={'flex h-14 w-14 items-center justify-center rounded-lg bg-gray-200'}>
               <Text className={''}>📥</Text>
             </View>

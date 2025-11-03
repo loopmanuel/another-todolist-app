@@ -1,7 +1,7 @@
 import { Text } from '@/components/ui/text';
 import { ScrollView, View, TextInput } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { Button } from 'heroui-native';
+import { Button, Select } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function NewTask() {
@@ -33,10 +33,22 @@ export default function NewTask() {
           <Text>Priority</Text>
         </View>
 
-        <View className={'mr-4 flex flex-row items-center gap-2 rounded-md bg-gray-200 px-4 py-2'}>
-          <Ionicons name={'pricetag-outline'} size={18} />
-          <Text>Label</Text>
-        </View>
+        <Select>
+          <Select.Trigger>
+            <View
+              className={'mr-4 flex flex-row items-center gap-2 rounded-md bg-gray-200 px-4 py-2'}>
+              <Ionicons name={'pricetag-outline'} size={18} />
+              <Text>Label</Text>
+            </View>
+          </Select.Trigger>
+          <Select.Portal>
+            <Select.Overlay />
+            <Select.Content presentation="bottom-sheet" snapPoints={['35%']}>
+              <Select.Item value="1" label="Item 1" />
+              <Select.Item value="2" label="Item 2" />
+            </Select.Content>
+          </Select.Portal>
+        </Select>
       </ScrollView>
 
       <View
