@@ -27,11 +27,23 @@ export default function MainLayout() {
         }}
       />
       <Stack.Screen
+        name="task/label-select"
+        options={{
+          title: 'Choose Label',
+          presentation: 'formSheet',
+          sheetAllowedDetents: 'fitToContents',
+          sheetGrabberVisible: true,
+          sheetCornerRadius: 30,
+          headerShown: true,
+          sheetExpandsWhenScrolledToEdge: false,
+        }}
+      />
+      <Stack.Screen
         name="task/new"
         options={{
           title: '',
           presentation: 'formSheet',
-          sheetAllowedDetents: height > 700 ? [0.25] : 'fitToContents',
+          sheetAllowedDetents: 'fitToContents',
           sheetGrabberVisible: false,
           sheetCornerRadius: 30,
           headerShown: false,

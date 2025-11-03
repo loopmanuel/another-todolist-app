@@ -1,12 +1,20 @@
 import { Text } from '@/components/ui/text';
-import { ScrollView, View, TextInput } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { ScrollView, View, TextInput, Pressable, Keyboard } from 'react-native';
 import { Button, Select } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { KeyboardAvoidingView, KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 export default function NewTask() {
+  const router = useRouter();
+
+  const handleButtonPress = () => {
+    // Keyboard.dismiss();
+    router.push('/task/label-select');
+  };
+
   return (
-    <KeyboardAwareScrollView>
+    <KeyboardAvoidingView>
       <View className={'p-6 pb-0'}>
         <TextInput
           placeholder={'Task name'}
@@ -22,16 +30,18 @@ export default function NewTask() {
         />
       </View>
 
-      <ScrollView horizontal={true} className={'px-6'}>
+      <ScrollView horizontal={true} keyboardShouldPersistTaps="handled" className={'px-6'}>
         <View className={'mr-4 flex flex-row items-center gap-2 rounded-md bg-gray-200 px-4 py-2'}>
           <Ionicons name={'calendar-outline'} size={18} />
           <Text>Due Date</Text>
         </View>
 
-        <View className={'mr-4 flex flex-row items-center gap-2 rounded-md bg-gray-200 px-4 py-2'}>
+        <Pressable
+          onPress={() => handleButtonPress()}
+          className={'mr-4 flex flex-row items-center gap-2 rounded-md bg-gray-200 px-4 py-2'}>
           <Ionicons name={'flag-outline'} size={18} />
           <Text>Priority</Text>
-        </View>
+        </Pressable>
 
         <Select>
           <Select.Trigger>
@@ -53,7 +63,7 @@ export default function NewTask() {
 
       <View
         className={
-          'mt-4 flex flex-row items-center justify-between border-t border-border px-6 py-4'
+          'mt-4 flex flex-row items-center justify-between border-t border-border px-6 py-4 pb-0'
         }>
         <View className={'mr-4 flex flex-row items-center gap-2 rounded-md bg-gray-200 px-4 py-2'}>
           <Ionicons name={'file-tray-outline'} size={18} />
@@ -66,6 +76,6 @@ export default function NewTask() {
           </Button.Label>
         </Button>
       </View>
-    </KeyboardAwareScrollView>
+    </KeyboardAvoidingView>
   );
 }
