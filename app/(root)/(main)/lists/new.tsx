@@ -1,12 +1,12 @@
 import { Text } from '@/components/ui/text';
 import { TextInput, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from 'heroui-native';
 
 export default function NewList() {
   return (
-    <KeyboardAwareScrollView className={'flex-1'}>
+    <KeyboardAvoidingView className={'flex-1'}>
       <View className={'p-6 pb-0'}>
         <TextInput
           placeholder={'List name'}
@@ -38,6 +38,6 @@ export default function NewList() {
           </Button.Label>
         </Button>
       </View>
-    </KeyboardAwareScrollView>
+    </KeyboardAvoidingView>
   );
 }

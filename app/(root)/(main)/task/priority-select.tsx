@@ -1,9 +1,10 @@
-import { TextInput, View } from 'react-native';
+
+import { View } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useRouter } from 'expo-router';
 import { Button } from 'heroui-native';
 
-export default function LabelSelect() {
+export default function PrioritySelect() {
   const router = useRouter();
 
   return (
@@ -13,7 +14,7 @@ export default function LabelSelect() {
           <Button.Label>Back</Button.Label>
         </Button>
 
-        <Text>test</Text>
+        <Text>Priority Select</Text>
       </View>
     </View>
   );

@@ -108,6 +108,14 @@ export default function Home() {
             <Ionicons name={'add-circle-outline'} size={24} />
             <Button.Label>New List</Button.Label>
           </Button>
+
+          <Button
+            variant={'tertiary'}
+            className={'mt-4'}
+            onPress={() => router.push('/task/label-select')}>
+            <Ionicons name={'add-circle-outline'} size={24} />
+            <Button.Label>New List</Button.Label>
+          </Button>
         </View>
       </ScrollView>
     </View>
