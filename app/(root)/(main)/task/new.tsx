@@ -40,8 +40,13 @@ export default function NewTask() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}>
       <View className={'flex-1'}>
-        <View className={'pt-6'}>
+        <View className={'flex flex-row items-center justify-between pt-6'}>
           <BackButton isClose />
+          <Button className={'mr-4 rounded-full'} isIconOnly>
+            <Button.Label>
+              <Ionicons name={'checkmark-outline'} size={22} />
+            </Button.Label>
+          </Button>
         </View>
 
         <ScrollView className={''} keyboardShouldPersistTaps={'always'}>
@@ -99,13 +104,6 @@ export default function NewTask() {
               <Text>Label</Text>
             </Pressable>
           </ScrollView>
-          <View className={'flex flex-row items-center justify-end border-border px-6 py-4 pb-0'}>
-            <Button className={'rounded-full'} isIconOnly>
-              <Button.Label>
-                <Ionicons name={'checkmark-outline'} size={22} />
-              </Button.Label>
-            </Button>
-          </View>
         </ScrollView>
       </View>
     </KeyboardAvoidingView>
