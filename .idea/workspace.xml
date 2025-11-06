@@ -6,7 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="3b9b94c7-8d64-4794-8e85-da8609a987a0" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(root)/(main)/task/new.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(root)/(main)/task/new.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(root)/(main)/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(root)/(main)/(tabs)/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(root)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(root)/_layout.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bun.lock" beforeDir="false" afterPath="$PROJECT_DIR$/bun.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
@@ -76,6 +77,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;npm.generate:types.executor&quot;: &quot;Run&quot;,
     &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;C:\\Code\\02-SideProjects\\Apps\\another-todolist-app\\node_modules\\prettier&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;settings.javascript.prettier&quot;,
     &quot;ts.external.directory.path&quot;: &quot;C:\\Code\\02-SideProjects\\Apps\\another-todolist-app\\node_modules\\typescript\\lib&quot;,
@@ -95,6 +97,23 @@
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Code\02-SideProjects\Apps\another-todolist-app\app\(root)\(main)\(tabs)" />
     </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="generate:types" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="generate:types" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="npm.generate:types" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -119,7 +138,8 @@
       <workItem from="1762206099204" duration="2177000" />
       <workItem from="1762316348636" duration="62000" />
       <workItem from="1762357352595" duration="533000" />
-      <workItem from="1762384937534" duration="149000" />
+      <workItem from="1762384937534" duration="2803000" />
+      <workItem from="1762401386648" duration="1190000" />
     </task>
     <servers />
   </component>

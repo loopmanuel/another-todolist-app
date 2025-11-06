@@ -1,13 +1,24 @@
-import { Stack, Link, useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Button } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '@/components/ui/text';
 import NewFab from '@/components/new-fab';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function Home() {
   const router = useRouter();
+  const { signOut } = useAuthStore((state) => ({
+    signOut: state.signOut,
+  }));
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      Alert.alert('Sign out failed', error);
+    }
+  };
 
   return (
     <View className={'flex flex-1 bg-white'}>
@@ -25,10 +36,15 @@ export default function Home() {
             </View>
           ),
           headerRight: () => (
-            <View className={'pr-4'}>
+            <View className={'flex flex-row items-center gap-2 pr-4'}>
               <Button variant={'tertiary'} isIconOnly className={'rounded-full'}>
                 <Button.Label>
                   <Ionicons name={'search-outline'} size={20} />
+                </Button.Label>
+              </Button>
+              <Button variant={'tertiary'} isIconOnly className={'rounded-full'} onPress={handleSignOut}>
+                <Button.Label>
+                  <Ionicons name={'log-out-outline'} size={20} />
                 </Button.Label>
               </Button>
             </View>
