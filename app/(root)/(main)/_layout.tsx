@@ -27,6 +27,18 @@ export default function MainLayout() {
         }}
       />
       <Stack.Screen
+        name="task/[id]"
+        options={{
+          title: '',
+          presentation: 'modal',
+          sheetAllowedDetents: 'fitToContents',
+          sheetGrabberVisible: true,
+          sheetCornerRadius: 30,
+          headerShown: false,
+          sheetExpandsWhenScrolledToEdge: true,
+        }}
+      />
+      <Stack.Screen
         name="task/label-select"
         options={{
           title: 'Choose Label',

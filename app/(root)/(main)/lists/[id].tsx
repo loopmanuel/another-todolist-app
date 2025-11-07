@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
 
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { Text } from '@/components/ui/text';
@@ -76,7 +76,9 @@ export default function ListDetails() {
       const isDisabled = !user?.id || updatingTaskId === item.id;
 
       return (
-        <View className="mb-3 flex flex-row gap-4 rounded-lg bg-white p-4">
+        <Pressable
+          className="mb-3 flex flex-row gap-4 rounded-lg bg-white p-4"
+          onPress={() => router.push(`/task/${item.id}`)}>
           <Checkbox
             isSelected={isCompleted}
             isDisabled={isDisabled}
@@ -102,7 +104,7 @@ export default function ListDetails() {
               ) : null}
             </View>
           </View>
-        </View>
+        </Pressable>
       );
     },
     [handleToggleTask, updatingTaskId, user?.id]
