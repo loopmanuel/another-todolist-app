@@ -7,9 +7,12 @@
     <list default="true" id="3b9b94c7-8d64-4794-8e85-da8609a987a0" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(root)/(main)/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(root)/(main)/(tabs)/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(root)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(root)/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(root)/(main)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(root)/(main)/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(root)/(main)/lists/new.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(root)/(main)/lists/new.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/_layout.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bun.lock" beforeDir="false" afterPath="$PROJECT_DIR$/bun.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/supabase/database.types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/supabase/database.types.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -139,7 +142,8 @@
       <workItem from="1762316348636" duration="62000" />
       <workItem from="1762357352595" duration="533000" />
       <workItem from="1762384937534" duration="2803000" />
-      <workItem from="1762401386648" duration="1190000" />
+      <workItem from="1762401386648" duration="3053000" />
+      <workItem from="1762474252901" duration="1884000" />
     </task>
     <servers />
   </component>

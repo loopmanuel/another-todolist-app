@@ -1,17 +1,42 @@
+import { useCallback } from 'react';
+import { ActivityIndicator, Alert, ScrollView, TouchableOpacity, View } from 'react-native';
+
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
+import { Ionicons } from '@expo/vector-icons';
+import { Button } from 'heroui-native';
 import { Stack, useRouter } from 'expo-router';
 
-import { Alert, ScrollView, TouchableOpacity, View } from 'react-native';
-import { Button } from 'heroui-native';
-import { Ionicons } from '@expo/vector-icons';
 import { Text } from '@/components/ui/text';
 import NewFab from '@/components/new-fab';
+import { ListTile } from '@/features/lists/components/list-tile';
+import { useListsQuery } from '@/features/lists/queries/use-lists';
+import type { Tables } from '@/supabase/database.types';
 import { useAuthStore } from '@/store/auth-store';
 
 export default function Home() {
   const router = useRouter();
-  const { signOut } = useAuthStore((state) => ({
+  const { signOut, user } = useAuthStore((state) => ({
     signOut: state.signOut,
+    user: state.user,
   }));
+  const {
+    data: lists = [],
+    isLoading,
+    isRefetching,
+    refetch,
+  } = useListsQuery(user?.id ?? undefined);
+
+  const handleListPress = useCallback(
+    (listId: string) => {
+      router.push({ pathname: '/lists/[id]', params: { id: listId } });
+    },
+    [router]
+  );
+
+  const renderListItem = useCallback<ListRenderItem<Tables<'projects'>>>(
+    ({ item }) => <ListTile list={item} onPress={() => handleListPress(item.id)} />,
+    [handleListPress]
+  );
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -21,7 +46,7 @@ export default function Home() {
   };
 
   return (
-    <View className={'flex flex-1 bg-white'}>
+    <ScrollView className={'flex flex-1 bg-white'}>
       <NewFab />
       <Stack.Screen
         options={{
@@ -42,7 +67,11 @@ export default function Home() {
                   <Ionicons name={'search-outline'} size={20} />
                 </Button.Label>
               </Button>
-              <Button variant={'tertiary'} isIconOnly className={'rounded-full'} onPress={handleSignOut}>
+              <Button
+                variant={'tertiary'}
+                isIconOnly
+                className={'rounded-full'}
+                onPress={handleSignOut}>
                 <Button.Label>
                   <Ionicons name={'log-out-outline'} size={20} />
                 </Button.Label>
@@ -52,88 +81,92 @@ export default function Home() {
           headerShadowVisible: false,
         }}
       />
-      <ScrollView className={'pt-safe flex-1 px-6'}>
-        <View>
-          <TouchableOpacity className={'flex flex-row items-center gap-4'}>
-            <View className={'flex h-12 w-14 items-center justify-center rounded-lg bg-white'}>
+
+      <View className="pt-safe px-4">
+        <View className="gap-3">
+          <TouchableOpacity className="flex flex-row items-center gap-4">
+            <View className="flex h-12 w-14 items-center justify-center rounded-lg bg-white">
               <Ionicons name={'file-tray-outline'} size={22} />
             </View>
             <Text variant={'large'}>Inbox</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className={'flex flex-row items-center gap-4'}>
-            <View className={'flex h-12 w-14 items-center justify-center rounded-lg bg-white'}>
+          <TouchableOpacity className="flex flex-row items-center gap-4">
+            <View className="flex h-12 w-14 items-center justify-center rounded-lg bg-white">
               <Ionicons name={'today-outline'} size={22} />
             </View>
             <Text variant={'large'}>Today</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className={'flex flex-row items-center gap-4'}>
-            <View className={'flex h-12 w-14 items-center justify-center rounded-lg bg-white'}>
+          <TouchableOpacity className="flex flex-row items-center gap-4">
+            <View className="flex h-12 w-14 items-center justify-center rounded-lg bg-white">
               <Ionicons name={'calendar-outline'} size={22} />
             </View>
             <Text variant={'large'}>Upcoming</Text>
           </TouchableOpacity>
         </View>
 
-        <View className={'mt-6'}>
-          <View className={'mb-4 flex flex-row items-center gap-4'}>
-            <Text className={'border-none text-xl font-semibold text-gray-600'}>Favorites</Text>
+        <View className="mt-6">
+          <View className="mb-4 flex flex-row items-center gap-4">
+            <Text className="border-none text-xl font-semibold text-gray-600">Favorites</Text>
           </View>
 
           <TouchableOpacity
-            className={'mb-2 flex flex-row items-center gap-4'}
+            className="mb-2 flex flex-row items-center gap-4"
             onPress={() => router.push('/lists/1')}>
-            <View className={'flex h-14 w-14 items-center justify-center rounded-lg bg-gray-200'}>
-              <Text className={''}>📥</Text>
+            <View className="flex h-14 w-14 items-center justify-center rounded-lg bg-gray-200">
+              <Text>📥</Text>
             </View>
             <Text variant={'large'}>Project one</Text>
           </TouchableOpacity>
         </View>
 
-        <View className={'mt-6'}>
-          <Text variant={'h3'} className={'mb-4 border-none text-xl font-semibold text-gray-600'}>
-            Lists
-          </Text>
+        <Text variant="h3" className="mb-4 mt-6 border-none text-xl font-semibold text-gray-600">
+          Lists
+        </Text>
+      </View>
 
-          <TouchableOpacity className={'mb-2 flex flex-row items-center gap-4'}>
-            <View className={'flex h-14 w-14 items-center justify-center rounded-lg bg-gray-200'}>
-              <Text className={''}>📥</Text>
+      <FlashList
+        data={lists}
+        keyExtractor={(item) => item.id}
+        renderItem={renderListItem}
+        refreshing={isRefetching}
+        onRefresh={() => refetch()}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingBottom: 120,
+        }}
+        ListEmptyComponent={
+          lists.length === 0 ? (
+            <View className="py-8">
+              {isLoading ? (
+                <ActivityIndicator />
+              ) : (
+                <View className="rounded-2xl border border-dashed border-border p-6">
+                  <Text className="text-center text-base text-muted-foreground">
+                    Create your first list to keep things organized.
+                  </Text>
+                </View>
+              )}
             </View>
-            <Text variant={'large'}>Project one</Text>
-          </TouchableOpacity>
+          ) : null
+        }
+        ListFooterComponent={
+          <View className="pb-safe mt-2 gap-3">
+            <Button variant={'tertiary'} onPress={() => router.push('/lists/new')}>
+              <Ionicons name={'add-circle-outline'} size={24} />
+              <Button.Label>New List</Button.Label>
+            </Button>
 
-          <TouchableOpacity className={'mb-2 flex flex-row items-center gap-4'}>
-            <View className={'flex h-14 w-14 items-center justify-center rounded-lg bg-gray-200'}>
-              <Text className={''}>📥</Text>
-            </View>
-            <Text variant={'large'}>Project one</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity className={'mb-2 flex flex-row items-center gap-4'}>
-            <View
-              className={
-                'bg-gray-00 flex h-14 w-14 items-center justify-center rounded-lg bg-gray-200'
-              }>
-              <Text className={''}>📥</Text>
-            </View>
-            <Text variant={'large'}>Project one</Text>
-          </TouchableOpacity>
-
-          <Button variant={'tertiary'} className={'mt-4'} onPress={() => router.push('/lists/new')}>
-            <Ionicons name={'add-circle-outline'} size={24} />
-            <Button.Label>New List</Button.Label>
-          </Button>
-
-          <Button
-            variant={'tertiary'}
-            className={'mt-4'}
-            onPress={() => router.push('/task/label-select')}>
-            <Ionicons name={'add-circle-outline'} size={24} />
-            <Button.Label>New List</Button.Label>
-          </Button>
-        </View>
-      </ScrollView>
-    </View>
+            <Button variant={'tertiary'} onPress={() => router.push('/task/label-select')}>
+              <Ionicons name={'pricetag-outline'} size={24} />
+              <Button.Label>Choose Label</Button.Label>
+            </Button>
+          </View>
+        }
+      />
+    </ScrollView>
   );
 }

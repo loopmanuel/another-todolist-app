@@ -19,7 +19,7 @@ export default function MainLayout() {
         options={{
           title: '',
           presentation: 'formSheet',
-          sheetAllowedDetents: height > 700 ? [0.2] : 'fitToContents',
+          sheetAllowedDetents: 'fitToContents',
           sheetGrabberVisible: false,
           sheetCornerRadius: 30,
           headerShown: false,

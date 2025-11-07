@@ -64,47 +64,12 @@ export type Database = {
         }
         Relationships: []
       }
-      project_members: {
-        Row: {
-          added_at: string
-          profile_id: string
-          project_id: string
-          role: string
-        }
-        Insert: {
-          added_at?: string
-          profile_id: string
-          project_id: string
-          role: string
-        }
-        Update: {
-          added_at?: string
-          profile_id?: string
-          project_id?: string
-          role?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "project_members_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "project_members_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       projects: {
         Row: {
           color: string | null
           created_at: string
           deleted_at: string | null
+          icon: string | null
           id: string
           is_archived: boolean
           name: string
@@ -116,10 +81,11 @@ export type Database = {
           color?: string | null
           created_at?: string
           deleted_at?: string | null
+          icon?: string | null
           id?: string
           is_archived?: boolean
           name: string
-          owner_id: string
+          owner_id?: string
           sort_order?: number
           updated_at?: string
         }
@@ -127,6 +93,7 @@ export type Database = {
           color?: string | null
           created_at?: string
           deleted_at?: string | null
+          icon?: string | null
           id?: string
           is_archived?: boolean
           name?: string
@@ -460,7 +427,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_project_member: { Args: { p_project_id: string }; Returns: boolean }
+      is_project_owner: { Args: { p_project_id: string }; Returns: boolean }
     }
     Enums: {
       recur_freq: "daily" | "weekly" | "monthly"
