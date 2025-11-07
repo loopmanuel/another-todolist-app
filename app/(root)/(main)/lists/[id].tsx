@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, View } from 'react-native';
 
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { Text } from '@/components/ui/text';
@@ -10,6 +10,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import type { Tables } from '@/supabase/database.types';
 import { useTasksQuery } from '@/features/tasks/queries/use-tasks';
+import { useUpdateTaskStatusMutation } from '@/features/tasks/mutations/use-update-task-status';
 import { useAuthStore } from '@/store/auth-store';
 
 type TaskRow = Tables<'tasks'>;
@@ -44,34 +45,68 @@ export default function ListDetails() {
     isRefetching,
     refetch,
   } = useTasksQuery({ projectId, createdBy: user?.id });
+  const { mutateAsync: updateTaskStatus } = useUpdateTaskStatusMutation();
+  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
 
-  const renderTaskItem = useCallback<ListRenderItem<TaskRow>>(({ item }) => {
-    const isCompleted = item.status === 'done';
-    return (
-      <View className="mb-3 flex flex-row gap-4 rounded-lg bg-white p-4">
-        <Checkbox isSelected={isCompleted} isDisabled />
-        <View className={cn('flex-1', isCompleted && 'opacity-50')}>
-          <Text className={cn('text-lg font-medium', isCompleted && 'text-gray-600 line-through')}>
-            {item.title}
-          </Text>
-          <View className="mt-2 flex flex-row flex-wrap items-center gap-3">
-            {item.priority > 0 ? (
-              <View className="flex w-fit flex-row items-center justify-center gap-1 p-1">
-                <Text className="text-sm text-red-600">Priority {item.priority}</Text>
-              </View>
-            ) : null}
+  const handleToggleTask = useCallback(
+    async (task: TaskRow, nextSelected: boolean) => {
+      if (!user?.id) {
+        return;
+      }
+      setUpdatingTaskId(task.id);
+      try {
+        await updateTaskStatus({
+          taskId: task.id,
+          projectId: task.project_id,
+          status: nextSelected ? 'done' : 'todo',
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unable to update task.';
+        Alert.alert('Update failed', message);
+      } finally {
+        setUpdatingTaskId((current) => (current === task.id ? null : current));
+      }
+    },
+    [updateTaskStatus, user?.id]
+  );
 
-            {item.due_at ? (
-              <View className="flex w-fit flex-row items-center justify-center gap-1 p-1">
-                <Ionicons name={'calendar-outline'} size={14} />
-                <Text className="text-sm">{formatDueLabel(item.due_at)}</Text>
-              </View>
-            ) : null}
+  const renderTaskItem = useCallback<ListRenderItem<TaskRow>>(
+    ({ item }) => {
+      const isCompleted = item.status === 'done';
+      const isDisabled = !user?.id || updatingTaskId === item.id;
+
+      return (
+        <View className="mb-3 flex flex-row gap-4 rounded-lg bg-white p-4">
+          <Checkbox
+            isSelected={isCompleted}
+            isDisabled={isDisabled}
+            onSelectedChange={(next) => handleToggleTask(item, next)}
+          />
+          <View className={cn('flex-1', isCompleted && 'opacity-50')}>
+            <Text
+              className={cn('text-lg font-medium', isCompleted && 'text-gray-600 line-through')}>
+              {item.title}
+            </Text>
+            <View className="mt-2 flex flex-row flex-wrap items-center gap-3">
+              {item.priority > 0 ? (
+                <View className="flex w-fit flex-row items-center justify-center gap-1 p-1">
+                  <Text className="text-sm text-red-600">Priority {item.priority}</Text>
+                </View>
+              ) : null}
+
+              {item.due_at ? (
+                <View className="flex w-fit flex-row items-center justify-center gap-1 p-1">
+                  <Ionicons name={'calendar-outline'} size={14} />
+                  <Text className="text-sm">{formatDueLabel(item.due_at)}</Text>
+                </View>
+              ) : null}
+            </View>
           </View>
         </View>
-      </View>
-    );
-  }, []);
+      );
+    },
+    [handleToggleTask, updatingTaskId, user?.id]
+  );
 
   const listEmpty = (
     <View className="py-10">
@@ -84,34 +119,6 @@ export default function ListDetails() {
           </Text>
         </View>
       )}
-    </View>
-  );
-
-  const listBackUp = () => (
-    <View className={'mx-6 mb-3 flex flex-row gap-4 rounded-lg bg-white p-4'}>
-      <View>
-        <Checkbox isSelected />
-      </View>
-      <View className={cn('opacity-50')}>
-        <Text className={cn('text-lg font-medium', 'text-gray-600 line-through')}>
-          this is the item
-        </Text>
-        <View className={'flex flex-row items-center gap-2'}>
-          <View className={'flex w-fit flex-row items-center justify-center gap-1 p-1'}>
-            <Text className={'text-sm text-red-600'}>Urgent</Text>
-          </View>
-
-          <View className={'flex w-fit flex-row items-center justify-center gap-1 p-1'}>
-            <Ionicons name={'calendar-outline'} size={14} />
-            <Text className={'text-sm'}>Today</Text>
-          </View>
-
-          <View className={'flex w-fit flex-row items-center justify-center gap-1 p-1'}>
-            <Ionicons name={'pricetag-outline'} size={14} />
-            <Text className={'text-sm'}>Label here</Text>
-          </View>
-        </View>
-      </View>
     </View>
   );
 
