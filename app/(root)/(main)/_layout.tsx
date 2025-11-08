@@ -39,18 +39,6 @@ export default function MainLayout() {
         }}
       />
       <Stack.Screen
-        name="task/label-select"
-        options={{
-          title: 'Choose Label',
-          presentation: 'formSheet',
-          sheetAllowedDetents: 'fitToContents',
-          sheetGrabberVisible: true,
-          sheetCornerRadius: 30,
-          headerShown: false,
-          sheetExpandsWhenScrolledToEdge: false,
-        }}
-      />
-      <Stack.Screen
         name="task/new"
         options={{
           title: '',
@@ -84,6 +72,18 @@ export default function MainLayout() {
           sheetCornerRadius: 30,
           headerShown: true,
           sheetExpandsWhenScrolledToEdge: false,
+        }}
+      />
+      <Stack.Screen
+        name="labels/pick-label"
+        options={{
+          title: 'Pick Labels',
+          presentation: 'modal',
+          sheetAllowedDetents: 'fitToContents',
+          sheetGrabberVisible: true,
+          sheetCornerRadius: 30,
+          headerShown: false,
+          sheetExpandsWhenScrolledToEdge: true,
         }}
       />
     </Stack>

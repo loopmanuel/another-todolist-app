@@ -19,7 +19,9 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMMKVString } from 'react-native-mmkv';
 import { useAuthStore } from '@/store/auth-store';
+import { useTaskFormStore } from '@/store/task-form-store';
 import { useListsQuery } from '@/features/lists/queries/use-lists';
+import { useLabelsQuery } from '@/features/labels/queries/use-labels';
 import { useCreateTaskMutation } from '@/features/tasks/mutations/use-create-task';
 import { useTaskQuery } from '@/features/tasks/queries/use-task';
 import { TASK_LIST_STORAGE_KEY } from '@/features/tasks/constants';
@@ -47,7 +49,10 @@ const LIST_REQUIRED_ERROR = 'Select a list before adding tasks.';
 
 export default function NewTask() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ parent_id?: string | string[]; list_id?: string | string[] }>();
+  const params = useLocalSearchParams<{
+    parent_id?: string | string[];
+    list_id?: string | string[];
+  }>();
   const parentTaskId = useMemo(() => {
     if (!params.parent_id) {
       return undefined;
@@ -68,12 +73,14 @@ export default function NewTask() {
   const [dateMMKV, setDateMMKV] = useMMKVString('date');
   const [listMMKV, setListMMKV] = useMMKVString(TASK_LIST_STORAGE_KEY);
   const { user } = useAuthStore((state) => ({ user: state.user }));
+  const { selectedLabels, clearSelectedLabels } = useTaskFormStore();
   const {
     data: parentTask,
     isLoading: parentLoading,
     error: parentError,
   } = useTaskQuery({ taskId: parentTaskId, createdBy: user?.id });
   const { data: lists = [], isLoading: listsLoading } = useListsQuery(user?.id ?? undefined);
+  const { data: allLabels = [] } = useLabelsQuery({ userId: user?.id });
   const parentProject = useMemo(() => {
     if (!parentTask?.project_id) {
       return undefined;
@@ -81,7 +88,7 @@ export default function NewTask() {
 
     return lists.find((list) => list.id === parentTask.project_id);
   }, [lists, parentTask?.project_id]);
-  const selectedListId = isSubtask ? parentTask?.project_id ?? null : listMMKV ?? null;
+  const selectedListId = isSubtask ? (parentTask?.project_id ?? null) : (listMMKV ?? null);
   const selectedList = useMemo(() => {
     if (!selectedListId) {
       return null;
@@ -90,8 +97,8 @@ export default function NewTask() {
   }, [lists, selectedListId]);
   const canSelectList = !isSubtask && Boolean(user?.id);
   const activeProjectName = isSubtask
-    ? parentProject?.name ?? (listsLoading ? 'Loading list…' : 'Parent list')
-    : selectedList?.name ?? (listsLoading ? 'Loading list…' : 'Select a list');
+    ? (parentProject?.name ?? (listsLoading ? 'Loading list…' : 'Parent list'))
+    : (selectedList?.name ?? (listsLoading ? 'Loading list…' : 'Select a list'));
 
   // RHF defaults: use MMKV if present, else null
   const initialDue = useMemo(() => dateMMKV ?? null, [dateMMKV]); // stable default
@@ -186,6 +193,7 @@ export default function NewTask() {
         title: data.title,
         description: data.description ?? '',
         dueDate: data.dueDate,
+        labelIds: Array.from(selectedLabels),
       });
 
       reset({
@@ -194,6 +202,7 @@ export default function NewTask() {
         dueDate: null,
       });
       setDateMMKV?.(undefined);
+      clearSelectedLabels();
       setFormError(null);
       router.back();
     } catch (err) {
@@ -351,11 +360,31 @@ export default function NewTask() {
             </Pressable>
 
             <Pressable
-              onPress={() => router.push('/task/label-select')}
+              onPress={() => router.push('/labels/pick-label')}
               className={'mr-4 flex flex-row items-center gap-2 rounded-md bg-gray-200 px-4 py-2'}>
               <Ionicons name={'pricetag-outline'} size={18} />
-              <Text>Label</Text>
+              <Text>
+                {selectedLabels.size > 0 ? `Labels (${selectedLabels.size})` : 'Label'}
+              </Text>
             </Pressable>
+            {selectedLabels.size > 0
+              ? Array.from(selectedLabels)
+                  .slice(0, 3)
+                  .map((labelId) => {
+                    const label = allLabels.find((l) => l.id === labelId);
+                    if (!label) return null;
+                    return (
+                      <View
+                        key={labelId}
+                        className={'mr-4 flex flex-row items-center gap-2 rounded-md px-4 py-2'}
+                        style={{ backgroundColor: label.color || '#6366f1' }}>
+                        <Text className={'text-white'} numberOfLines={1}>
+                          {label.name}
+                        </Text>
+                      </View>
+                    );
+                  })
+              : null}
           </ScrollView>
           {formError ? (
             <Text className={'px-6 pt-4 text-sm text-red-500'} role={'alert'}>

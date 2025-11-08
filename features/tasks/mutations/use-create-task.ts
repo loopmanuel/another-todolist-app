@@ -14,6 +14,7 @@ export type CreateTaskVariables = {
   title: string;
   description?: string | null;
   dueDate?: string | null;
+  labelIds?: string[];
 };
 
 function toDueAt(dueDate?: string | null) {
@@ -30,7 +31,7 @@ export function useCreateTaskMutation() {
 
   return useMutation<TaskRow, Error, CreateTaskVariables>({
     mutationKey: [...taskKeys.all, 'create'],
-    mutationFn: async ({ createdBy, projectId, parentId, title, description, dueDate }) => {
+    mutationFn: async ({ createdBy, projectId, parentId, title, description, dueDate, labelIds }) => {
       const payload: TablesInsert<'tasks'> = {
         created_by: createdBy,
         project_id: projectId,
@@ -45,6 +46,22 @@ export function useCreateTaskMutation() {
 
       if (error) {
         throw new Error(error.message);
+      }
+
+      // Insert task-label relationships if any labels are selected
+      if (labelIds && labelIds.length > 0) {
+        const taskLabelPayload = labelIds.map((labelId) => ({
+          task_id: data.id,
+          label_id: labelId,
+        }));
+
+        const { error: labelError } = await supabase.from('task_labels').insert(taskLabelPayload);
+
+        if (labelError) {
+          // If label insertion fails, we could delete the task or just log the error
+          // For now, we'll throw an error
+          throw new Error(`Task created but labels failed: ${labelError.message}`);
+        }
       }
 
       return data;
