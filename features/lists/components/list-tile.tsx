@@ -21,12 +21,12 @@ function ListTileComponent({ list, onPress }: ListTileProps) {
 
   return (
     <Pressable
-      className="mb-3 flex flex-row items-center gap-4 rounded-2xl bg-white p-4 px-0"
+      className="mb-4 flex flex-row items-center gap-4 bg-white"
       onPress={() => onPress?.(list)}>
       <View
         className="h-14 w-14 items-center justify-center rounded-lg"
         style={{ backgroundColor: accentColor }}>
-        {list.icon ? list.icon : <Ionicons name="list-outline" size={22} color="#111827" />}
+        {list.icon ? list.icon : <Ionicons name="list-outline" size={20} color="#111827" />}
       </View>
       <View className="flex-1">
         <Text variant="large" numberOfLines={1}>
