@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import type { Tables } from '@/supabase/database.types';
 import { useUpdateTaskStatusMutation } from '@/features/tasks/mutations/use-update-task-status';
 import { useAuthStore } from '@/store/auth-store';
+import { getPriorityColor, getPriorityLabel } from '@/features/tasks/utils/priority';
 
 export type TaskRow = Tables<'tasks'>;
 
@@ -91,7 +92,19 @@ export function TaskCard({ task, isDisabled, onPress }: TaskCardProps) {
         <View className="mt-2 flex flex-row flex-wrap items-center gap-3">
           {task.priority > 0 ? (
             <View className="flex w-fit flex-row items-center justify-center gap-1 p-1">
-              <Text className="text-sm text-red-600">Priority {task.priority}</Text>
+              <Ionicons
+                name={task.priority > 0 ? 'flag' : 'flag-outline'}
+                size={14}
+                color={task.priority > 0 ? getPriorityColor(task.priority) : undefined}
+              />
+
+              <Text
+                className="text-sm"
+                style={{
+                  color: task.priority > 0 ? getPriorityColor(task.priority) : undefined,
+                }}>
+                {getPriorityLabel(task.priority)}
+              </Text>
             </View>
           ) : null}
 
