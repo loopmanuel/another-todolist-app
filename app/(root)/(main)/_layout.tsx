@@ -86,6 +86,18 @@ export default function MainLayout() {
           sheetExpandsWhenScrolledToEdge: true,
         }}
       />
+      <Stack.Screen
+        name="lists/color-picker"
+        options={{
+          title: 'Choose Color',
+          presentation: 'formSheet',
+          sheetAllowedDetents: 'fitToContents',
+          sheetGrabberVisible: true,
+          sheetCornerRadius: 30,
+          headerShown: false,
+          sheetExpandsWhenScrolledToEdge: false,
+        }}
+      />
     </Stack>
   );
 }

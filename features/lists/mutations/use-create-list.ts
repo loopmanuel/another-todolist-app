@@ -17,10 +17,11 @@ export function useCreateListMutation() {
 
   return useMutation<ProjectRow, Error, CreateListVariables>({
     mutationKey: [...listKeys.all, 'create'],
-    mutationFn: async ({ ownerId, name, color }) => {
+    mutationFn: async ({ ownerId, name, icon, color }) => {
       const payload: TablesInsert<'projects'> = {
         name: name.trim(),
         owner_id: ownerId,
+        icon: icon?.trim() ? icon.trim() : null,
         color: color?.trim() ? color.trim() : null,
       };
 

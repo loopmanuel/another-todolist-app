@@ -26,7 +26,7 @@ import { useTaskFormStore } from '@/store/task-form-store';
 import { useListsQuery } from '@/features/lists/queries/use-lists';
 import { useUpdateTaskMutation } from '@/features/tasks/mutations/use-update-task';
 import { useSubtasksQuery } from '@/features/tasks/queries/use-subtasks';
-import { TaskCard, formatDueLabel, formatPriority } from '@/features/tasks/components/task-card';
+import { TaskCard, formatDueLabel } from '@/features/tasks/components/task-card';
 import { getPriorityLabel, getPriorityColor } from '@/features/tasks/utils/priority';
 import { useMMKVString } from 'react-native-mmkv';
 

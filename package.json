@@ -54,6 +54,7 @@
     "react-native-svg": "^15.12.1",
     "react-native-web": "^0.21.0",
     "react-native-worklets": "^0.5.1",
+    "rn-emoji-keyboard": "^1.7.0",
     "supabase": "^2.54.11",
     "tailwind-merge": "^3.3.1",
     "tailwind-variants": "^3.1.0",

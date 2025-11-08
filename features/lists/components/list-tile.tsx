@@ -26,7 +26,11 @@ function ListTileComponent({ list, onPress }: ListTileProps) {
       <View
         className="h-14 w-14 items-center justify-center rounded-lg"
         style={{ backgroundColor: accentColor }}>
-        {list.icon ? list.icon : <Ionicons name="list-outline" size={20} color="#111827" />}
+        {list.icon ? (
+          <Text>{list.icon}</Text>
+        ) : (
+          <Ionicons name="list-outline" size={20} color="#111827" />
+        )}
       </View>
       <View className="flex-1">
         <Text variant="large" numberOfLines={1}>
