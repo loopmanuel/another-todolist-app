@@ -1,19 +1,25 @@
-import React from 'react';
-import { Pressable, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Pressable, View } from 'react-native';
 import { Checkbox } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import type { Tables } from '@/supabase/database.types';
+import { useUpdateTaskStatusMutation } from '@/features/tasks/mutations/use-update-task-status';
+import { useAuthStore } from '@/store/auth-store';
 
 export type TaskRow = Tables<'tasks'>;
 
 type TaskCardProps = {
-  task: TaskRow;
+  task: TaskRow & {
+    subtaskCounts?: {
+      total: number;
+      completed: number;
+    };
+  };
   isDisabled?: boolean;
   onPress?: (task: TaskRow) => void;
-  onToggleStatus?: (task: TaskRow, nextSelected: boolean) => void;
 };
 
 export function formatDueLabel(dateString?: string | null) {
@@ -37,8 +43,34 @@ export function formatPriority(priority?: number | null) {
   return `Priority ${priority}`;
 }
 
-export function TaskCard({ task, isDisabled, onPress, onToggleStatus }: TaskCardProps) {
+export function TaskCard({ task, isDisabled, onPress }: TaskCardProps) {
   const isCompleted = task.status === 'done';
+  const { user } = useAuthStore((state) => ({ user: state.user }));
+  const { mutateAsync: updateTaskStatus } = useUpdateTaskStatusMutation();
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleToggleStatus = async (nextSelected: boolean) => {
+    if (!user?.id) {
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await updateTaskStatus({
+        taskId: task.id,
+        projectId: task.project_id,
+        parentId: task.parent_id ?? null,
+        status: nextSelected ? 'done' : 'todo',
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to update task.';
+      Alert.alert('Update failed', message);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const checkboxDisabled = isDisabled || isUpdating;
 
   return (
     <Pressable
@@ -47,11 +79,9 @@ export function TaskCard({ task, isDisabled, onPress, onToggleStatus }: TaskCard
       disabled={!onPress}>
       <Checkbox
         isSelected={isCompleted}
-        isDisabled={isDisabled}
+        isDisabled={checkboxDisabled}
         onSelectedChange={(next) => {
-          if (onToggleStatus) {
-            onToggleStatus(task, next);
-          }
+          void handleToggleStatus(next);
         }}
       />
       <View className={cn('flex-1', isCompleted && 'opacity-50')}>
@@ -69,6 +99,15 @@ export function TaskCard({ task, isDisabled, onPress, onToggleStatus }: TaskCard
             <View className="flex w-fit flex-row items-center justify-center gap-1 p-1">
               <Ionicons name={'calendar-outline'} size={14} />
               <Text className="text-sm">{formatDueLabel(task.due_at)}</Text>
+            </View>
+          ) : null}
+
+          {task.subtaskCounts ? (
+            <View className="flex w-fit flex-row items-center justify-center gap-1 p-1">
+              <Ionicons name={'list-outline'} size={14} />
+              <Text className="text-sm">
+                {task.subtaskCounts.completed}/{task.subtaskCounts.total}
+              </Text>
             </View>
           ) : null}
         </View>

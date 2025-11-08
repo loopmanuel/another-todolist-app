@@ -9,7 +9,6 @@ import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import type { Tables } from '@/supabase/database.types';
 import { useTaskQuery } from '@/features/tasks/queries/use-task';
 import { useUpdateTaskStatusMutation } from '@/features/tasks/mutations/use-update-task-status';
 import { useAuthStore } from '@/store/auth-store';
@@ -76,7 +75,6 @@ export default function TaskDetails() {
   }, [reset, task?.title]);
 
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const [updatingSubtaskId, setUpdatingSubtaskId] = useState<string | null>(null);
   const { mutateAsync: updateTaskStatus } = useUpdateTaskStatusMutation();
   const { mutateAsync: updateTask, isPending: isUpdatingTask } = useUpdateTaskMutation();
   const [formError, setFormError] = useState<string | null>(null);
@@ -103,29 +101,6 @@ export default function TaskDetails() {
       }
     },
     [task, updateTaskStatus, user?.id]
-  );
-
-  const handleToggleSubtask = useCallback(
-    async (subtask: Tables<'tasks'>, nextSelected: boolean) => {
-      if (!user?.id) {
-        return;
-      }
-      setUpdatingSubtaskId(subtask.id);
-      try {
-        await updateTaskStatus({
-          taskId: subtask.id,
-          projectId: subtask.project_id,
-          parentId: subtask.parent_id ?? null,
-          status: nextSelected ? 'done' : 'todo',
-        });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Unable to update subtask.';
-        Alert.alert('Update failed', message);
-      } finally {
-        setUpdatingSubtaskId((current) => (current === subtask.id ? null : current));
-      }
-    },
-    [updateTaskStatus, user?.id]
   );
 
   const onSubmit = handleSubmit(async ({ title }) => {
@@ -290,9 +265,7 @@ export default function TaskDetails() {
                 <TaskCard
                   key={subtask.id}
                   task={subtask}
-                  isDisabled={!user?.id || updatingSubtaskId === subtask.id}
                   onPress={(nextTask) => router.push(`/task/${nextTask.id}`)}
-                  onToggleStatus={handleToggleSubtask}
                 />
               ))}
             </View>

@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, View } from 'react-native';
+import { useCallback, useMemo } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { Text } from '@/components/ui/text';
@@ -7,13 +7,9 @@ import { Button } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import type { Tables } from '@/supabase/database.types';
-import { useTasksQuery } from '@/features/tasks/queries/use-tasks';
-import { useUpdateTaskStatusMutation } from '@/features/tasks/mutations/use-update-task-status';
+import { useTasksQuery, type TaskWithSubtaskCounts } from '@/features/tasks/queries/use-tasks';
 import { useAuthStore } from '@/store/auth-store';
 import { TaskCard } from '@/features/tasks/components/task-card';
-
-type TaskRow = Tables<'tasks'>;
 
 export default function ListDetails() {
   const router = useRouter();
@@ -32,48 +28,16 @@ export default function ListDetails() {
     isRefetching,
     refetch,
   } = useTasksQuery({ projectId, createdBy: user?.id });
-  const { mutateAsync: updateTaskStatus } = useUpdateTaskStatusMutation();
-  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
 
-  const handleToggleTask = useCallback(
-    async (task: TaskRow, nextSelected: boolean) => {
-      if (!user?.id) {
-        return;
-      }
-      setUpdatingTaskId(task.id);
-      try {
-        await updateTaskStatus({
-          taskId: task.id,
-          projectId: task.project_id,
-          parentId: task.parent_id ?? null,
-          status: nextSelected ? 'done' : 'todo',
-        });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Unable to update task.';
-        Alert.alert('Update failed', message);
-      } finally {
-        setUpdatingTaskId((current) => (current === task.id ? null : current));
-      }
-    },
-    [updateTaskStatus, user?.id]
-  );
-
-  const renderTaskItem = useCallback<ListRenderItem<TaskRow>>(
+  const renderTaskItem = useCallback<ListRenderItem<TaskWithSubtaskCounts>>(
     ({ item }) => {
-      const isDisabled = !user?.id || updatingTaskId === item.id;
-
       return (
         <View className={'mb-3'}>
-          <TaskCard
-            task={item}
-            isDisabled={isDisabled}
-            onPress={(task) => router.push(`/task/${task.id}`)}
-            onToggleStatus={handleToggleTask}
-          />
+          <TaskCard task={item} onPress={(task) => router.push(`/task/${task.id}`)} />
         </View>
       );
     },
-    [handleToggleTask, router, updatingTaskId, user?.id]
+    [router]
   );
 
   const listEmpty = (
