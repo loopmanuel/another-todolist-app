@@ -7,6 +7,14 @@ export default function MainLayout() {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
+        name="today"
+        options={{
+          title: 'Today',
+          headerShadowVisible: false,
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      <Stack.Screen
         name="lists/[id]"
         options={{
           title: 'Lists Details',

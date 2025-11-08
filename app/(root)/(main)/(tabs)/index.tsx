@@ -93,7 +93,9 @@ export default function Home() {
               <Text variant={'large'}>Inbox</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex flex-row items-center gap-4">
+            <TouchableOpacity
+              className="flex flex-row items-center gap-4"
+              onPress={() => router.push('/today')}>
               <View className="flex h-12 w-14 items-center justify-center rounded-lg bg-white">
                 <Ionicons name={'today-outline'} size={22} />
               </View>
