@@ -42,7 +42,7 @@ export function TaskCard({ task, isDisabled, onPress, onToggleStatus }: TaskCard
 
   return (
     <Pressable
-      className="mb-3 flex flex-row gap-4 rounded-lg bg-white p-4"
+      className="flex flex-row gap-4 rounded-lg bg-white p-4"
       onPress={() => (onPress ? onPress(task) : undefined)}
       disabled={!onPress}>
       <Checkbox

@@ -22,6 +22,8 @@ import { useAuthStore } from '@/store/auth-store';
 import { useListsQuery } from '@/features/lists/queries/use-lists';
 import { useCreateTaskMutation } from '@/features/tasks/mutations/use-create-task';
 import { useTaskQuery } from '@/features/tasks/queries/use-task';
+import { TASK_LIST_STORAGE_KEY } from '@/features/tasks/constants';
+import { cn } from '@/lib/utils';
 
 // Local YYYY-MM-DD (avoids UTC off-by-one)
 function todayLocal(): string {
@@ -41,21 +43,30 @@ const TaskSchema = z.object({
 
 type TaskForm = z.infer<typeof TaskSchema>;
 
+const LIST_REQUIRED_ERROR = 'Select a list before adding tasks.';
+
 export default function NewTask() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ parent_id?: string | string[] }>();
+  const params = useLocalSearchParams<{ parent_id?: string | string[]; list_id?: string | string[] }>();
   const parentTaskId = useMemo(() => {
     if (!params.parent_id) {
       return undefined;
     }
     return Array.isArray(params.parent_id) ? params.parent_id[0] : params.parent_id;
   }, [params.parent_id]);
+  const listParamId = useMemo(() => {
+    if (!params.list_id) {
+      return undefined;
+    }
+    return Array.isArray(params.list_id) ? params.list_id[0] : params.list_id;
+  }, [params.list_id]);
   const isSubtask = Boolean(parentTaskId);
   const inputRef = React.useRef<TextInput>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
   // Persisted date (shared with your date-picker screen)
   const [dateMMKV, setDateMMKV] = useMMKVString('date');
+  const [listMMKV, setListMMKV] = useMMKVString(TASK_LIST_STORAGE_KEY);
   const { user } = useAuthStore((state) => ({ user: state.user }));
   const {
     data: parentTask,
@@ -63,7 +74,6 @@ export default function NewTask() {
     error: parentError,
   } = useTaskQuery({ taskId: parentTaskId, createdBy: user?.id });
   const { data: lists = [], isLoading: listsLoading } = useListsQuery(user?.id ?? undefined);
-  const defaultProject = lists[0];
   const parentProject = useMemo(() => {
     if (!parentTask?.project_id) {
       return undefined;
@@ -71,10 +81,17 @@ export default function NewTask() {
 
     return lists.find((list) => list.id === parentTask.project_id);
   }, [lists, parentTask?.project_id]);
-  const targetProjectId = parentTask?.project_id ?? defaultProject?.id;
+  const selectedListId = isSubtask ? parentTask?.project_id ?? null : listMMKV ?? null;
+  const selectedList = useMemo(() => {
+    if (!selectedListId) {
+      return null;
+    }
+    return lists.find((list) => list.id === selectedListId) ?? null;
+  }, [lists, selectedListId]);
+  const canSelectList = !isSubtask && Boolean(user?.id);
   const activeProjectName = isSubtask
     ? parentProject?.name ?? (listsLoading ? 'Loading list…' : 'Parent list')
-    : defaultProject?.name ?? 'Inbox';
+    : selectedList?.name ?? (listsLoading ? 'Loading list…' : 'Select a list');
 
   // RHF defaults: use MMKV if present, else null
   const initialDue = useMemo(() => dateMMKV ?? null, [dateMMKV]); // stable default
@@ -111,6 +128,21 @@ export default function NewTask() {
     }
   }, [dateMMKV, setValue]);
 
+  useEffect(() => {
+    if (isSubtask || !listParamId || !setListMMKV) {
+      return;
+    }
+    if (listParamId !== listMMKV) {
+      setListMMKV(listParamId);
+    }
+  }, [isSubtask, listMMKV, listParamId, setListMMKV]);
+
+  useEffect(() => {
+    if (formError === LIST_REQUIRED_ERROR && selectedListId) {
+      setFormError(null);
+    }
+  }, [formError, selectedListId]);
+
   const dueDate = watch('dueDate');
   const { mutateAsync: createTask, isPending } = useCreateTaskMutation();
 
@@ -139,8 +171,10 @@ export default function NewTask() {
       return;
     }
 
+    const targetProjectId = selectedListId;
+
     if (!targetProjectId) {
-      setFormError(isSubtask ? 'Unable to determine the parent project.' : 'Create a list before adding tasks.');
+      setFormError(isSubtask ? 'Unable to determine the parent project.' : LIST_REQUIRED_ERROR);
       return;
     }
 
@@ -278,17 +312,26 @@ export default function NewTask() {
                 <Text className={'max-w-[180px]'} numberOfLines={1}>
                   {parentLoading
                     ? 'Loading parent…'
-                    : parentTask?.title ?? parentError?.message ?? 'Parent not found'}
+                    : (parentTask?.title ?? parentError?.message ?? 'Parent not found')}
                 </Text>
               </View>
             ) : null}
-            <View
-              className={
-                'mr-4 flex flex-row items-center gap-2 rounded-md border border-border bg-gray-200 px-4 py-2'
-              }>
+            <Pressable
+              onPress={() => {
+                if (!canSelectList) {
+                  return;
+                }
+                Keyboard.dismiss();
+                router.push('/task/inbox-picker');
+              }}
+              disabled={!canSelectList}
+              className={cn(
+                'mr-4 flex flex-row items-center gap-2 rounded-md border border-border bg-gray-200 px-4 py-2',
+                !canSelectList && 'opacity-60'
+              )}>
               <Ionicons name={'file-tray-outline'} size={18} />
-              <Text>{activeProjectName}</Text>
-            </View>
+              <Text numberOfLines={1}>{activeProjectName}</Text>
+            </Pressable>
 
             <Pressable
               onPress={() => {

@@ -46,7 +46,7 @@ export default function MainLayout() {
           sheetAllowedDetents: 'fitToContents',
           sheetGrabberVisible: true,
           sheetCornerRadius: 30,
-          headerShown: true,
+          headerShown: false,
           sheetExpandsWhenScrolledToEdge: false,
         }}
       />

@@ -63,12 +63,14 @@ export default function ListDetails() {
       const isDisabled = !user?.id || updatingTaskId === item.id;
 
       return (
-        <TaskCard
-          task={item}
-          isDisabled={isDisabled}
-          onPress={(task) => router.push(`/task/${task.id}`)}
-          onToggleStatus={handleToggleTask}
-        />
+        <View className={'mb-3'}>
+          <TaskCard
+            task={item}
+            isDisabled={isDisabled}
+            onPress={(task) => router.push(`/task/${task.id}`)}
+            onToggleStatus={handleToggleTask}
+          />
+        </View>
       );
     },
     [handleToggleTask, router, updatingTaskId, user?.id]
@@ -101,7 +103,15 @@ export default function ListDetails() {
       />
 
       <View className={'pb-safe absolute bottom-0 left-0 right-0 px-6 pt-2'}>
-        <Button variant={'secondary'} onPress={() => router.push('/task/new')}>
+        <Button
+          variant={'secondary'}
+          onPress={() => {
+            if (projectId) {
+              router.push({ pathname: '/task/new', params: { list_id: projectId } });
+            } else {
+              router.push('/task/new');
+            }
+          }}>
           <Ionicons name={'add-circle-outline'} size={24} />
           <Button.Label>Add Todo</Button.Label>
         </Button>
