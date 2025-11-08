@@ -10,7 +10,7 @@ type TaskRow = Tables<'tasks'>;
 export type UpdateTaskVariables = {
   taskId: string;
   projectId: string;
-  payload: Pick<TablesUpdate<'tasks'>, 'title'>;
+  payload: Pick<TablesUpdate<'tasks'>, 'title' | 'description' | 'due_at' | 'priority'>;
 };
 
 export function useUpdateTaskMutation() {
@@ -19,12 +19,17 @@ export function useUpdateTaskMutation() {
   return useMutation<TaskRow, Error, UpdateTaskVariables>({
     mutationKey: [...taskKeys.all, 'update'],
     mutationFn: async ({ taskId, payload }) => {
+      const updatePayload: TablesUpdate<'tasks'> = {
+        ...payload,
+        title: payload.title?.trim(),
+        description: payload.description !== undefined
+          ? (payload.description?.trim() || null)
+          : undefined,
+      };
+
       const { data, error } = await supabase
         .from('tasks')
-        .update({
-          ...payload,
-          title: payload.title?.trim(),
-        })
+        .update(updatePayload)
         .eq('id', taskId)
         .select()
         .single();

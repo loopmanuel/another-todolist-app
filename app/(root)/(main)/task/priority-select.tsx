@@ -55,10 +55,7 @@ export default function PrioritySelect() {
   const handleSelectPriority = (priority: number) => {
     setSelectedPriority(priority);
     setPriority(priority);
-    // Auto-close after selection
-    setTimeout(() => {
-      router.back();
-    }, 150);
+    router.dismiss();
   };
 
   return (
@@ -94,9 +91,7 @@ export default function PrioritySelect() {
                 <Text className="text-sm text-gray-600">{option.description}</Text>
               </View>
 
-              {isSelected && (
-                <Ionicons name="checkmark-circle" size={24} color="#3b82f6" />
-              )}
+              {isSelected && <Ionicons name="checkmark-circle" size={24} color="#3b82f6" />}
             </Pressable>
           );
         })}

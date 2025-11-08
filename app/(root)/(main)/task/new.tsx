@@ -74,7 +74,7 @@ export default function NewTask() {
   const [dateMMKV, setDateMMKV] = useMMKVString('date');
   const [listMMKV, setListMMKV] = useMMKVString(TASK_LIST_STORAGE_KEY);
   const { user } = useAuthStore((state) => ({ user: state.user }));
-  const { selectedLabels, clearSelectedLabels, priority, clearPriority } = useTaskFormStore();
+  const { selectedLabels, priority, clearAll } = useTaskFormStore();
   const {
     data: parentTask,
     isLoading: parentLoading,
@@ -204,8 +204,7 @@ export default function NewTask() {
         dueDate: null,
       });
       setDateMMKV?.(undefined);
-      clearSelectedLabels();
-      clearPriority();
+      clearAll();
       setFormError(null);
       router.back();
     } catch (err) {

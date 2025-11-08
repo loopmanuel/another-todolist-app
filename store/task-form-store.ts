@@ -7,6 +7,9 @@ type TaskFormState = {
   priority: number;
   setPriority: (priority: number) => void;
   clearPriority: () => void;
+  editingTaskId: string | null;
+  setEditingTaskId: (taskId: string | null) => void;
+  clearAll: () => void;
 };
 
 export const useTaskFormStore = create<TaskFormState>((set) => ({
@@ -16,4 +19,12 @@ export const useTaskFormStore = create<TaskFormState>((set) => ({
   priority: 0,
   setPriority: (priority) => set({ priority }),
   clearPriority: () => set({ priority: 0 }),
+  editingTaskId: null,
+  setEditingTaskId: (taskId) => set({ editingTaskId: taskId }),
+  clearAll: () =>
+    set({
+      selectedLabels: new Set(),
+      priority: 0,
+      editingTaskId: null,
+    }),
 }));
