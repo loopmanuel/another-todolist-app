@@ -1,28 +1,30 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import type { Tables } from '@/supabase/database.types';
+import type { Tables, TablesUpdate } from '@/supabase/database.types';
 import { supabase } from '@/utils/supabase';
 
 import { taskKeys } from '../queries/keys';
 
 type TaskRow = Tables<'tasks'>;
 
-type UpdateTaskStatusVariables = {
+export type UpdateTaskVariables = {
   taskId: string;
   projectId: string;
-  parentId?: string | null;
-  status: TaskRow['status'];
+  payload: Pick<TablesUpdate<'tasks'>, 'title'>;
 };
 
-export function useUpdateTaskStatusMutation() {
+export function useUpdateTaskMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation<TaskRow, Error, UpdateTaskStatusVariables>({
-    mutationKey: [...taskKeys.all, 'update-status'],
-    mutationFn: async ({ taskId, status }) => {
+  return useMutation<TaskRow, Error, UpdateTaskVariables>({
+    mutationKey: [...taskKeys.all, 'update'],
+    mutationFn: async ({ taskId, payload }) => {
       const { data, error } = await supabase
         .from('tasks')
-        .update({ status })
+        .update({
+          ...payload,
+          title: payload.title?.trim(),
+        })
         .eq('id', taskId)
         .select()
         .single();
@@ -34,11 +36,8 @@ export function useUpdateTaskStatusMutation() {
       return data;
     },
     onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
       void queryClient.invalidateQueries({ queryKey: taskKeys.task(variables.taskId) });
-      if (variables.parentId) {
-        void queryClient.invalidateQueries({ queryKey: taskKeys.subtasks(variables.parentId) });
-      }
+      void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
     },
   });
 }

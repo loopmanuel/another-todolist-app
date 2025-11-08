@@ -1,32 +1,19 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
+import { ActivityIndicator, Alert, View } from 'react-native';
 
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { Text } from '@/components/ui/text';
-import { Button, Checkbox } from 'heroui-native';
+import { Button } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
-import { cn } from '@/lib/utils';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import type { Tables } from '@/supabase/database.types';
 import { useTasksQuery } from '@/features/tasks/queries/use-tasks';
 import { useUpdateTaskStatusMutation } from '@/features/tasks/mutations/use-update-task-status';
 import { useAuthStore } from '@/store/auth-store';
+import { TaskCard } from '@/features/tasks/components/task-card';
 
 type TaskRow = Tables<'tasks'>;
-
-function formatDueLabel(dateString?: string | null) {
-  if (!dateString) {
-    return 'No date';
-  }
-
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) {
-    return 'No date';
-  }
-
-  return date.toLocaleDateString();
-}
 
 export default function ListDetails() {
   const router = useRouter();
@@ -58,6 +45,7 @@ export default function ListDetails() {
         await updateTaskStatus({
           taskId: task.id,
           projectId: task.project_id,
+          parentId: task.parent_id ?? null,
           status: nextSelected ? 'done' : 'todo',
         });
       } catch (err) {
@@ -72,42 +60,18 @@ export default function ListDetails() {
 
   const renderTaskItem = useCallback<ListRenderItem<TaskRow>>(
     ({ item }) => {
-      const isCompleted = item.status === 'done';
       const isDisabled = !user?.id || updatingTaskId === item.id;
 
       return (
-        <Pressable
-          className="mb-3 flex flex-row gap-4 rounded-lg bg-white p-4"
-          onPress={() => router.push(`/task/${item.id}`)}>
-          <Checkbox
-            isSelected={isCompleted}
-            isDisabled={isDisabled}
-            onSelectedChange={(next) => handleToggleTask(item, next)}
-          />
-          <View className={cn('flex-1', isCompleted && 'opacity-50')}>
-            <Text
-              className={cn('text-lg font-medium', isCompleted && 'text-gray-600 line-through')}>
-              {item.title}
-            </Text>
-            <View className="mt-2 flex flex-row flex-wrap items-center gap-3">
-              {item.priority > 0 ? (
-                <View className="flex w-fit flex-row items-center justify-center gap-1 p-1">
-                  <Text className="text-sm text-red-600">Priority {item.priority}</Text>
-                </View>
-              ) : null}
-
-              {item.due_at ? (
-                <View className="flex w-fit flex-row items-center justify-center gap-1 p-1">
-                  <Ionicons name={'calendar-outline'} size={14} />
-                  <Text className="text-sm">{formatDueLabel(item.due_at)}</Text>
-                </View>
-              ) : null}
-            </View>
-          </View>
-        </Pressable>
+        <TaskCard
+          task={item}
+          isDisabled={isDisabled}
+          onPress={(task) => router.push(`/task/${task.id}`)}
+          onToggleStatus={handleToggleTask}
+        />
       );
     },
-    [handleToggleTask, updatingTaskId, user?.id]
+    [handleToggleTask, router, updatingTaskId, user?.id]
   );
 
   const listEmpty = (

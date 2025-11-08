@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Button } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import BackButton from '@/components/ui/back-button';
 import { Controller, useForm } from 'react-hook-form';
@@ -21,6 +21,7 @@ import { useMMKVString } from 'react-native-mmkv';
 import { useAuthStore } from '@/store/auth-store';
 import { useListsQuery } from '@/features/lists/queries/use-lists';
 import { useCreateTaskMutation } from '@/features/tasks/mutations/use-create-task';
+import { useTaskQuery } from '@/features/tasks/queries/use-task';
 
 // Local YYYY-MM-DD (avoids UTC off-by-one)
 function todayLocal(): string {
@@ -42,15 +43,38 @@ type TaskForm = z.infer<typeof TaskSchema>;
 
 export default function NewTask() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ parent_id?: string | string[] }>();
+  const parentTaskId = useMemo(() => {
+    if (!params.parent_id) {
+      return undefined;
+    }
+    return Array.isArray(params.parent_id) ? params.parent_id[0] : params.parent_id;
+  }, [params.parent_id]);
+  const isSubtask = Boolean(parentTaskId);
   const inputRef = React.useRef<TextInput>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
   // Persisted date (shared with your date-picker screen)
   const [dateMMKV, setDateMMKV] = useMMKVString('date');
   const { user } = useAuthStore((state) => ({ user: state.user }));
+  const {
+    data: parentTask,
+    isLoading: parentLoading,
+    error: parentError,
+  } = useTaskQuery({ taskId: parentTaskId, createdBy: user?.id });
   const { data: lists = [], isLoading: listsLoading } = useListsQuery(user?.id ?? undefined);
-  const activeProject = lists[0];
-  const activeProjectName = activeProject?.name ?? 'Inbox';
+  const defaultProject = lists[0];
+  const parentProject = useMemo(() => {
+    if (!parentTask?.project_id) {
+      return undefined;
+    }
+
+    return lists.find((list) => list.id === parentTask.project_id);
+  }, [lists, parentTask?.project_id]);
+  const targetProjectId = parentTask?.project_id ?? defaultProject?.id;
+  const activeProjectName = isSubtask
+    ? parentProject?.name ?? (listsLoading ? 'Loading list…' : 'Parent list')
+    : defaultProject?.name ?? 'Inbox';
 
   // RHF defaults: use MMKV if present, else null
   const initialDue = useMemo(() => dateMMKV ?? null, [dateMMKV]); // stable default
@@ -104,15 +128,27 @@ export default function NewTask() {
       return;
     }
 
-    if (!activeProject?.id) {
-      setFormError('Create a list before adding tasks.');
+    if (isSubtask && parentLoading) {
+      setFormError('Parent task is still loading. Please wait.');
+      return;
+    }
+
+    if (isSubtask && !parentTask) {
+      const message = parentError?.message ?? 'Parent task not found.';
+      setFormError(message);
+      return;
+    }
+
+    if (!targetProjectId) {
+      setFormError(isSubtask ? 'Unable to determine the parent project.' : 'Create a list before adding tasks.');
       return;
     }
 
     try {
       await createTask({
         createdBy: user.id,
-        projectId: activeProject.id,
+        projectId: targetProjectId,
+        parentId: parentTaskId,
         title: data.title,
         description: data.description ?? '',
         dueDate: data.dueDate,
@@ -132,7 +168,9 @@ export default function NewTask() {
     }
   });
 
-  const isSaving = isSubmitting || isPending || listsLoading;
+  const parentUnavailable = isSubtask && !parentLoading && !parentTask;
+  const isSaving = isSubmitting || isPending || listsLoading || (isSubtask && parentLoading);
+  const isPrimaryDisabled = isSaving || parentUnavailable;
 
   return (
     <KeyboardAvoidingView
@@ -145,7 +183,7 @@ export default function NewTask() {
             className={'mr-4 rounded-full'}
             isIconOnly
             onPress={submit}
-            isDisabled={isSaving}>
+            isDisabled={isPrimaryDisabled}>
             <Button.Label>
               {isSaving ? (
                 <ActivityIndicator size={'small'} />
@@ -181,6 +219,21 @@ export default function NewTask() {
               control={control}
             />
           </View>
+          {isSubtask ? (
+            <View className={'px-6 pt-2'}>
+              {parentLoading ? (
+                <Text className={'text-sm text-muted-foreground'}>Loading parent task…</Text>
+              ) : parentTask ? (
+                <Text className={'text-sm text-muted-foreground'}>
+                  Subtask of “{parentTask.title}”
+                </Text>
+              ) : (
+                <Text className={'text-sm text-red-500'} role={'alert'}>
+                  {parentError?.message ?? 'Parent task not found.'}
+                </Text>
+              )}
+            </View>
+          ) : null}
           {errors.title ? (
             <Text className={'px-6 text-sm text-red-500'} role={'alert'}>
               {errors.title.message}
@@ -216,6 +269,19 @@ export default function NewTask() {
             keyboardShouldPersistTaps="handled"
             showsHorizontalScrollIndicator={false}
             className={'px-6'}>
+            {isSubtask ? (
+              <View
+                className={
+                  'mr-4 flex flex-row items-center gap-2 rounded-md border border-border bg-gray-200 px-4 py-2'
+                }>
+                <Ionicons name={'git-branch-outline'} size={18} />
+                <Text className={'max-w-[180px]'} numberOfLines={1}>
+                  {parentLoading
+                    ? 'Loading parent…'
+                    : parentTask?.title ?? parentError?.message ?? 'Parent not found'}
+                </Text>
+              </View>
+            ) : null}
             <View
               className={
                 'mr-4 flex flex-row items-center gap-2 rounded-md border border-border bg-gray-200 px-4 py-2'
