@@ -35,6 +35,18 @@ export default function MainLayout() {
         }}
       />
       <Stack.Screen
+        name="lists/edit"
+        options={{
+          title: '',
+          presentation: 'formSheet',
+          sheetAllowedDetents: 'fitToContents',
+          sheetGrabberVisible: false,
+          sheetCornerRadius: 30,
+          headerShown: false,
+          sheetExpandsWhenScrolledToEdge: false,
+        }}
+      />
+      <Stack.Screen
         name="task/[id]"
         options={{
           title: '',

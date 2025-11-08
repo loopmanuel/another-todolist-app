@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text';
 import { Button } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as DropdownMenu from 'zeego/dropdown-menu';
 
 import { useTasksQuery, type TaskWithSubtaskCounts } from '@/features/tasks/queries/use-tasks';
 import { useAuthStore } from '@/store/auth-store';
@@ -56,6 +57,20 @@ export default function ListDetails() {
 
   return (
     <View className={'pb-safe flex-1'}>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger>
+          <Button>
+            <Button.Label>Menu</Button.Label>
+          </Button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content>
+          <DropdownMenu.Label />
+          <DropdownMenu.Item key={'edit'}>
+            <DropdownMenu.ItemTitle>test</DropdownMenu.ItemTitle>
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+
       <FlashList
         data={tasks}
         keyExtractor={(item) => item.id}

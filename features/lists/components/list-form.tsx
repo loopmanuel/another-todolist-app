@@ -15,22 +15,28 @@ import { useAuthStore } from '@/store/auth-store';
 import { useListFormStore } from '@/store/list-form-store';
 
 import { useCreateListMutation } from '../mutations/use-create-list';
+import { useUpdateListMutation } from '../mutations/use-update-list';
+import { useListQuery } from '../queries/use-list';
 import { createListSchema, type CreateListValues } from '../validation/create-list-schema';
 import { cn } from '@/lib/utils';
 import { getColorName } from '../utils/colors';
 
 type ListFormProps = {
+  listId?: string;
   onSuccess?: () => void;
 };
 
-export function ListForm({ onSuccess }: ListFormProps) {
+export function ListForm({ listId, onSuccess }: ListFormProps) {
   const router = useRouter();
+
+  const isEditMode = Boolean(listId);
+  const { data: existingList, isLoading: listLoading } = useListQuery(listId);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const [formError, setFormError] = useState<string | null>(null);
   const { user } = useAuthStore((state) => ({ user: state.user }));
-  const { selectedColor, clearSelectedColor } = useListFormStore();
+  const { selectedColor, setSelectedColor, clearSelectedColor } = useListFormStore();
 
   const {
     control,
@@ -48,7 +54,21 @@ export function ListForm({ onSuccess }: ListFormProps) {
     },
   });
 
-  const { mutateAsync: createList, isPending } = useCreateListMutation();
+  const { mutateAsync: createList, isPending: isCreating } = useCreateListMutation();
+  const { mutateAsync: updateList, isPending: isUpdating } = useUpdateListMutation();
+  const isPending = isCreating || isUpdating;
+
+  // Initialize form with existing list data when editing
+  React.useEffect(() => {
+    if (isEditMode && existingList && !listLoading) {
+      reset({
+        name: existingList.name,
+        icon: existingList.icon || '📋',
+        color: existingList.color || '',
+      });
+      setSelectedColor(existingList.color);
+    }
+  }, [isEditMode, existingList, listLoading, reset, setSelectedColor]);
 
   const handleFocus = useCallback(
     (field?: keyof CreateListValues) => {
@@ -66,20 +86,32 @@ export function ListForm({ onSuccess }: ListFormProps) {
 
   const submit = handleSubmit(async (values) => {
     if (!user?.id) {
-      setFormError('You need to be signed in to create a list.');
+      setFormError(`You need to be signed in to ${isEditMode ? 'update' : 'create'} a list.`);
       return;
     }
 
     try {
-      await createList({
-        ownerId: user.id,
-        name: values.name,
-        icon: values.icon,
-        color: selectedColor ?? '#78716c',
-      });
+      if (isEditMode && listId) {
+        await updateList({
+          listId,
+          ownerId: user.id,
+          name: values.name,
+          icon: values.icon,
+          color: selectedColor ?? '#78716c',
+        });
+      } else {
+        await createList({
+          ownerId: user.id,
+          name: values.name,
+          icon: values.icon,
+          color: selectedColor ?? '#78716c',
+        });
+      }
 
-      reset({ name: '', icon: '', color: '' });
-      clearSelectedColor();
+      if (!isEditMode) {
+        reset({ name: '', icon: '', color: '' });
+        clearSelectedColor();
+      }
       setFormError(null);
 
       if (onSuccess) {
@@ -88,7 +120,7 @@ export function ListForm({ onSuccess }: ListFormProps) {
         router.back();
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unable to create list.';
+      const message = err instanceof Error ? err.message : `Unable to ${isEditMode ? 'update' : 'create'} list.`;
       setFormError(message);
     }
   });
@@ -141,7 +173,7 @@ export function ListForm({ onSuccess }: ListFormProps) {
             render={({ field }) => (
               <TextInput
                 autoFocus
-                placeholder={'New List'}
+                placeholder={isEditMode ? 'List Name' : 'New List'}
                 className={
                   'mt-6 w-full min-w-0 px-0 py-2 text-2xl font-semibold placeholder:text-muted-foreground/80'
                 }
@@ -209,7 +241,15 @@ export function ListForm({ onSuccess }: ListFormProps) {
 
         <View className="border-t border-border px-6 py-4">
           <Button className="rounded-full bg-black" onPress={submit} isDisabled={isPending}>
-            <Button.Label>{isPending ? 'Creating…' : 'Create List'}</Button.Label>
+            <Button.Label>
+              {isPending
+                ? isEditMode
+                  ? 'Updating…'
+                  : 'Creating…'
+                : isEditMode
+                  ? 'Update List'
+                  : 'Create List'}
+            </Button.Label>
           </Button>
         </View>
       </View>
