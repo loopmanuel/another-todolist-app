@@ -24,18 +24,13 @@ export default function DatePicker() {
   // Persisted value (may be undefined on first render if not set yet)
   const [dateMMKV, setDateMMKV] = useMMKVString('date');
 
-  // Start with today; we’ll sync with MMKV below if a value exists
-  const [selected, setSelected] = useState<string>(todayLocal());
+  // Start with today or the stored date
+  const [selected, setSelected] = useState<string>(dateMMKV || todayLocal());
 
   // On mount or when MMKV changes, sync state.
   useEffect(() => {
     if (dateMMKV && dateMMKV !== selected) {
       setSelected(dateMMKV);
-    } else if (!dateMMKV) {
-      // Initialize MMKV with today's date if not set
-      const t = todayLocal();
-      setSelected(t);
-      setDateMMKV?.(t);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateMMKV]);
@@ -48,6 +43,11 @@ export default function DatePicker() {
     [setDateMMKV]
   );
 
+  const handleClear = useCallback(() => {
+    setDateMMKV?.(undefined);
+    router.dismiss();
+  }, [setDateMMKV, router]);
+
   const marked = useMemo(
     () => ({
       [selected]: { selected: true, selectedColor: 'black', selectedTextColor: 'white' },
@@ -58,7 +58,7 @@ export default function DatePicker() {
   return (
     <View className="pb-safe flex-1 bg-white">
       <View className={'flex flex-row items-center justify-between pb-6 pt-6'}>
-        <Button className={'ml-4'} variant={'tertiary'} onPress={() => router.dismiss()}>
+        <Button className={'ml-4'} variant={'tertiary'} onPress={handleClear}>
           <Button.Label>Clear</Button.Label>
         </Button>
 

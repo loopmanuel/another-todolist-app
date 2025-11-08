@@ -198,7 +198,7 @@ export default function TaskDetails() {
   }, [selectedLabels.size]);
 
   // Watch for date changes from MMKV (when user changes it in picker)
-  const prevDate = React.useRef<string>('');
+  const prevDate = React.useRef<string | null>(null);
   useEffect(() => {
     if (!task || !user?.id || !isInitialized) return;
 
@@ -213,7 +213,7 @@ export default function TaskDetails() {
       : '';
 
     // Initialize on first run after initialization
-    if (prevDate.current === '') {
+    if (prevDate.current === null) {
       prevDate.current = currentTaskDate;
       return;
     }
@@ -227,7 +227,7 @@ export default function TaskDetails() {
         taskId: task.id,
         projectId: task.project_id,
         payload: {
-          due_at: currentDate ? `${currentDate}T00:00:00.000Z` : null,
+          due_at: currentDate ? `${currentDate}T12:00:00.000Z` : null,
         },
       });
     }

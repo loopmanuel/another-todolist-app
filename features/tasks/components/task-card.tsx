@@ -9,6 +9,7 @@ import type { Tables } from '@/supabase/database.types';
 import { useUpdateTaskStatusMutation } from '@/features/tasks/mutations/use-update-task-status';
 import { useAuthStore } from '@/store/auth-store';
 import { getPriorityColor, getPriorityLabel } from '@/features/tasks/utils/priority';
+import dayjs from 'dayjs';
 
 export type TaskRow = Tables<'tasks'>;
 
@@ -28,12 +29,7 @@ export function formatDueLabel(dateString?: string | null) {
     return 'No date';
   }
 
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) {
-    return 'No date';
-  }
-
-  return date.toLocaleDateString();
+  return dayjs(dateString).format('MMM D, YYYY');
 }
 
 export function formatPriority(priority?: number | null) {

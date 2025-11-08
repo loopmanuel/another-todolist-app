@@ -23,8 +23,8 @@ function toDueAt(dueDate?: string | null) {
     return null;
   }
 
-  // Store as UTC midnight to keep date-only semantics consistent.
-  return `${dueDate}T00:00:00.000Z`;
+  // Store as UTC noon to avoid timezone issues (works correctly in all timezones UTC-12 to UTC+14)
+  return `${dueDate}T12:00:00.000Z`;
 }
 
 export function useCreateTaskMutation() {
