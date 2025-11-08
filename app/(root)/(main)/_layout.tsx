@@ -15,6 +15,14 @@ export default function MainLayout() {
         }}
       />
       <Stack.Screen
+        name="theme"
+        options={{
+          title: 'Themes',
+          headerShadowVisible: false,
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      <Stack.Screen
         name="lists/[id]"
         options={{
           title: 'Lists Details',

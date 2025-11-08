@@ -139,6 +139,15 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
 */
   };
 
+  // Show loading state while fetching list data in edit mode
+  if (isEditMode && listLoading) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView className="flex-1">
       <View className="flex-1">

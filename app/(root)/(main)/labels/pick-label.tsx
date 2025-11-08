@@ -5,7 +5,7 @@ import { Text } from '@/components/ui/text';
 import BackButton from '@/components/ui/back-button';
 import { Button, Checkbox } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 import type { Tables } from '@/supabase/database.types';
 import { useLabelsQuery } from '@/features/labels/queries/use-labels';

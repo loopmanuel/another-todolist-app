@@ -102,6 +102,15 @@ export default function Home() {
               <Text variant={'large'}>Today</Text>
             </TouchableOpacity>
 
+            <TouchableOpacity
+              className="flex flex-row items-center gap-4"
+              onPress={() => router.push('/theme')}>
+              <View className="flex h-12 w-14 items-center justify-center rounded-lg bg-white">
+                <Ionicons name={'today-outline'} size={22} />
+              </View>
+              <Text variant={'large'}>Theme</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity className="flex flex-row items-center gap-4">
               <View className="flex h-12 w-14 items-center justify-center rounded-lg bg-white">
                 <Ionicons name={'calendar-outline'} size={22} />
@@ -148,8 +157,8 @@ export default function Home() {
                 {isLoading ? (
                   <ActivityIndicator />
                 ) : (
-                  <View className="rounded-2xl border border-dashed border-border p-6">
-                    <Text className="text-center text-base text-muted-foreground">
+                  <View className="border-border rounded-2xl border border-dashed p-6">
+                    <Text className="text-muted-foreground text-center text-base">
                       Create your first list to keep things organized.
                     </Text>
                   </View>

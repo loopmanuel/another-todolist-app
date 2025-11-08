@@ -1,3 +1,111 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'uniwind';
+
+@import 'heroui-native/styles';
+
+@import './lib/themes/lavander.css';
+@import './lib/themes/mint.css';
+@import './lib/themes/sky.css';
+
+@layer theme {
+    :root {
+        @variant light {
+            /* Base Colors */
+            --background: oklch(1 0 0);
+            --foreground: oklch(0.145 0 0);
+
+            /* Surface: non-overlay components (cards, accordions, disclosure groups) */
+            --surface: oklch(1 0 0);            /* = card */
+            --surface-foreground: oklch(0.145 0 0); /* = card-foreground */
+
+            /* Overlay: floating/overlay components (dialogs, popovers, menus) */
+            --overlay: oklch(1 0 0);            /* = popover */
+            --overlay-foreground: oklch(0.145 0 0); /* = popover-foreground */
+
+            --muted: oklch(0.97 0 0);
+
+            /* “Default” = neutral button/chip backgrounds */
+            --default: oklch(0.97 0 0);                 /* = secondary */
+            --default-foreground: oklch(0.205 0 0);     /* = secondary-foreground */
+
+            --accent: oklch(0.205 0 0);
+            --accent-foreground: oklch(0.97 0 0);
+
+            /* Form Field Defaults - Colors */
+            --field-background: oklch(1 0 0);          /* clean white fields */
+            --field-foreground: oklch(0.145 0 0);
+            --field-placeholder: oklch(0.556 0 0);     /* = muted-foreground */
+            --field-border: oklch(0.922 0 0);          /* = input */
+
+            /* Status Colors */
+            --success: oklch(0.6 0.118 184.704);       /* chart-2 green/teal */
+            --success-foreground: oklch(0.205 0 0);
+
+            --warning: oklch(0.769 0.188 70.08);       /* chart-5 yellow */
+            --warning-foreground: oklch(0.205 0 0);
+
+            --danger: oklch(0.577 0.245 27.325);       /* destructive */
+            --danger-foreground: oklch(0.205 0 0);
+
+            /* Component Colors */
+            --segment: oklch(0.97 0 0);                /* subtle grouped background */
+            --segment-foreground: oklch(0.205 0 0);
+
+            /* Misc Colors */
+            --border: oklch(0.922 0 0);
+            --divider: oklch(0.922 0 0);               /* or adjust slightly darker if desired */
+            --link: oklch(0.205 0 0);                  /* = primary */
+        }
+
+        @variant dark {
+            /* Base Colors */
+            --background: oklch(0.145 0 0);
+            --foreground: oklch(0.985 0 0);
+
+            /* Surface */
+            --surface: oklch(0.205 0 0);               /* = card */
+            --surface-foreground: oklch(0.985 0 0);    /* = card-foreground */
+
+            /* Overlay */
+            --overlay: oklch(0.269 0 0);               /* = popover */
+            --overlay-foreground: oklch(0.985 0 0);    /* = popover-foreground */
+
+            --muted: oklch(0.269 0 0);
+
+            /* “Default” neutrals */
+            --default: oklch(0.269 0 0);               /* = secondary */
+            --default-foreground: oklch(0.618 0.249 28.794);    /* = secondary-foreground */
+
+            --accent: oklch(0.371 0 0);
+            --accent-foreground: oklch(0.985 0 0);
+
+            /* Form Field Defaults - Colors */
+            --field-background: oklch(0.269 0 0);
+            --field-foreground: oklch(0.985 0 0);
+            --field-placeholder: oklch(0.708 0 0);     /* subtle on dark */
+            --field-border: oklch(1 0 0 / 15%);        /* = input */
+
+            /* Status Colors */
+            --success: oklch(0.696 0.17 162.48);       /* chart-2 (dark-tuned) */
+            --success-foreground: oklch(0.985 0 0);
+
+            --warning: oklch(0.645 0.246 16.439);      /* warm amber/orange */
+            --warning-foreground: oklch(0.985 0 0);
+
+            --danger: oklch(0.704 0.191 22.216);       /* destructive (dark) */
+            --danger-foreground: oklch(0.985 0 0);
+
+            /* Component Colors */
+            --segment: oklch(0.269 0 0);
+            --segment-foreground: oklch(0.985 0 0);
+
+            /* Misc Colors */
+            --border: oklch(1 0 0 / 10%);
+            --divider: oklch(1 0 0 / 10%);
+            --link: oklch(0.922 0 0);                  /* = primary in dark */
+        }
+    }
+}
+
+@source './node_modules/heroui-native/lib';
+

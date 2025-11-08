@@ -6,7 +6,6 @@ import { Text } from '@/components/ui/text';
 import { Button } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import * as DropdownMenu from 'zeego/dropdown-menu';
 
 import { useTasksQuery, type TaskWithSubtaskCounts } from '@/features/tasks/queries/use-tasks';
 import { useAuthStore } from '@/store/auth-store';
@@ -46,8 +45,8 @@ export default function ListDetails() {
       {isLoading ? (
         <ActivityIndicator />
       ) : (
-        <View className="mx-6 rounded-2xl border border-dashed border-border p-6">
-          <Text className="text-center text-base text-muted-foreground">
+        <View className="border-border mx-6 rounded-2xl border border-dashed p-6">
+          <Text className="text-muted-foreground text-center text-base">
             {user?.id ? 'No tasks yet in this list.' : 'Sign in to view the tasks in this list.'}
           </Text>
         </View>
@@ -57,19 +56,15 @@ export default function ListDetails() {
 
   return (
     <View className={'pb-safe flex-1'}>
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger>
-          <Button>
-            <Button.Label>Menu</Button.Label>
-          </Button>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
-          <DropdownMenu.Label />
-          <DropdownMenu.Item key={'edit'}>
-            <DropdownMenu.ItemTitle>test</DropdownMenu.ItemTitle>
-          </DropdownMenu.Item>
-        </DropdownMenu.Content>
-      </DropdownMenu.Root>
+      <Button
+        onPress={() =>
+          router.push({
+            pathname: '/lists/edit',
+            params: { list_id: params.id },
+          })
+        }>
+        <Button.Label>Edit</Button.Label>
+      </Button>
 
       <FlashList
         data={tasks}
@@ -81,9 +76,10 @@ export default function ListDetails() {
         contentContainerStyle={{ paddingTop: 24, paddingBottom: 96, paddingHorizontal: 24 }}
       />
 
-      <View className={'pb-safe absolute bottom-0 left-0 right-0 px-6 pt-2'}>
+      <View className={'pb-safe left-0 right-0 px-6 pt-2'}>
         <Button
-          variant={'secondary'}
+          variant={'primary'}
+          className={'mb-6'}
           onPress={() => {
             if (projectId) {
               router.push({ pathname: '/task/new', params: { list_id: projectId } });
