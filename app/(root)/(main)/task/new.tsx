@@ -25,6 +25,7 @@ import { useLabelsQuery } from '@/features/labels/queries/use-labels';
 import { useCreateTaskMutation } from '@/features/tasks/mutations/use-create-task';
 import { useTaskQuery } from '@/features/tasks/queries/use-task';
 import { TASK_LIST_STORAGE_KEY } from '@/features/tasks/constants';
+import { getPriorityLabel, getPriorityColor, getPriorityBgColor } from '@/features/tasks/utils/priority';
 import { cn } from '@/lib/utils';
 
 // Local YYYY-MM-DD (avoids UTC off-by-one)
@@ -73,7 +74,7 @@ export default function NewTask() {
   const [dateMMKV, setDateMMKV] = useMMKVString('date');
   const [listMMKV, setListMMKV] = useMMKVString(TASK_LIST_STORAGE_KEY);
   const { user } = useAuthStore((state) => ({ user: state.user }));
-  const { selectedLabels, clearSelectedLabels } = useTaskFormStore();
+  const { selectedLabels, clearSelectedLabels, priority, clearPriority } = useTaskFormStore();
   const {
     data: parentTask,
     isLoading: parentLoading,
@@ -194,6 +195,7 @@ export default function NewTask() {
         description: data.description ?? '',
         dueDate: data.dueDate,
         labelIds: Array.from(selectedLabels),
+        priority,
       });
 
       reset({
@@ -203,6 +205,7 @@ export default function NewTask() {
       });
       setDateMMKV?.(undefined);
       clearSelectedLabels();
+      clearPriority();
       setFormError(null);
       router.back();
     } catch (err) {
@@ -354,9 +357,21 @@ export default function NewTask() {
 
             <Pressable
               onPress={() => handlePriorityButtonPress()}
-              className={'mr-4 flex flex-row items-center gap-2 rounded-md bg-gray-200 px-4 py-2'}>
-              <Ionicons name={'flag-outline'} size={18} />
-              <Text>Priority</Text>
+              className={'mr-4 flex flex-row items-center gap-2 rounded-md px-4 py-2'}
+              style={{
+                backgroundColor: priority > 0 ? getPriorityBgColor(priority) : '#e5e7eb',
+              }}>
+              <Ionicons
+                name={priority > 0 ? 'flag' : 'flag-outline'}
+                size={18}
+                color={priority > 0 ? getPriorityColor(priority) : undefined}
+              />
+              <Text
+                style={{
+                  color: priority > 0 ? getPriorityColor(priority) : undefined,
+                }}>
+                {getPriorityLabel(priority)}
+              </Text>
             </Pressable>
 
             <Pressable

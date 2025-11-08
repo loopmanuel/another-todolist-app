@@ -15,6 +15,7 @@ export type CreateTaskVariables = {
   description?: string | null;
   dueDate?: string | null;
   labelIds?: string[];
+  priority?: number;
 };
 
 function toDueAt(dueDate?: string | null) {
@@ -31,7 +32,7 @@ export function useCreateTaskMutation() {
 
   return useMutation<TaskRow, Error, CreateTaskVariables>({
     mutationKey: [...taskKeys.all, 'create'],
-    mutationFn: async ({ createdBy, projectId, parentId, title, description, dueDate, labelIds }) => {
+    mutationFn: async ({ createdBy, projectId, parentId, title, description, dueDate, labelIds, priority }) => {
       const payload: TablesInsert<'tasks'> = {
         created_by: createdBy,
         project_id: projectId,
@@ -40,6 +41,7 @@ export function useCreateTaskMutation() {
         description: description?.trim() ? description.trim() : null,
         due_at: toDueAt(dueDate),
         status: 'todo',
+        priority: priority ?? 0,
       };
 
       const { data, error } = await supabase.from('tasks').insert(payload).select().single();
