@@ -15,8 +15,7 @@ import { useAuthStore } from '@/store/auth-store';
 
 export default function Home() {
   const router = useRouter();
-  const { signOut, user } = useAuthStore((state) => ({
-    signOut: state.signOut,
+  const { user } = useAuthStore((state) => ({
     user: state.user,
   }));
   const { data: lists = [], isLoading } = useListsQuery(user?.id ?? undefined);
@@ -33,13 +32,6 @@ export default function Home() {
     [handleListPress]
   );
 
-  const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      Alert.alert('Sign out failed', error);
-    }
-  };
-
   return (
     <View className={'relative flex-1'}>
       <NewFab />
@@ -50,7 +42,11 @@ export default function Home() {
             headerTitle: 'November 2nd',
             headerLeft: () => (
               <View className={'pl-4'}>
-                <Button variant={'tertiary'} isIconOnly className={'rounded-full'}>
+                <Button
+                  variant={'tertiary'}
+                  isIconOnly
+                  className={'rounded-full'}
+                  onPress={() => router.push('/settings')}>
                   <Button.Label>
                     <Ionicons name={'settings-outline'} size={22} />
                   </Button.Label>
@@ -66,15 +62,6 @@ export default function Home() {
                   onPress={() => router.push('/search')}>
                   <Button.Label>
                     <Ionicons name={'search-outline'} size={20} />
-                  </Button.Label>
-                </Button>
-                <Button
-                  variant={'tertiary'}
-                  isIconOnly
-                  className={'rounded-full'}
-                  onPress={handleSignOut}>
-                  <Button.Label>
-                    <Ionicons name={'log-out-outline'} size={20} />
                   </Button.Label>
                 </Button>
               </View>

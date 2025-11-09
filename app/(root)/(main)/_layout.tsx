@@ -23,6 +23,13 @@ export default function MainLayout() {
         }}
       />
       <Stack.Screen
+        name="settings"
+        options={{
+          presentation: 'modal',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="search"
         options={{
           presentation: 'modal',
