@@ -59,7 +59,11 @@ export default function Home() {
             ),
             headerRight: () => (
               <View className={'flex flex-row items-center gap-2 pr-4'}>
-                <Button variant={'tertiary'} isIconOnly className={'rounded-full'}>
+                <Button
+                  variant={'tertiary'}
+                  isIconOnly
+                  className={'rounded-full'}
+                  onPress={() => router.push('/search')}>
                   <Button.Label>
                     <Ionicons name={'search-outline'} size={20} />
                   </Button.Label>

@@ -24,7 +24,7 @@ function ListTileComponent({ list, onPress }: ListTileProps) {
       className="mb-4 flex flex-row items-center gap-4 bg-white"
       onPress={() => onPress?.(list)}>
       <View
-        className="h-14 w-14 items-center justify-center rounded-lg"
+        className="h-14 w-14 items-center justify-center rounded-2xl"
         style={{ backgroundColor: accentColor }}>
         {list.icon ? (
           <Text className={'text-xl'}>{list.icon}</Text>

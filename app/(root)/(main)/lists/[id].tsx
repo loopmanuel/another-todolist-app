@@ -1,15 +1,17 @@
-import { useCallback, useMemo } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, View } from 'react-native';
 
-import { FlashList, type ListRenderItem } from '@shopify/flash-list';
+import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 import { Text } from '@/components/ui/text';
-import { Button, useThemeColor } from 'heroui-native';
+import { Button, Dialog, useThemeColor } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { useTasksQuery, type TaskWithSubtaskCounts } from '@/features/tasks/queries/use-tasks';
 import { useListQuery } from '@/features/lists/queries/use-list';
 import { useToggleHideCompletedMutation } from '@/features/lists/mutations/use-toggle-hide-completed';
+import { useDeleteListMutation } from '@/features/lists/mutations/use-delete-list';
+import { useReorderTasksMutation } from '@/features/tasks/mutations/use-reorder-tasks';
 import { useAuthStore } from '@/store/auth-store';
 import { TaskCard } from '@/features/tasks/components/task-card';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -34,7 +36,12 @@ export default function ListDetails() {
     createdBy: user?.id,
     hideCompleted: list?.hide_completed_tasks ?? false,
   });
-  const { mutateAsync: toggleHideCompleted, isPending: isToggling } = useToggleHideCompletedMutation();
+  const { mutateAsync: toggleHideCompleted, isPending: isToggling } =
+    useToggleHideCompletedMutation();
+  const { mutateAsync: deleteList, isPending: isDeletingList } = useDeleteListMutation();
+  const { mutateAsync: reorderTasks } = useReorderTasksMutation();
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleToggleHideCompleted = useCallback(async () => {
     if (!projectId || !user?.id || !list) return;
@@ -50,12 +57,58 @@ export default function ListDetails() {
     }
   }, [projectId, user?.id, list, toggleHideCompleted]);
 
-  const renderTaskItem = useCallback<ListRenderItem<TaskWithSubtaskCounts>>(
-    ({ item }) => {
+  const handleDeleteList = useCallback(async () => {
+    if (!projectId || !user?.id) return;
+
+    try {
+      await deleteList({
+        listId: projectId,
+        ownerId: user.id,
+      });
+
+      setIsDeleteDialogOpen(false);
+      router.back();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to delete list.';
+      Alert.alert('Delete failed', message);
+    }
+  }, [projectId, user?.id, deleteList, router]);
+
+  const handleDragEnd = useCallback(
+    async ({ data }: { data: TaskWithSubtaskCounts[] }) => {
+      if (!projectId) return;
+
+      try {
+        // Assign new sort_order values based on position
+        const updates = data.map((task, index) => ({
+          id: task.id,
+          sortOrder: (index + 1) * 1000, // Use increments of 1000
+        }));
+
+        await reorderTasks({
+          projectId,
+          tasks: updates,
+        });
+      } catch (err) {
+        console.error('Failed to reorder tasks:', err);
+      }
+    },
+    [projectId, reorderTasks]
+  );
+
+  const renderTaskItem = useCallback(
+    ({ item, drag, isActive }: RenderItemParams<TaskWithSubtaskCounts>) => {
       return (
-        <View className={'mb-3'}>
-          <TaskCard task={item} onPress={(task) => router.push(`/task/${task.id}`)} />
-        </View>
+        <ScaleDecorator>
+          <View className={'mb-3'}>
+            <TaskCard
+              task={item}
+              onPress={(task) => router.push(`/task/${task.id}`)}
+              onLongPress={drag}
+              isActive={isActive}
+            />
+          </View>
+        </ScaleDecorator>
       );
     },
     [router]
@@ -95,12 +148,48 @@ export default function ListDetails() {
             {list?.hide_completed_tasks ? 'Show Completed Tasks' : 'Hide Completed Tasks'}
           </Button.Label>
         </Button>
+
+        <Dialog isOpen={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <Dialog.Trigger asChild>
+            <Button variant={'destructive'}>
+              <Button.Label>Delete List</Button.Label>
+            </Button>
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Overlay />
+            <Dialog.Content>
+              <Dialog.Close className="-mb-2 self-end" />
+              <View className="mb-5 gap-1.5">
+                <Dialog.Title>Delete List</Dialog.Title>
+                <Dialog.Description>
+                  Are you sure you want to delete this list? All tasks in this list will also be deleted. This action cannot be undone.
+                </Dialog.Description>
+              </View>
+              <View className="flex-row justify-end gap-3">
+                <Dialog.Close asChild>
+                  <Button variant="ghost" size="sm">
+                    Cancel
+                  </Button>
+                </Dialog.Close>
+                <Button
+                  size="sm"
+                  onPress={() => void handleDeleteList()}
+                  isDisabled={isDeletingList}>
+                  <Button.Label>
+                    {isDeletingList ? 'Deleting...' : 'Delete'}
+                  </Button.Label>
+                </Button>
+              </View>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog>
       </View>
 
-      <FlashList
+      <DraggableFlatList
         data={tasks}
         keyExtractor={(item) => item.id}
         renderItem={renderTaskItem}
+        onDragEnd={handleDragEnd}
         ListEmptyComponent={listEmpty}
         contentContainerStyle={{ paddingTop: 24, paddingBottom: 96, paddingHorizontal: 24 }}
       />

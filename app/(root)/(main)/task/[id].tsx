@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 import { Text } from '@/components/ui/text';
 import BackButton from '@/components/ui/back-button';
 import { Button, Card, Checkbox, Dialog } from 'heroui-native';
@@ -22,11 +23,12 @@ import { useTaskLabelsQuery } from '@/features/tasks/queries/use-task-labels';
 import { useUpdateTaskStatusMutation } from '@/features/tasks/mutations/use-update-task-status';
 import { useUpdateTaskLabelsMutation } from '@/features/tasks/mutations/use-update-task-labels';
 import { useDeleteTaskMutation } from '@/features/tasks/mutations/use-delete-task';
+import { useReorderTasksMutation } from '@/features/tasks/mutations/use-reorder-tasks';
 import { useAuthStore } from '@/store/auth-store';
 import { useTaskFormStore } from '@/store/task-form-store';
 import { useListsQuery } from '@/features/lists/queries/use-lists';
 import { useUpdateTaskMutation } from '@/features/tasks/mutations/use-update-task';
-import { useSubtasksQuery } from '@/features/tasks/queries/use-subtasks';
+import { useSubtasksQuery, type SubtaskWithCounts } from '@/features/tasks/queries/use-subtasks';
 import { TaskCard, formatDueLabel } from '@/features/tasks/components/task-card';
 import { getPriorityLabel, getPriorityColor } from '@/features/tasks/utils/priority';
 import { useMMKVString } from 'react-native-mmkv';
@@ -109,6 +111,7 @@ export default function TaskDetails() {
   const { mutateAsync: updateTask, isPending: isUpdatingTask } = useUpdateTaskMutation();
   const { mutateAsync: updateTaskLabels } = useUpdateTaskLabelsMutation();
   const { mutateAsync: deleteTask, isPending: isDeletingTask } = useDeleteTaskMutation();
+  const { mutateAsync: reorderTasks } = useReorderTasksMutation();
   const [formError, setFormError] = useState<string | null>(null);
 
   const [isInitialized, setIsInitialized] = useState(false);
@@ -313,6 +316,44 @@ export default function TaskDetails() {
     }
   }, [task, user?.id, deleteTask, router]);
 
+  const handleSubtaskDragEnd = useCallback(
+    async ({ data }: { data: SubtaskWithCounts[] }) => {
+      if (!task) return;
+
+      try {
+        // Assign new sort_order values based on position
+        const updates = data.map((subtask, index) => ({
+          id: subtask.id,
+          sortOrder: (index + 1) * 1000, // Use increments of 1000
+        }));
+
+        await reorderTasks({
+          projectId: task.project_id,
+          tasks: updates,
+        });
+      } catch (err) {
+        console.error('Failed to reorder subtasks:', err);
+      }
+    },
+    [task, reorderTasks]
+  );
+
+  const renderSubtaskItem = useCallback(
+    ({ item, drag, isActive }: RenderItemParams<SubtaskWithCounts>) => {
+      return (
+        <ScaleDecorator>
+          <TaskCard
+            task={item}
+            onPress={(nextTask) => router.push(`/task/${nextTask.id}`)}
+            onLongPress={drag}
+            isActive={isActive}
+          />
+        </ScaleDecorator>
+      );
+    },
+    [router]
+  );
+
   if (!task)
     return (
       <View className={'p-6'}>
@@ -514,13 +555,13 @@ export default function TaskDetails() {
             <Text className={'text-muted-foreground mb-4 text-sm'}>No subtasks yet.</Text>
           ) : (
             <View className={'mb-4'}>
-              {subtasks.map((subtask) => (
-                <TaskCard
-                  key={subtask.id}
-                  task={subtask}
-                  onPress={(nextTask) => router.push(`/task/${nextTask.id}`)}
-                />
-              ))}
+              <DraggableFlatList
+                data={subtasks}
+                keyExtractor={(item) => item.id}
+                renderItem={renderSubtaskItem}
+                onDragEnd={handleSubtaskDragEnd}
+                scrollEnabled={false}
+              />
             </View>
           )}
           <Button

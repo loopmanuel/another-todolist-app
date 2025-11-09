@@ -22,6 +22,8 @@ type TaskCardProps = {
   };
   isDisabled?: boolean;
   onPress?: (task: TaskRow) => void;
+  onLongPress?: () => void;
+  isActive?: boolean;
 };
 
 export function formatDueLabel(dateString?: string | null) {
@@ -40,7 +42,7 @@ export function formatPriority(priority?: number | null) {
   return `Priority ${priority}`;
 }
 
-export function TaskCard({ task, isDisabled, onPress }: TaskCardProps) {
+export function TaskCard({ task, isDisabled, onPress, onLongPress, isActive }: TaskCardProps) {
   const isCompleted = task.status === 'done';
   const { user } = useAuthStore((state) => ({ user: state.user }));
   const { mutateAsync: updateTaskStatus } = useUpdateTaskStatusMutation();
@@ -71,9 +73,13 @@ export function TaskCard({ task, isDisabled, onPress }: TaskCardProps) {
 
   return (
     <Pressable
-      className="flex flex-row gap-4 rounded-3xl bg-white p-4"
+      className={cn(
+        'flex flex-row gap-4 rounded-3xl bg-white p-4',
+        isActive && 'shadow-lg opacity-90'
+      )}
       onPress={() => (onPress ? onPress(task) : undefined)}
-      disabled={!onPress}>
+      onLongPress={onLongPress}
+      disabled={!onPress && !onLongPress}>
       <Checkbox
         isSelected={isCompleted}
         isDisabled={checkboxDisabled}
@@ -121,6 +127,11 @@ export function TaskCard({ task, isDisabled, onPress }: TaskCardProps) {
           ) : null}
         </View>
       </View>
+      {onLongPress && (
+        <View className="items-center justify-center pl-2">
+          <Ionicons name="reorder-three" size={24} color="#9ca3af" />
+        </View>
+      )}
     </Pressable>
   );
 }
