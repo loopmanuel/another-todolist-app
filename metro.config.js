@@ -9,7 +9,7 @@ const config = getDefaultConfig(__dirname);
 
 module.exports = withUniwindConfig(config, {
   cssEntryFile: './global.css',
-  dtsFile: './uniwind-types.d.ts',
+  dtsFile: './uniwind.d.ts',
   extraThemes: [
     'lavender-light',
     'lavender-dark',

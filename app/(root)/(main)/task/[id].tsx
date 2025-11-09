@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Text } from '@/components/ui/text';
 import BackButton from '@/components/ui/back-button';
-import { Button, Card, Checkbox } from 'heroui-native';
+import { Button, Card, Checkbox, Dialog } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
@@ -21,6 +21,7 @@ import { useTaskQuery } from '@/features/tasks/queries/use-task';
 import { useTaskLabelsQuery } from '@/features/tasks/queries/use-task-labels';
 import { useUpdateTaskStatusMutation } from '@/features/tasks/mutations/use-update-task-status';
 import { useUpdateTaskLabelsMutation } from '@/features/tasks/mutations/use-update-task-labels';
+import { useDeleteTaskMutation } from '@/features/tasks/mutations/use-delete-task';
 import { useAuthStore } from '@/store/auth-store';
 import { useTaskFormStore } from '@/store/task-form-store';
 import { useListsQuery } from '@/features/lists/queries/use-lists';
@@ -107,6 +108,7 @@ export default function TaskDetails() {
   const { mutateAsync: updateTaskStatus } = useUpdateTaskStatusMutation();
   const { mutateAsync: updateTask, isPending: isUpdatingTask } = useUpdateTaskMutation();
   const { mutateAsync: updateTaskLabels } = useUpdateTaskLabelsMutation();
+  const { mutateAsync: deleteTask, isPending: isDeletingTask } = useDeleteTaskMutation();
   const [formError, setFormError] = useState<string | null>(null);
 
   const [isInitialized, setIsInitialized] = useState(false);
@@ -291,6 +293,26 @@ export default function TaskDetails() {
   }, [refetch, refetchSubtasks]);
   const canAddSubtask = Boolean(task?.id && user?.id);
 
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleDelete = useCallback(async () => {
+    if (!task || !user?.id) return;
+
+    try {
+      await deleteTask({
+        taskId: task.id,
+        projectId: task.project_id,
+        parentId: task.parent_id,
+      });
+
+      setIsOpen(false);
+      router.back();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to delete task.';
+      Alert.alert('Delete failed', message);
+    }
+  }, [task, user?.id, deleteTask, router]);
+
   if (!task)
     return (
       <View className={'p-6'}>
@@ -328,11 +350,11 @@ export default function TaskDetails() {
               <ActivityIndicator />
             </View>
           ) : showSignIn ? (
-            <Text className={'text-center text-base text-muted-foreground'}>
+            <Text className={'text-muted-foreground text-center text-base'}>
               Sign in to view this task.
             </Text>
           ) : showEmptyState ? (
-            <Text className={'text-center text-base text-muted-foreground'}>
+            <Text className={'text-muted-foreground text-center text-base'}>
               Task not found or you no longer have access.
             </Text>
           ) : (
@@ -363,7 +385,7 @@ export default function TaskDetails() {
                         editable={Boolean(task && user?.id)}
                         placeholder={'Task title'}
                         className={
-                          'w-full min-w-0 px-0 py-0 text-2xl font-semibold placeholder:text-muted-foreground/80'
+                          'placeholder:text-muted-foreground/80 w-full min-w-0 px-0 py-0 text-2xl font-semibold'
                         }
                       />
                     )}
@@ -399,7 +421,7 @@ export default function TaskDetails() {
                       placeholder={'Add description...'}
                       multiline
                       className={
-                        'w-full min-w-0 px-0 py-2 text-base text-muted-foreground placeholder:text-muted-foreground/60'
+                        'text-muted-foreground placeholder:text-muted-foreground/60 w-full min-w-0 px-0 py-2 text-base'
                       }
                     />
                   )}
@@ -481,7 +503,7 @@ export default function TaskDetails() {
       <Card className={'mx-6 rounded-2xl'}>
         <Card.Body>
           {showSignIn ? (
-            <Text className={'mb-4 text-sm text-muted-foreground'}>
+            <Text className={'text-muted-foreground mb-4 text-sm'}>
               Sign in to manage subtasks.
             </Text>
           ) : subtasksLoading ? (
@@ -489,7 +511,7 @@ export default function TaskDetails() {
               <ActivityIndicator />
             </View>
           ) : totalSubtasks === 0 ? (
-            <Text className={'mb-4 text-sm text-muted-foreground'}>No subtasks yet.</Text>
+            <Text className={'text-muted-foreground mb-4 text-sm'}>No subtasks yet.</Text>
           ) : (
             <View className={'mb-4'}>
               {subtasks.map((subtask) => (
@@ -517,6 +539,43 @@ export default function TaskDetails() {
           </Button>
         </Card.Body>
       </Card>
+
+      <View className={'px-4 pb-6 pt-6'}>
+        <Dialog isOpen={isOpen} onOpenChange={setIsOpen}>
+          <Dialog.Trigger asChild>
+            <Button variant={'destructive'}>
+              <Button.Label>Delete</Button.Label>
+            </Button>
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Overlay />
+            <Dialog.Content>
+              <Dialog.Close className="-mb-2 self-end" />
+              <View className="mb-5 gap-1.5">
+                <Dialog.Title>Delete Task</Dialog.Title>
+                <Dialog.Description>
+                  Are you sure you want to delete this task? This action cannot be undone.
+                </Dialog.Description>
+              </View>
+              <View className="flex-row justify-end gap-3">
+                <Dialog.Close asChild>
+                  <Button variant="ghost" size="sm">
+                    Cancel
+                  </Button>
+                </Dialog.Close>
+                <Button
+                  size="sm"
+                  onPress={() => void handleDelete()}
+                  isDisabled={isDeletingTask}>
+                  <Button.Label>
+                    {isDeletingTask ? 'Deleting...' : 'Delete'}
+                  </Button.Label>
+                </Button>
+              </View>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog>
+      </View>
     </ScrollView>
   );
 }

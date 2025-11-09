@@ -71,7 +71,7 @@ export function TaskCard({ task, isDisabled, onPress }: TaskCardProps) {
 
   return (
     <Pressable
-      className="flex flex-row gap-4 rounded-lg bg-white p-4"
+      className="flex flex-row gap-4 rounded-3xl bg-white p-4"
       onPress={() => (onPress ? onPress(task) : undefined)}
       disabled={!onPress}>
       <Checkbox
@@ -87,7 +87,7 @@ export function TaskCard({ task, isDisabled, onPress }: TaskCardProps) {
         </Text>
         <View className="mt-2 flex flex-row flex-wrap items-center gap-3">
           {task.priority > 0 ? (
-            <View className="flex w-fit flex-row items-center justify-center gap-1 p-1">
+            <View className="flex w-fit flex-row items-center justify-center gap-1 py-1">
               <Ionicons
                 name={task.priority > 0 ? 'flag' : 'flag-outline'}
                 size={14}
@@ -105,14 +105,14 @@ export function TaskCard({ task, isDisabled, onPress }: TaskCardProps) {
           ) : null}
 
           {task.due_at ? (
-            <View className="flex w-fit flex-row items-center justify-center gap-1 p-1">
+            <View className="flex w-fit flex-row items-center justify-center gap-1 py-1">
               <Ionicons name={'calendar-outline'} size={14} />
               <Text className="text-sm">{formatDueLabel(task.due_at)}</Text>
             </View>
           ) : null}
 
           {task.subtaskCounts ? (
-            <View className="flex w-fit flex-row items-center justify-center gap-1 p-1">
+            <View className="flex w-fit flex-row items-center justify-center gap-1 py-1">
               <Ionicons name={'list-outline'} size={14} />
               <Text className="text-sm">
                 {task.subtaskCounts.completed}/{task.subtaskCounts.total}

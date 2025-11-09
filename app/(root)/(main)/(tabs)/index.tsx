@@ -19,12 +19,7 @@ export default function Home() {
     signOut: state.signOut,
     user: state.user,
   }));
-  const {
-    data: lists = [],
-    isLoading,
-    isRefetching,
-    refetch,
-  } = useListsQuery(user?.id ?? undefined);
+  const { data: lists = [], isLoading } = useListsQuery(user?.id ?? undefined);
 
   const handleListPress = useCallback(
     (listId: string) => {
@@ -143,8 +138,6 @@ export default function Home() {
           data={lists}
           keyExtractor={(item) => item.id}
           renderItem={renderListItem}
-          refreshing={isRefetching}
-          onRefresh={() => refetch()}
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled={true}
           contentContainerStyle={{

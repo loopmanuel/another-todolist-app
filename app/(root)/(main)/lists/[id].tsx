@@ -3,16 +3,20 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { Text } from '@/components/ui/text';
-import { Button } from 'heroui-native';
+import { Button, useThemeColor } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { useTasksQuery, type TaskWithSubtaskCounts } from '@/features/tasks/queries/use-tasks';
 import { useAuthStore } from '@/store/auth-store';
 import { TaskCard } from '@/features/tasks/components/task-card';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function ListDetails() {
   const router = useRouter();
+
+  const themeColorMuted = useThemeColor('accent-foreground');
+
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const projectId = useMemo(() => {
     if (!params.id) {
@@ -22,12 +26,7 @@ export default function ListDetails() {
   }, [params.id]);
 
   const { user } = useAuthStore((state) => ({ user: state.user }));
-  const {
-    data: tasks = [],
-    isLoading,
-    isRefetching,
-    refetch,
-  } = useTasksQuery({ projectId, createdBy: user?.id });
+  const { data: tasks = [], isLoading } = useTasksQuery({ projectId, createdBy: user?.id });
 
   const renderTaskItem = useCallback<ListRenderItem<TaskWithSubtaskCounts>>(
     ({ item }) => {
@@ -66,12 +65,12 @@ export default function ListDetails() {
         <Button.Label>Edit</Button.Label>
       </Button>
 
+      <ThemeToggle />
+
       <FlashList
         data={tasks}
         keyExtractor={(item) => item.id}
         renderItem={renderTaskItem}
-        refreshing={isRefetching}
-        onRefresh={() => refetch()}
         ListEmptyComponent={listEmpty}
         contentContainerStyle={{ paddingTop: 24, paddingBottom: 96, paddingHorizontal: 24 }}
       />
@@ -87,7 +86,7 @@ export default function ListDetails() {
               router.push('/task/new');
             }
           }}>
-          <Ionicons name={'add-circle-outline'} size={24} />
+          <Ionicons name={'add-circle-outline'} size={24} color={themeColorMuted} />
           <Button.Label>Add Todo</Button.Label>
         </Button>
       </View>

@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useMemo } from 'react';
+// @ts-ignore
 import { Uniwind, useUniwind } from 'uniwind';
 
 type ThemeName =
