@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { useTasksQuery, type TaskWithSubtaskCounts } from '@/features/tasks/queries/use-tasks';
+import { useListQuery } from '@/features/lists/queries/use-list';
+import { useToggleHideCompletedMutation } from '@/features/lists/mutations/use-toggle-hide-completed';
 import { useAuthStore } from '@/store/auth-store';
 import { TaskCard } from '@/features/tasks/components/task-card';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -26,7 +28,27 @@ export default function ListDetails() {
   }, [params.id]);
 
   const { user } = useAuthStore((state) => ({ user: state.user }));
-  const { data: tasks = [], isLoading } = useTasksQuery({ projectId, createdBy: user?.id });
+  const { data: list } = useListQuery(projectId);
+  const { data: tasks = [], isLoading } = useTasksQuery({
+    projectId,
+    createdBy: user?.id,
+    hideCompleted: list?.hide_completed_tasks ?? false,
+  });
+  const { mutateAsync: toggleHideCompleted, isPending: isToggling } = useToggleHideCompletedMutation();
+
+  const handleToggleHideCompleted = useCallback(async () => {
+    if (!projectId || !user?.id || !list) return;
+
+    try {
+      await toggleHideCompleted({
+        listId: projectId,
+        ownerId: user.id,
+        hideCompleted: !list.hide_completed_tasks,
+      });
+    } catch (err) {
+      console.error('Failed to toggle hide completed:', err);
+    }
+  }, [projectId, user?.id, list, toggleHideCompleted]);
 
   const renderTaskItem = useCallback<ListRenderItem<TaskWithSubtaskCounts>>(
     ({ item }) => {
@@ -55,17 +77,25 @@ export default function ListDetails() {
 
   return (
     <View className={'pb-safe flex-1'}>
-      <Button
-        onPress={() =>
-          router.push({
-            pathname: '/lists/edit',
-            params: { list_id: params.id },
-          })
-        }>
-        <Button.Label>Edit</Button.Label>
-      </Button>
+      <View className={'space-y-6 px-6'}>
+        <Button
+          onPress={() =>
+            router.push({
+              pathname: '/lists/edit',
+              params: { list_id: params.id },
+            })
+          }>
+          <Button.Label>Edit</Button.Label>
+        </Button>
 
-      <ThemeToggle />
+        <ThemeToggle />
+
+        <Button onPress={() => void handleToggleHideCompleted()} isDisabled={isToggling || !list}>
+          <Button.Label>
+            {list?.hide_completed_tasks ? 'Show Completed Tasks' : 'Hide Completed Tasks'}
+          </Button.Label>
+        </Button>
+      </View>
 
       <FlashList
         data={tasks}

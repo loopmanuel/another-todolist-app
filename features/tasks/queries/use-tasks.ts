@@ -17,18 +17,19 @@ export type TaskWithSubtaskCounts = TaskRow & {
 type UseTasksParams = {
   projectId?: string;
   createdBy?: string;
+  hideCompleted?: boolean;
 };
 
-export function useTasksQuery({ projectId, createdBy }: UseTasksParams) {
+export function useTasksQuery({ projectId, createdBy, hideCompleted }: UseTasksParams) {
   return useQuery<TaskWithSubtaskCounts[], Error>({
-    queryKey: [...taskKeys.project(projectId), createdBy ?? 'anonymous'],
+    queryKey: [...taskKeys.project(projectId), createdBy ?? 'anonymous', hideCompleted ? 'hideCompleted' : 'all'],
     enabled: Boolean(projectId && createdBy),
     queryFn: async () => {
       if (!projectId || !createdBy) {
         return [];
       }
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('tasks')
         .select(
           `
@@ -39,7 +40,14 @@ export function useTasksQuery({ projectId, createdBy }: UseTasksParams) {
         .eq('project_id', projectId)
         .eq('created_by', createdBy)
         .is('deleted_at', null)
-        .is('parent_id', null)
+        .is('parent_id', null);
+
+      // Filter out completed tasks if hideCompleted is true
+      if (hideCompleted) {
+        query = query.neq('status', 'done');
+      }
+
+      const { data, error } = await query
         .order('sort_order', { ascending: true, nullsFirst: true })
         .order('created_at', { ascending: true });
 
