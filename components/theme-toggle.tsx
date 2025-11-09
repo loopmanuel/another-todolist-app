@@ -16,9 +16,9 @@ export const ThemeToggle: FC = () => {
   return (
     <Pressable
       onPress={() => {
-        if (Platform.OS === 'ios') {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        }
+        // if (Platform.OS === 'ios') {
+        //   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        // }
         toggleTheme();
       }}
       className="px-2.5">

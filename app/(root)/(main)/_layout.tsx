@@ -1,17 +1,33 @@
 import { Stack } from 'expo-router';
 import { useWindowDimensions } from 'react-native';
+import { useThemeColor } from 'heroui-native';
+import { useAppTheme } from '@/contexts/app-theme-contexts';
 
 export default function MainLayout() {
   const { height } = useWindowDimensions();
+
+  const { isDark } = useAppTheme();
+  const themeColorForeground = useThemeColor('foreground');
+  const themeColorBackground = useThemeColor('background');
+
   return (
-    <Stack>
+    <Stack
+      screenOptions={{
+        headerBlurEffect: isDark ? 'dark' : 'light',
+        headerTintColor: themeColorForeground,
+        contentStyle: {
+          backgroundColor: themeColorBackground,
+        },
+      }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="today"
         options={{
           title: 'Today',
+          headerLargeTitle: false,
           headerShadowVisible: false,
           headerBackButtonDisplayMode: 'minimal',
+          // headerTransparent: true,
         }}
       />
       <Stack.Screen

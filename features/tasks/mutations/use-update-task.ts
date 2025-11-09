@@ -10,7 +10,7 @@ type TaskRow = Tables<'tasks'>;
 export type UpdateTaskVariables = {
   taskId: string;
   projectId: string;
-  payload: Pick<TablesUpdate<'tasks'>, 'title' | 'description' | 'due_at' | 'priority'>;
+  payload: Partial<Pick<TablesUpdate<'tasks'>, 'title' | 'description' | 'due_at' | 'priority'>>;
 };
 
 export function useUpdateTaskMutation() {

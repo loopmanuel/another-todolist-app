@@ -1,7 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, View } from 'react-native';
 
-import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
+import DraggableFlatList, {
+  RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 import { Text } from '@/components/ui/text';
 import { Button, Dialog, useThemeColor } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -141,8 +144,6 @@ export default function ListDetails() {
           <Button.Label>Edit</Button.Label>
         </Button>
 
-        <ThemeToggle />
-
         <Button onPress={() => void handleToggleHideCompleted()} isDisabled={isToggling || !list}>
           <Button.Label>
             {list?.hide_completed_tasks ? 'Show Completed Tasks' : 'Hide Completed Tasks'}
@@ -162,7 +163,8 @@ export default function ListDetails() {
               <View className="mb-5 gap-1.5">
                 <Dialog.Title>Delete List</Dialog.Title>
                 <Dialog.Description>
-                  Are you sure you want to delete this list? All tasks in this list will also be deleted. This action cannot be undone.
+                  Are you sure you want to delete this list? All tasks in this list will also be
+                  deleted. This action cannot be undone.
                 </Dialog.Description>
               </View>
               <View className="flex-row justify-end gap-3">
@@ -175,9 +177,7 @@ export default function ListDetails() {
                   size="sm"
                   onPress={() => void handleDeleteList()}
                   isDisabled={isDeletingList}>
-                  <Button.Label>
-                    {isDeletingList ? 'Deleting...' : 'Delete'}
-                  </Button.Label>
+                  <Button.Label>{isDeletingList ? 'Deleting...' : 'Delete'}</Button.Label>
                 </Button>
               </View>
             </Dialog.Content>
@@ -196,7 +196,7 @@ export default function ListDetails() {
 
       <View className={'pb-safe left-0 right-0 px-6 pt-2'}>
         <Button
-          variant={'primary'}
+          variant={'tertiary'}
           className={'mb-6'}
           onPress={() => {
             if (projectId) {
@@ -205,7 +205,7 @@ export default function ListDetails() {
               router.push('/task/new');
             }
           }}>
-          <Ionicons name={'add-circle-outline'} size={24} color={themeColorMuted} />
+          <Ionicons name={'add-circle-outline'} size={24} />
           <Button.Label>Add Todo</Button.Label>
         </Button>
       </View>

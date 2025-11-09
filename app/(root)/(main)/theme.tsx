@@ -15,6 +15,8 @@ import {
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useAppTheme } from '@/contexts/app-theme-contexts';
+import { Stack } from 'expo-router';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 type ThemeOption = {
   id: string;
@@ -166,6 +168,12 @@ export default function Themes() {
 
   return (
     <ScrollView contentContainerClassName="px-0">
+      <Stack.Screen
+        options={{
+          headerRight: () => <ThemeToggle />,
+        }}
+      />
+
       {/* Theme Selector */}
       <View className="bg-overlay border-divider border-b px-5 py-8">
         <Text className="text-foreground mb-4 text-lg font-bold">Select Theme</Text>

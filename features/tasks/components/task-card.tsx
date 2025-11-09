@@ -74,8 +74,8 @@ export function TaskCard({ task, isDisabled, onPress, onLongPress, isActive }: T
   return (
     <Pressable
       className={cn(
-        'flex flex-row gap-4 rounded-3xl bg-white p-4',
-        isActive && 'shadow-lg opacity-90'
+        'border-border flex flex-row gap-4 rounded-3xl border bg-white p-4',
+        isActive && 'opacity-90 shadow-lg'
       )}
       onPress={() => (onPress ? onPress(task) : undefined)}
       onLongPress={onLongPress}
@@ -127,11 +127,6 @@ export function TaskCard({ task, isDisabled, onPress, onLongPress, isActive }: T
           ) : null}
         </View>
       </View>
-      {onLongPress && (
-        <View className="items-center justify-center pl-2">
-          <Ionicons name="reorder-three" size={24} color="#9ca3af" />
-        </View>
-      )}
     </Pressable>
   );
 }

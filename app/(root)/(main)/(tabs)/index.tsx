@@ -33,10 +33,10 @@ export default function Home() {
   );
 
   return (
-    <View className={'relative flex-1'}>
+    <View className={'bg-background relative flex-1'}>
       <NewFab />
 
-      <ScrollView className={'flex flex-1 bg-white'}>
+      <ScrollView className={'pt-safe flex flex-1'}>
         <Stack.Screen
           options={{
             headerTitle: 'November 2nd',
@@ -70,10 +70,10 @@ export default function Home() {
           }}
         />
 
-        <View className="pt-safe px-4">
+        <View className="px-6 pt-8">
           <View className="gap-3">
             <TouchableOpacity className="flex flex-row items-center gap-4">
-              <View className="flex h-12 w-14 items-center justify-center rounded-lg bg-white">
+              <View className="bg-card flex items-center justify-center rounded-lg">
                 <Ionicons name={'file-tray-outline'} size={22} />
               </View>
               <Text variant={'large'}>Inbox</Text>
@@ -82,7 +82,7 @@ export default function Home() {
             <TouchableOpacity
               className="flex flex-row items-center gap-4"
               onPress={() => router.push('/today')}>
-              <View className="flex h-12 w-14 items-center justify-center rounded-lg bg-white">
+              <View className="bg-card flex items-center justify-center rounded-lg">
                 <Ionicons name={'today-outline'} size={22} />
               </View>
               <Text variant={'large'}>Today</Text>
@@ -91,14 +91,14 @@ export default function Home() {
             <TouchableOpacity
               className="flex flex-row items-center gap-4"
               onPress={() => router.push('/theme')}>
-              <View className="flex h-12 w-14 items-center justify-center rounded-lg bg-white">
+              <View className="bg-card flex items-center justify-center rounded-lg">
                 <Ionicons name={'today-outline'} size={22} />
               </View>
               <Text variant={'large'}>Theme</Text>
             </TouchableOpacity>
 
             <TouchableOpacity className="flex flex-row items-center gap-4">
-              <View className="flex h-12 w-14 items-center justify-center rounded-lg bg-white">
+              <View className="bg-card flex items-center justify-center rounded-lg">
                 <Ionicons name={'calendar-outline'} size={22} />
               </View>
               <Text variant={'large'}>Upcoming</Text>
@@ -107,20 +107,22 @@ export default function Home() {
 
           <View className="mt-6">
             <View className="mb-4 flex flex-row items-center gap-4">
-              <Text className="border-none text-xl font-semibold text-gray-600">Favorites</Text>
+              <Text className="text-muted-foreground border-none text-xl font-semibold">
+                Favorites
+              </Text>
             </View>
 
             <TouchableOpacity
               className="mb-2 flex flex-row items-center gap-4"
               onPress={() => router.push('/lists/1')}>
-              <View className="flex h-14 w-14 items-center justify-center rounded-lg bg-gray-200">
+              <View className="bg-muted flex h-14 w-14 items-center justify-center rounded-lg">
                 <Text>📥</Text>
               </View>
               <Text variant={'large'}>Project one</Text>
             </TouchableOpacity>
           </View>
 
-          <Text variant="h3" className="mb-4 mt-6 border-none text-xl font-semibold text-gray-600">
+          <Text className="text-muted-foreground mb-4 mt-6 border-none text-lg font-semibold">
             Lists
           </Text>
         </View>
