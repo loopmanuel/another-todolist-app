@@ -17,7 +17,6 @@ import { useDeleteListMutation } from '@/features/lists/mutations/use-delete-lis
 import { useReorderTasksMutation } from '@/features/tasks/mutations/use-reorder-tasks';
 import { useAuthStore } from '@/store/auth-store';
 import { TaskCard } from '@/features/tasks/components/task-card';
-import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function ListDetails() {
   const router = useRouter();

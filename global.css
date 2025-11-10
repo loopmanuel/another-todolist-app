@@ -9,100 +9,104 @@
 
 @layer theme {
     :root {
+
+        /* Base radius */
+        --radius: 0.5rem;
+
         @variant light {
             /* Base Colors */
-            --background: oklch(1 0 0);
-            --foreground: oklch(0.145 0 0);
+            --background: oklch(0.9702 0 0);
+            --foreground: var(--eclipse);
 
-            /* Surface: non-overlay components (cards, accordions, disclosure groups) */
-            --surface: oklch(1 0 0);            /* = card */
-            --surface-foreground: oklch(0.145 0 0); /* = card-foreground */
+            /* Surface: Used for non-overlay components (cards, accordions, disclosure groups) */
+            --surface: var(--white);
+            --surface-foreground: var(--foreground);
 
-            /* Overlay: floating/overlay components (dialogs, popovers, menus) */
-            --overlay: oklch(1 0 0);            /* = popover */
-            --overlay-foreground: oklch(0.145 0 0); /* = popover-foreground */
+            /* Overlay: Used for floating/overlay components (dialogs, popovers, modals, menus) */
+            --overlay: var(--white);
+            --overlay-foreground: var(--foreground);
 
-            --muted: oklch(0.556 0 0);
+            --muted: oklch(55.2% 0.016 285.938);
 
-            /* “Default” = neutral button/chip backgrounds */
-            --default: oklch(0.97 0 0);                 /* = secondary */
-            --default-foreground: oklch(0.205 0 0);     /* = secondary-foreground */
+            --default: oklch(94% 0.001 286.375);
+            --default-foreground: var(--eclipse);
 
-            --accent: oklch(0.205 0 0);
-            --accent-foreground: oklch(0.985 0 0);
+            --accent: var(--color-neutral-950);
+            --accent-foreground: var(--snow);
 
             /* Form Field Defaults - Colors */
-            --field-background: oklch(1 0 0);          /* clean white fields */
-            --field-foreground: oklch(0.145 0 0);
-            --field-placeholder: oklch(0.556 0 0);     /* = muted-foreground */
-            --field-border: oklch(0.922 0 0);          /* = input */
+            --field-background: var(--white);
+            --field-foreground: oklch(0.2103 0.0059 285.89);
+            --field-placeholder: var(--muted);
+            --field-border: oklch(72% 0.004 286.32); /* no border by default on form fields */
 
             /* Status Colors */
-            --success: oklch(0.6 0.118 184.704);       /* chart-2 green/teal */
-            --success-foreground: oklch(0.985 0 0);
+            --success: oklch(0.7329 0.1935 150.81);
+            --success-foreground: var(--eclipse);
 
-            --warning: oklch(0.769 0.188 70.08);       /* chart-5 yellow */
-            --warning-foreground: oklch(0.985 0 0);
+            --warning: oklch(0.7819 0.1585 72.33);
+            --warning-foreground: var(--eclipse);
 
-            --danger: oklch(0.577 0.245 27.325);       /* destructive */
-            --danger-foreground: oklch(0.985 0 0);
+            --danger: oklch(0.6532 0.2328 25.74);
+            --danger-foreground: var(--snow);
 
             /* Component Colors */
-            --segment: oklch(0.97 0 0);                /* subtle grouped background */
-            --segment-foreground: oklch(0.205 0 0);
+            --segment: var(--white);
+            --segment-foreground: var(--eclipse);
 
             /* Misc Colors */
-            --border: oklch(0.922 0 0);
-            --divider: oklch(0.922 0 0);               /* or adjust slightly darker if desired */
-            --link: oklch(0.205 0 0);                  /* = primary */
+            --border: oklch(0 0 0 / 0%);
+            --divider: oklch(72% 0.004 286.32);
+            --link: var(--foreground);
         }
 
         @variant dark {
             /* Base Colors */
-            --background: oklch(0.145 0 0);
-            --foreground: oklch(0.985 0 0);
+            --background: var(--black);
+            --foreground: var(--snow);
 
-            /* Surface */
-            --surface: oklch(0.205 0 0);               /* = card */
-            --surface-foreground: oklch(0.985 0 0);    /* = card-foreground */
+            /* Surface: Used for non-overlay components (cards, accordions, disclosure groups) */
+            --surface: oklch(0.2103 0.0059 285.89);
+            --surface-foreground: var(--foreground);
 
-            /* Overlay */
-            --overlay: oklch(0.269 0 0);               /* = popover */
-            --overlay-foreground: oklch(0.985 0 0);    /* = popover-foreground */
+            /* Overlay: Used for floating/overlay components (dialogs, popovers, modals, menus) - lighter for contrast */
+            --overlay: oklch(
+                    0.2563 0.0058 271.19
+            ); /* Lighter than surface for visibility in dark mode */
+            --overlay-foreground: var(--foreground);
 
-            --muted: oklch(0.269 0 0);
+            --muted: oklch(70.5% 0.015 286.067);
 
-            /* “Default” neutrals */
-            --default: oklch(0.269 0 0);               /* = secondary */
-            --default-foreground: oklch(0.618 0.249 28.794);    /* = secondary-foreground */
+            --default: oklch(27.4% 0.006 286.033);
+            --default-foreground: var(--snow);
 
-            --accent: oklch(0.371 0 0);
-            --accent-foreground: oklch(0.985 0 0);
+            --accent: oklch(0.6204 0.195 253.83);
+            --accent-foreground: var(--snow);
 
-            /* Form Field Defaults - Colors */
-            --field-background: oklch(0.269 0 0);
-            --field-foreground: oklch(0.985 0 0);
-            --field-placeholder: oklch(0.708 0 0);     /* subtle on dark */
-            --field-border: oklch(1 0 0 / 15%);        /* = input */
+            /* Form Field Defaults - Colors (only the ones that are different from light theme) */
+            --field-background: var(--default);
+            --field-foreground: var(--foreground);
+            --field-placeholder: var(--muted);
+            --field-border: transparent; /* no border by default on form fields */
 
             /* Status Colors */
-            --success: oklch(0.696 0.17 162.48);       /* chart-2 (dark-tuned) */
-            --success-foreground: oklch(0.985 0 0);
+            --success: oklch(0.7329 0.1935 150.81);
+            --success-foreground: var(--eclipse);
 
-            --warning: oklch(0.645 0.246 16.439);      /* warm amber/orange */
-            --warning-foreground: oklch(0.985 0 0);
+            --warning: oklch(0.8203 0.1388 76.34);
+            --warning-foreground: var(--eclipse);
 
-            --danger: oklch(0.704 0.191 22.216);       /* destructive (dark) */
-            --danger-foreground: oklch(0.985 0 0);
+            --danger: oklch(0.594 0.1967 24.63);
+            --danger-foreground: var(--snow);
 
             /* Component Colors */
-            --segment: oklch(0.269 0 0);
-            --segment-foreground: oklch(0.985 0 0);
+            --segment: oklch(0.3964 0.01 285.93);
+            --segment-foreground: var(--foreground);
 
             /* Misc Colors */
-            --border: oklch(1 0 0 / 10%);
-            --divider: oklch(1 0 0 / 10%);
-            --link: oklch(0.922 0 0);                  /* = primary in dark */
+            --border: oklch(1 0 0 / 0%);
+            --divider: oklch(47% 0.006 286.033);
+            --link: var(--foreground);
         }
     }
 }
