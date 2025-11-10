@@ -27,6 +27,8 @@ export default function MainLayout() {
           headerShadowVisible: false,
           headerBackButtonDisplayMode: 'minimal',
           headerTransparent: true,
+          headerTintColor: 'black',
+          headerTitleAlign: 'center',
         }}
       />
       <Stack.Screen

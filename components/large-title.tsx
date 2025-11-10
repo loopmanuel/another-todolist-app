@@ -81,7 +81,7 @@ export const LargeTitle: FC<Props> = ({
 
   return (
     <Animated.Text
-      className={cn('text-3xl font-bold text-black', className)}
+      className={cn('text-4xl font-bold text-black', className)}
       style={[rLargeTitleStyle, { transformOrigin: 'left' }]} // Left origin for natural iOS-style scaling
       onLayout={({ nativeEvent }) =>
         // Calculate bottom edge position (y + height) for precise animation trigger
