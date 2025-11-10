@@ -27,9 +27,8 @@ export function useTodayTasksQuery({ createdBy }: UseTodayTasksParams) {
         return [];
       }
 
-      // Get today's date range (start and end of day)
+      // Get end of today (include today and past due tasks)
       const now = new Date();
-      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
       const { data, error } = await supabase
@@ -43,8 +42,8 @@ export function useTodayTasksQuery({ createdBy }: UseTodayTasksParams) {
         .eq('created_by', createdBy)
         .is('deleted_at', null)
         .is('parent_id', null)
-        .gte('due_at', startOfDay.toISOString())
         .lt('due_at', endOfDay.toISOString())
+        .order('due_at', { ascending: true, nullsFirst: false })
         .order('sort_order', { ascending: true, nullsFirst: true })
         .order('created_at', { ascending: true });
 

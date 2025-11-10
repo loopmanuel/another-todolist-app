@@ -20,9 +20,7 @@ function ListTileComponent({ list, onPress }: ListTileProps) {
   }, [list.color]);
 
   return (
-    <Pressable
-      className="mb-4 flex flex-row items-center gap-4 bg-white"
-      onPress={() => onPress?.(list)}>
+    <Pressable className="mb-4 flex flex-row items-center gap-4" onPress={() => onPress?.(list)}>
       <View
         className="h-12 w-12 items-center justify-center rounded-2xl"
         style={{ backgroundColor: accentColor }}>

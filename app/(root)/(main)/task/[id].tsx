@@ -8,7 +8,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
+import DraggableFlatList, {
+  RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 import { Text } from '@/components/ui/text';
 import BackButton from '@/components/ui/back-button';
 import { Button, Card, Checkbox, Dialog } from 'heroui-native';
@@ -367,21 +370,24 @@ export default function TaskDetails() {
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={'#000'} />
       }>
-      <View className={'flex flex-row items-center justify-between px-6 pr-4 pt-6'}>
+      <View className={'flex flex-row items-center justify-between pr-4 pt-6'}>
         <BackButton isClose />
-        <Button
-          className={'rounded-full'}
-          isIconOnly
-          onPress={() => void onSubmit()}
-          isDisabled={saveDisabled || isSubmitting || isUpdatingTask}>
-          <Button.Label>
-            {isSubmitting || isUpdatingTask ? (
-              <ActivityIndicator size={'small'} />
-            ) : (
-              <Ionicons name={'checkmark-outline'} size={22} />
-            )}
-          </Button.Label>
-        </Button>
+
+        {!saveDisabled && (
+          <Button
+            className={'rounded-full'}
+            isIconOnly
+            onPress={() => void onSubmit()}
+            isDisabled={saveDisabled || isSubmitting || isUpdatingTask}>
+            <Button.Label>
+              {isSubmitting || isUpdatingTask ? (
+                <ActivityIndicator size={'small'} />
+              ) : (
+                <Ionicons name={'checkmark-outline'} size={22} />
+              )}
+            </Button.Label>
+          </Button>
+        )}
       </View>
 
       <Card className={'mx-6 mt-6 rounded-2xl'}>
@@ -409,7 +415,7 @@ export default function TaskDetails() {
                   }}
                 />
 
-                <View className={'flex-1'}>
+                <View className={'flex-1 items-center'}>
                   <Controller
                     control={control}
                     name={'title'}
@@ -426,8 +432,12 @@ export default function TaskDetails() {
                         editable={Boolean(task && user?.id)}
                         placeholder={'Task title'}
                         className={
-                          'placeholder:text-muted-foreground/80 w-full min-w-0 px-0 py-0 text-2xl font-semibold'
+                          'placeholder:text-muted-foreground/80 w-full min-w-0 p-0 text-2xl font-semibold'
                         }
+                        multiline
+                        style={{
+                          lineHeight: 24,
+                        }}
                       />
                     )}
                   />
@@ -475,7 +485,7 @@ export default function TaskDetails() {
               </View>
 
               <View className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
-                <Ionicons name={'pricetag-outline'} size={18} />
+                <Ionicons name={'file-tray-outline'} size={18} />
                 <Text>
                   {listsLoading ? 'Loading list…' : (currentList?.name ?? 'No list selected')}
                 </Text>
@@ -512,7 +522,7 @@ export default function TaskDetails() {
 
               <Pressable
                 onPress={() => router.push('/labels/pick-label')}
-                className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
+                className={'flex flex-row items-center gap-2 border-b-gray-200 py-3'}>
                 <Ionicons name={'pricetags-outline'} size={18} />
                 <View className={'flex-1 flex-row flex-wrap gap-2'}>
                   {labelsLoading ? (
@@ -584,7 +594,7 @@ export default function TaskDetails() {
       <View className={'px-4 pb-6 pt-6'}>
         <Dialog isOpen={isOpen} onOpenChange={setIsOpen}>
           <Dialog.Trigger asChild>
-            <Button variant={'destructive'}>
+            <Button variant={'destructive-soft'}>
               <Button.Label>Delete</Button.Label>
             </Button>
           </Dialog.Trigger>
@@ -604,13 +614,8 @@ export default function TaskDetails() {
                     Cancel
                   </Button>
                 </Dialog.Close>
-                <Button
-                  size="sm"
-                  onPress={() => void handleDelete()}
-                  isDisabled={isDeletingTask}>
-                  <Button.Label>
-                    {isDeletingTask ? 'Deleting...' : 'Delete'}
-                  </Button.Label>
+                <Button size="sm" onPress={() => void handleDelete()} isDisabled={isDeletingTask}>
+                  <Button.Label>{isDeletingTask ? 'Deleting...' : 'Delete'}</Button.Label>
                 </Button>
               </View>
             </Dialog.Content>

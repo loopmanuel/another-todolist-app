@@ -24,10 +24,9 @@ export default function MainLayout() {
         name="today"
         options={{
           title: 'Today',
-          headerLargeTitle: false,
           headerShadowVisible: false,
           headerBackButtonDisplayMode: 'minimal',
-          // headerTransparent: true,
+          headerTransparent: true,
         }}
       />
       <Stack.Screen

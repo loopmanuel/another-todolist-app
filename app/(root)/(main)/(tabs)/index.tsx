@@ -12,6 +12,7 @@ import { ListTile } from '@/features/lists/components/list-tile';
 import { useListsQuery } from '@/features/lists/queries/use-lists';
 import type { Tables } from '@/supabase/database.types';
 import { useAuthStore } from '@/store/auth-store';
+import { ScreenScrollView } from '@/components/screen-scroll-view';
 
 export default function Home() {
   const router = useRouter();
@@ -34,98 +35,86 @@ export default function Home() {
 
   return (
     <View className={'bg-background relative flex-1'}>
+      <Stack.Screen
+        options={{
+          headerTitle: '',
+          headerTransparent: true,
+          headerLeft: () => (
+            <Button
+              variant={'tertiary'}
+              isIconOnly
+              className={'ml-4 rounded-full'}
+              onPress={() => router.push('/settings')}>
+              <Button.Label>
+                <Ionicons name={'settings-outline'} size={22} />
+              </Button.Label>
+            </Button>
+          ),
+          headerRight: () => (
+            <Button
+              variant={'tertiary'}
+              isIconOnly
+              className={'mr-4 rounded-full'}
+              onPress={() => router.push('/search')}>
+              <Button.Label>
+                <Ionicons name={'search-outline'} size={20} />
+              </Button.Label>
+            </Button>
+          ),
+          headerShadowVisible: false,
+        }}
+      />
+
       <NewFab />
 
-      <ScrollView className={'pt-safe flex flex-1'}>
-        <Stack.Screen
-          options={{
-            headerTitle: 'November 2nd',
-            headerLeft: () => (
-              <View className={'pl-4'}>
-                <Button
-                  variant={'tertiary'}
-                  isIconOnly
-                  className={'rounded-full'}
-                  onPress={() => router.push('/settings')}>
-                  <Button.Label>
-                    <Ionicons name={'settings-outline'} size={22} />
-                  </Button.Label>
-                </Button>
-              </View>
-            ),
-            headerRight: () => (
-              <View className={'flex flex-row items-center gap-2 pr-4'}>
-                <Button
-                  variant={'tertiary'}
-                  isIconOnly
-                  className={'rounded-full'}
-                  onPress={() => router.push('/search')}>
-                  <Button.Label>
-                    <Ionicons name={'search-outline'} size={20} />
-                  </Button.Label>
-                </Button>
-              </View>
-            ),
-            headerShadowVisible: false,
-          }}
-        />
+      <ScreenScrollView>
+        <View className={'h-5'} />
 
-        <View className="px-6 pt-8">
-          <View className="gap-3">
-            <TouchableOpacity className="flex flex-row items-center gap-4">
-              <View className="bg-card flex items-center justify-center rounded-lg">
-                <Ionicons name={'file-tray-outline'} size={22} />
-              </View>
-              <Text variant={'large'}>Inbox</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex flex-row items-center gap-4"
-              onPress={() => router.push('/today')}>
-              <View className="bg-card flex items-center justify-center rounded-lg">
-                <Ionicons name={'today-outline'} size={22} />
-              </View>
-              <Text variant={'large'}>Today</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex flex-row items-center gap-4"
-              onPress={() => router.push('/theme')}>
-              <View className="bg-card flex items-center justify-center rounded-lg">
-                <Ionicons name={'today-outline'} size={22} />
-              </View>
-              <Text variant={'large'}>Theme</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="flex flex-row items-center gap-4">
-              <View className="bg-card flex items-center justify-center rounded-lg">
-                <Ionicons name={'calendar-outline'} size={22} />
-              </View>
-              <Text variant={'large'}>Upcoming</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View className="mt-6">
-            <View className="mb-4 flex flex-row items-center gap-4">
-              <Text className="text-muted-foreground border-none text-xl font-semibold">
-                Favorites
-              </Text>
+        <View className="gap-3">
+          <TouchableOpacity className="flex flex-row items-center gap-4">
+            <View className="bg-card flex items-center justify-center rounded-lg">
+              <Ionicons name={'file-tray-outline'} size={22} />
             </View>
+            <Text className={'text-base font-semibold'}>Inbox</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              className="mb-2 flex flex-row items-center gap-4"
-              onPress={() => router.push('/lists/1')}>
-              <View className="bg-muted flex h-14 w-14 items-center justify-center rounded-lg">
-                <Text>📥</Text>
-              </View>
-              <Text variant={'large'}>Project one</Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            className="flex flex-row items-center gap-4"
+            onPress={() => router.push('/today')}>
+            <View className="bg-card flex items-center justify-center rounded-lg">
+              <Ionicons name={'today-outline'} size={22} />
+            </View>
+            <Text className={'text-base font-semibold'}>Today</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex flex-row items-center gap-4">
+            <View className="bg-card flex items-center justify-center rounded-lg">
+              <Ionicons name={'calendar-outline'} size={22} />
+            </View>
+            <Text className={'text-base font-semibold'}>Upcoming</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View className="mt-6">
+          <View className="mb-4 flex flex-row items-center gap-4">
+            <Text className="text-muted-foreground mb-4 mt-6 border-none text-lg font-semibold">
+              Favorites
+            </Text>
           </View>
 
-          <Text className="text-muted-foreground mb-4 mt-6 border-none text-lg font-semibold">
-            Lists
-          </Text>
+          <TouchableOpacity
+            className="mb-2 flex flex-row items-center gap-4"
+            onPress={() => router.push('/lists/1')}>
+            <View className="bg-muted flex h-14 w-14 items-center justify-center rounded-lg">
+              <Text>📥</Text>
+            </View>
+            <Text variant={'large'}>Project one</Text>
+          </TouchableOpacity>
         </View>
+
+        <Text className="text-muted-foreground mb-4 mt-6 border-none text-lg font-semibold">
+          Lists
+        </Text>
 
         <FlashList
           data={lists}
@@ -161,7 +150,7 @@ export default function Home() {
             </View>
           }
         />
-      </ScrollView>
+      </ScreenScrollView>
     </View>
   );
 }
