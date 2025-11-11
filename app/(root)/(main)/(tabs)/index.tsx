@@ -123,7 +123,6 @@ export default function Home() {
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled={true}
           contentContainerStyle={{
-            paddingHorizontal: 16,
             paddingBottom: 120,
           }}
           ListEmptyComponent={

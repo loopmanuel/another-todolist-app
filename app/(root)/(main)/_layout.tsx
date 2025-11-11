@@ -60,6 +60,7 @@ export default function MainLayout() {
           title: 'Lists Details',
           headerShadowVisible: false,
           headerBackButtonDisplayMode: 'minimal',
+          headerTransparent: true,
         }}
       />
       <Stack.Screen
