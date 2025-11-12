@@ -42,6 +42,7 @@ export function useTodayTasksQuery({ createdBy }: UseTodayTasksParams) {
         .eq('created_by', createdBy)
         .is('deleted_at', null)
         .is('parent_id', null)
+        .neq('status', 'done')
         .lt('due_at', endOfDay.toISOString())
         .order('due_at', { ascending: true, nullsFirst: false })
         .order('sort_order', { ascending: true, nullsFirst: true })
