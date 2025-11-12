@@ -8,9 +8,10 @@ import type { Tables } from '@/supabase/database.types';
 type ListTileProps = {
   list: Tables<'projects'>;
   onPress?: (list: Tables<'projects'>) => void;
+  uncompletedCount?: number;
 };
 
-function ListTileComponent({ list, onPress }: ListTileProps) {
+function ListTileComponent({ list, onPress, uncompletedCount }: ListTileProps) {
   const accentColor = useMemo(() => {
     const fallback = '#e5e7eb';
     if (!list.color) {
@@ -20,9 +21,9 @@ function ListTileComponent({ list, onPress }: ListTileProps) {
   }, [list.color]);
 
   return (
-    <Pressable className="mb-4 flex flex-row items-center gap-4" onPress={() => onPress?.(list)}>
+    <Pressable className="mb-4 flex flex-row items-center gap-3" onPress={() => onPress?.(list)}>
       <View
-        className="h-12 w-12 items-center justify-center rounded-2xl"
+        className="h-11 w-11 items-center justify-center rounded-xl"
         style={{ backgroundColor: accentColor }}>
         {list.icon ? (
           <Text className={'text-xl'}>{list.icon}</Text>
@@ -35,7 +36,11 @@ function ListTileComponent({ list, onPress }: ListTileProps) {
           {list.name}
         </Text>
       </View>
-      <Ionicons name="chevron-forward" size={18} color="#a1a1aa" />
+      {uncompletedCount !== undefined && uncompletedCount > 0 && (
+        <View className={'h-6 w-6 items-center justify-center rounded-md bg-gray-200'}>
+          <Text className={'text-muted text-sm font-medium'}>{uncompletedCount}</Text>
+        </View>
+      )}
     </Pressable>
   );
 }
