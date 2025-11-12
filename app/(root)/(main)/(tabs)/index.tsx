@@ -105,30 +105,47 @@ export default function Home() {
 
       <NewFab />
 
+      <Button
+        className={'absolute bottom-8 left-4 z-10'}
+        size={'sm'}
+        variant={'tertiary'}
+        onPress={() => router.push('/lists/new')}>
+        <Ionicons name={'add-circle-outline'} size={24} />
+        <Button.Label>New List</Button.Label>
+      </Button>
+
       <FlashList
         data={lists}
         keyExtractor={(item) => item.id}
         renderItem={renderListItem}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={() => (
-          <View>
-            <View className={'h-8'} />
-            <View className={'mb-4 mt-6'}>
-              <Text className="border-none text-base font-semibold">Quick Access</Text>
-            </View>
-            <View className="flex flex-row gap-4">
+          <View className={'pt-10'}>
+            {/* Main Header Section */}
+            <View className="mb-6">
               {mainHeaderList.map((item) => (
                 <TouchableOpacity
                   key={item.title}
-                  className="bg-surface flex flex-1 flex-col items-center rounded-2xl py-2">
-                  <View className="bg-overlay flex h-11 w-11 items-center justify-center rounded-lg">
-                    <Ionicons name={item.icon} size={22} />
+                  className="mb-4 flex flex-row items-center gap-3"
+                  onPress={() => {
+                    if (item.to) {
+                      router.push(item.to);
+                    }
+                  }}>
+                  <View className="bg-surface h-11 w-11 items-center justify-center rounded-xl">
+                    <Ionicons name={item.icon} size={20} color="#3b82f6" />
                   </View>
-                  <Text className={'text-base font-semibold'}>{item.title}</Text>
+                  <View className="flex-1">
+                    <Text className={'text-base font-semibold'} numberOfLines={1}>
+                      {item.title}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               ))}
             </View>
-            <View className={'mb-4 mt-6'}>
+
+            {/* Lists Section Header */}
+            <View className={'mb-4'}>
               <Text className="border-none text-base font-semibold">Lists</Text>
             </View>
           </View>
@@ -153,14 +170,6 @@ export default function Home() {
               )}
             </View>
           ) : null
-        }
-        ListFooterComponent={
-          <View className="pb-safe mt-2 gap-3">
-            <Button variant={'tertiary'} onPress={() => router.push('/lists/new')}>
-              <Ionicons name={'add-circle-outline'} size={24} />
-              <Button.Label>New List</Button.Label>
-            </Button>
-          </View>
         }
       />
     </View>

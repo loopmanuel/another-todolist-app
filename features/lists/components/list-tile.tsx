@@ -1,6 +1,7 @@
 import { memo, useMemo } from 'react';
 import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import tinycolor from 'tinycolor2';
 
 import { Text } from '@/components/ui/text';
 import type { Tables } from '@/supabase/database.types';
@@ -24,7 +25,11 @@ function ListTileComponent({ list, onPress, uncompletedCount }: ListTileProps) {
     <Pressable className="mb-4 flex flex-row items-center gap-3" onPress={() => onPress?.(list)}>
       <View
         className="h-11 w-11 items-center justify-center rounded-xl"
-        style={{ backgroundColor: accentColor }}>
+        style={{
+          backgroundColor: tinycolor(accentColor ?? '#ffffff')
+            .setAlpha(0.3)
+            .toRgbString(),
+        }}>
         {list.icon ? (
           <Text className={'text-xl'}>{list.icon}</Text>
         ) : (
