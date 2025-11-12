@@ -23,6 +23,7 @@ type MainHeaderItem = {
   to?: Route;
   onPress?: () => void;
   badgeCount?: number;
+  color: string;
 };
 
 // ---------- Data (type-safe via `satisfies`) ----------
@@ -30,17 +31,19 @@ const mainHeaderList = [
   {
     icon: 'file-tray-outline',
     title: 'Inbox',
-    // to: '/inbox' as const,  // uncomment if/when you have an inbox route
+    color: '#3b82f6',
   },
   {
     icon: 'today-outline',
     title: 'Today',
     to: '/today' as const,
+    color: '#10b981', // green
   },
   {
     icon: 'calendar-outline',
     title: 'Upcoming',
     to: '/upcoming' as const,
+    color: '#f59e0b', // amber
   },
 ] satisfies readonly MainHeaderItem[];
 
@@ -133,7 +136,7 @@ export default function Home() {
                     }
                   }}>
                   <View className="bg-surface h-11 w-11 items-center justify-center rounded-xl">
-                    <Ionicons name={item.icon} size={20} color="#3b82f6" />
+                    <Ionicons name={item.icon} size={20} color={item.color} />
                   </View>
                   <View className="flex-1">
                     <Text className={'text-base font-semibold'} numberOfLines={1}>
