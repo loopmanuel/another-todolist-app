@@ -1,6 +1,7 @@
 import { memo, useMemo } from 'react';
 import { Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+// @ts-ignore
 import tinycolor from 'tinycolor2';
 
 import { Text } from '@/components/ui/text';

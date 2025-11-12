@@ -8,6 +8,7 @@ import { useSearchListsQuery } from '@/features/lists/queries/use-search-lists';
 import { useSearchTasksQuery } from '@/features/tasks/queries/use-search-tasks';
 import { useAuthStore } from '@/store/auth-store';
 import { cn } from '@/lib/utils';
+import { TextField } from 'heroui-native';
 
 export default function SearchScreen() {
   const router = useRouter();
@@ -45,32 +46,38 @@ export default function SearchScreen() {
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="flex flex-row items-center gap-3 border-b border-border px-4 py-4">
+      <View className="border-border flex flex-row items-center gap-3 border-b px-4 py-4">
         <Pressable onPress={() => router.back()} className="p-1">
           <Ionicons name="arrow-back" size={24} color="#000" />
         </Pressable>
-        <View className="flex-1 flex-row items-center gap-2 rounded-lg bg-gray-100 px-3 py-2">
-          <Ionicons name="search" size={20} color="#6b7280" />
-          <TextInput
+
+        <TextField className={'flex-1 text-red-500'}>
+          <TextField.Input
             autoFocus
-            placeholder="Search lists and tasks..."
+            classNames={{ input: '', container: 'bg-gray-200' }}
             value={searchQuery}
             onChangeText={setSearchQuery}
-            className="flex-1 text-base placeholder:text-muted-foreground/60"
-          />
-          {searchQuery.length > 0 && (
-            <Pressable onPress={() => setSearchQuery('')} className="p-1">
-              <Ionicons name="close-circle" size={20} color="#6b7280" />
-            </Pressable>
-          )}
-        </View>
+            placeholder="Search lists and tasks...">
+            <TextField.InputStartContent>
+              <Ionicons name="search" size={20} color="#6b7280" />
+            </TextField.InputStartContent>
+
+            {searchQuery.length > 0 && (
+              <TextField.InputEndContent>
+                <Pressable>
+                  <Ionicons name="close-circle" size={20} color="#6b7280" />
+                </Pressable>
+              </TextField.InputEndContent>
+            )}
+          </TextField.Input>
+        </TextField>
       </View>
 
       {/* Results */}
       <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
         {!hasQuery ? (
           <View className="py-20">
-            <Text className="text-center text-muted-foreground">
+            <Text className="text-muted-foreground text-center">
               Start typing to search lists and tasks
             </Text>
           </View>
@@ -80,14 +87,16 @@ export default function SearchScreen() {
           </View>
         ) : showEmptyState ? (
           <View className="py-20">
-            <Text className="text-center text-muted-foreground">No results found for "{debouncedQuery}"</Text>
+            <Text className="text-muted-foreground text-center">
+              No results found for "{debouncedQuery}"
+            </Text>
           </View>
         ) : (
           <View className="py-4">
             {/* Lists Section */}
             {lists.length > 0 && (
               <View className="mb-6">
-                <Text className="mb-3 px-4 text-sm font-semibold uppercase text-muted-foreground">
+                <Text className="text-muted-foreground mb-3 px-4 text-sm font-semibold uppercase">
                   Lists ({lists.length})
                 </Text>
                 {lists.map((list) => (
@@ -98,7 +107,7 @@ export default function SearchScreen() {
                       router.push(`/lists/${list.id}`);
                     }}
                     className={cn(
-                      'flex-row items-center gap-3 border-b border-border px-4 py-3 active:bg-gray-50'
+                      'border-border flex-row items-center gap-3 border-b px-4 py-3 active:bg-gray-50'
                     )}>
                     <View
                       className="h-10 w-10 items-center justify-center rounded-full"
@@ -117,7 +126,7 @@ export default function SearchScreen() {
             {/* Tasks Section */}
             {tasks.length > 0 && (
               <View>
-                <Text className="mb-3 px-4 text-sm font-semibold uppercase text-muted-foreground">
+                <Text className="text-muted-foreground mb-3 px-4 text-sm font-semibold uppercase">
                   Tasks ({tasks.length})
                 </Text>
                 {tasks.map((task) => (
@@ -128,7 +137,7 @@ export default function SearchScreen() {
                       router.push(`/task/${task.id}`);
                     }}
                     className={cn(
-                      'flex-row items-center gap-3 border-b border-border px-4 py-3 active:bg-gray-50'
+                      'border-border flex-row items-center gap-3 border-b px-4 py-3 active:bg-gray-50'
                     )}>
                     <View className="flex-1">
                       <Text
@@ -139,7 +148,7 @@ export default function SearchScreen() {
                         {task.title}
                       </Text>
                       {task.description && (
-                        <Text className="mt-1 text-sm text-muted-foreground" numberOfLines={1}>
+                        <Text className="text-muted-foreground mt-1 text-sm" numberOfLines={1}>
                           {task.description}
                         </Text>
                       )}

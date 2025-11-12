@@ -34,7 +34,7 @@ type LargeTitleLayoutProps = Omit<ViewProps, 'children'> & {
 
 export function LargeTitleLayout({
   title,
-  gapBelowTitle = 16,
+  gapBelowTitle = 0,
   pagePadding = 20,
   style,
   children,
