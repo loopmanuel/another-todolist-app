@@ -87,7 +87,9 @@ export default function Home() {
             <Text className={'text-base font-semibold'}>Today</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex flex-row items-center gap-4">
+          <TouchableOpacity
+            className="flex flex-row items-center gap-4"
+            onPress={() => router.push('/upcoming')}>
             <View className="bg-card flex items-center justify-center rounded-lg">
               <Ionicons name={'calendar-outline'} size={22} />
             </View>

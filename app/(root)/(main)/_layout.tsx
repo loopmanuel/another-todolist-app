@@ -32,6 +32,14 @@ export default function MainLayout() {
         }}
       />
       <Stack.Screen
+        name="upcoming"
+        options={{
+          title: 'Upcoming',
+          headerShadowVisible: false,
+          headerBackButtonDisplayMode: 'minimal',
+        }}
+      />
+      <Stack.Screen
         name="theme"
         options={{
           title: 'Themes',
