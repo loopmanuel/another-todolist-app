@@ -75,40 +75,10 @@ export default function Home() {
 
   return (
     <View className={'bg-background relative flex-1'}>
-      <Stack.Screen
-        options={{
-          headerTitle: 'Welcome',
-          headerTransparent: true,
-          headerLeft: () => (
-            <Button
-              variant={'tertiary'}
-              isIconOnly
-              className={'ml-4 rounded-full'}
-              size={'md'}
-              onPress={() => router.push('/settings')}>
-              <Button.Label>
-                <Ionicons name={'settings-outline'} size={22} />
-              </Button.Label>
-            </Button>
-          ),
-          headerRight: () => (
-            <Button
-              variant={'tertiary'}
-              isIconOnly
-              className={'mr-4 rounded-full'}
-              onPress={() => router.push('/search')}>
-              <Button.Label>
-                <Ionicons name={'search-outline'} size={20} />
-              </Button.Label>
-            </Button>
-          ),
-        }}
-      />
-
       <NewFab />
 
       <Button
-        className={'absolute bottom-8 left-4 z-10'}
+        className={'absolute bottom-12 left-4 z-10'}
         size={'sm'}
         variant={'tertiary'}
         onPress={() => router.push('/lists/new')}>
@@ -144,11 +114,6 @@ export default function Home() {
                   </View>
                 </TouchableOpacity>
               ))}
-
-              <Pressable onPress={() => router.push('/test-route')}>
-                <Text>New route</Text>
-                <Text>New route</Text>
-              </Pressable>
             </View>
 
             {/* Lists Section Header */}

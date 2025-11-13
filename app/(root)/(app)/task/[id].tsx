@@ -367,12 +367,11 @@ export default function TaskDetails() {
   return (
     <ScrollView
       className={'pb-safe flex-1'}
+      style={{ paddingTop: 30 }}
       refreshControl={
         <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={'#000'} />
       }>
       <View className={'flex flex-row items-center justify-between pr-4 pt-6'}>
-        <BackButton isClose />
-
         {!saveDisabled && (
           <Button
             className={'rounded-full'}
@@ -492,14 +491,14 @@ export default function TaskDetails() {
               </View>
 
               <Pressable
-                onPress={() => router.push('/task/date-picker')}
+                onPress={() => router.push('/pickers/date-picker')}
                 className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
                 <Ionicons name={'calendar-outline'} size={18} />
                 <Text>{formatDueLabel(task?.due_at)}</Text>
               </Pressable>
 
               <Pressable
-                onPress={() => router.push('/task/priority-select')}
+                onPress={() => router.push('/pickers/priority-select')}
                 className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
                 <Ionicons
                   name={task?.priority && task.priority > 0 ? 'flag' : 'flag-outline'}
@@ -521,7 +520,7 @@ export default function TaskDetails() {
               </Pressable>
 
               <Pressable
-                onPress={() => router.push('/labels/pick-label')}
+                onPress={() => router.push('/pickers/pick-label')}
                 className={'flex flex-row items-center gap-2 border-b-gray-200 py-3'}>
                 <Ionicons name={'pricetags-outline'} size={18} />
                 <View className={'flex-1 flex-row flex-wrap gap-2'}>

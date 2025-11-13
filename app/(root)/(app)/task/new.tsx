@@ -161,7 +161,7 @@ export default function NewTask() {
   const handlePriorityButtonPress = () => {
     Keyboard.dismiss();
 
-    router.push('/task/priority-select');
+    router.push('/pickers/priority-select');
   };
 
   const submit = handleSubmit(async (data) => {
@@ -337,7 +337,7 @@ export default function NewTask() {
                   return;
                 }
                 Keyboard.dismiss();
-                router.push('/task/inbox-picker');
+                router.push('/pickers/inbox-picker');
               }}
               disabled={!canSelectList}
               className={cn(
@@ -351,7 +351,7 @@ export default function NewTask() {
             <Pressable
               onPress={() => {
                 Keyboard.dismiss();
-                router.push('/task/date-picker');
+                router.push('/pickers/date-picker');
               }}
               className={'mr-4 flex flex-row items-center gap-2 rounded-md bg-gray-200 px-4 py-2'}>
               <Ionicons name={'calendar-outline'} size={18} />
@@ -378,7 +378,7 @@ export default function NewTask() {
             </Pressable>
 
             <Pressable
-              onPress={() => router.push('/labels/pick-label')}
+              onPress={() => router.push('/pickers/pick-label')}
               className={'mr-4 flex flex-row items-center gap-2 rounded-md bg-gray-200 px-4 py-2'}>
               <Ionicons name={'pricetag-outline'} size={18} />
               <Text>{selectedLabels.size > 0 ? `Labels (${selectedLabels.size})` : 'Label'}</Text>

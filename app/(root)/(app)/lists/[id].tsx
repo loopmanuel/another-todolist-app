@@ -6,7 +6,7 @@ import DraggableFlatList, {
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
 import { Text } from '@/components/ui/text';
-import { Button, Dialog, Popover, useThemeColor } from 'heroui-native';
+import { Button, Dialog, Popover } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -131,112 +131,20 @@ export default function ListDetails() {
   );
 
   return (
-    <View className={'relative flex-1'}>
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <Popover>
-              <Popover.Trigger asChild>
-                <Pressable className={'px-2.5'}>
-                  <StyledIcon name={'ellipsis-vertical-outline'} size={20} />
-                </Pressable>
-              </Popover.Trigger>
-              <Popover.Portal>
-                <Popover.Overlay />
-                <Popover.Content width={320} placement="top" className="gap-3 px-6 py-5">
-                  <Popover.Close className="absolute right-4 top-4 z-50" />
-
-                  <Button
-                    onPress={() =>
-                      router.push({
-                        pathname: '/lists/edit',
-                        params: { list_id: params.id },
-                      })
-                    }>
-                    <Button.Label>Edit</Button.Label>
-                  </Button>
-
-                  <Button
-                    onPress={() => void handleToggleHideCompleted()}
-                    isDisabled={isToggling || !list}>
-                    <Button.Label>
-                      {list?.hide_completed_tasks ? 'Show Completed Tasks' : 'Hide Completed Tasks'}
-                    </Button.Label>
-                  </Button>
-
-                  <Button variant={'destructive'} onPress={() => setIsDeleteDialogOpen(true)}>
-                    <Button.Label>Delete List</Button.Label>
-                  </Button>
-                </Popover.Content>
-              </Popover.Portal>
-            </Popover>
-          ),
+    <View className={'flex-1'}>
+      <DraggableFlatList
+        contentInsetAdjustmentBehavior={'automatic'}
+        data={tasks}
+        keyExtractor={(item) => item.id}
+        renderItem={renderTaskItem}
+        onDragEnd={handleDragEnd}
+        ListEmptyComponent={listEmpty}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
         }}
       />
-
-      <Dialog isOpen={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay />
-          <Dialog.Content>
-            <Dialog.Close className="-mb-2 self-end" />
-            <View className="mb-5 gap-1.5">
-              <Dialog.Title>Delete List</Dialog.Title>
-              <Dialog.Description>
-                Are you sure you want to delete this list? All tasks in this list will also be
-                deleted. This action cannot be undone.
-              </Dialog.Description>
-            </View>
-            <View className="flex-row justify-end gap-3">
-              <Dialog.Close asChild>
-                <Button variant="ghost" size="sm">
-                  Cancel
-                </Button>
-              </Dialog.Close>
-              <Button size="sm" onPress={() => void handleDeleteList()} isDisabled={isDeletingList}>
-                <Button.Label>{isDeletingList ? 'Deleting...' : 'Delete'}</Button.Label>
-              </Button>
-            </View>
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog>
-
-      <View className={'absolute bottom-0 left-0 right-0 z-10 px-6'}>
-        <Button
-          variant={'tertiary'}
-          className={'mb-6'}
-          onPress={() => {
-            if (projectId) {
-              router.push({ pathname: '/task/new', params: { list_id: projectId } });
-            } else {
-              router.push('/task/new');
-            }
-          }}>
-          <Ionicons name={'add-circle-outline'} size={24} />
-          <Button.Label>Add Todo</Button.Label>
-        </Button>
-      </View>
-
-      <LargeTitleLayout title={'List Details'}>
-        {({ setScrollY, onScroll, ListHeaderSpacer, contentContainerStyle }) => (
-          <>
-            <DraggableFlatList
-              data={tasks}
-              keyExtractor={(item) => item.id}
-              renderItem={renderTaskItem}
-              onDragEnd={handleDragEnd}
-              ListEmptyComponent={listEmpty}
-              ListHeaderComponent={() => (
-                <>
-                  <ListHeaderSpacer />
-                </>
-              )}
-              contentContainerStyle={contentContainerStyle}
-              scrollEventThrottle={16}
-              onScrollOffsetChange={(y) => setScrollY(y)}
-            />
-          </>
-        )}
-      </LargeTitleLayout>
     </View>
   );
 }

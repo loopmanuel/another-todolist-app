@@ -11,12 +11,7 @@ export default function Today() {
   const router = useRouter();
 
   const { user } = useAuthStore((state) => ({ user: state.user }));
-  const {
-    data: tasks = [],
-    isLoading,
-    isRefetching,
-    refetch,
-  } = useTodayTasksQuery({ createdBy: user?.id });
+  const { data: tasks = [], isLoading } = useTodayTasksQuery({ createdBy: user?.id });
 
   const listEmpty = (
     <View className="py-10">

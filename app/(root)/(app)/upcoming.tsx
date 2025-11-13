@@ -110,7 +110,7 @@ export default function UpcomingScreen() {
   }
 
   return (
-    <View className="bg-background flex-1">
+    <View className="bg-background flex-1" style={{ paddingTop: 120 }}>
       <CalendarProvider
         date={today}
         showTodayButton={true}
