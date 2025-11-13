@@ -3,7 +3,6 @@ import { AgendaList, CalendarProvider, ExpandableCalendar } from 'react-native-c
 import { useRouter } from 'expo-router';
 import { useMemo, useCallback } from 'react';
 
-import { Text } from '@/components/ui/text';
 import { useAuthStore } from '@/store/auth-store';
 import { useUpcomingTasksQuery } from '@/features/tasks/queries/use-upcoming-tasks';
 import { TaskCard } from '@/features/tasks/components/task-card';
@@ -124,6 +123,7 @@ export default function UpcomingScreen() {
           theme={calendarTheme}
           disableAllTouchEventsForDisabledDays
           minDate={today}
+          hideArrows
         />
         <AgendaList
           sections={sections}

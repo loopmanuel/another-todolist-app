@@ -21,17 +21,6 @@ export default function MainLayout() {
       }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
-        name="today"
-        options={{
-          title: 'Today',
-          headerShadowVisible: false,
-          headerBackButtonDisplayMode: 'minimal',
-          headerTransparent: true,
-          headerTintColor: 'black',
-          headerTitleAlign: 'center',
-        }}
-      />
-      <Stack.Screen
         name="upcoming"
         options={{
           title: 'Upcoming',

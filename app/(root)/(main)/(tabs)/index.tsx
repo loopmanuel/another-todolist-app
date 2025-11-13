@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Pressable, TouchableOpacity, View } from 'react-native';
 
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
@@ -77,7 +77,7 @@ export default function Home() {
     <View className={'bg-background relative flex-1'}>
       <Stack.Screen
         options={{
-          headerTitle: '',
+          headerTitle: 'Welcome',
           headerTransparent: true,
           headerLeft: () => (
             <Button
@@ -102,7 +102,6 @@ export default function Home() {
               </Button.Label>
             </Button>
           ),
-          headerShadowVisible: false,
         }}
       />
 
@@ -145,6 +144,11 @@ export default function Home() {
                   </View>
                 </TouchableOpacity>
               ))}
+
+              <Pressable onPress={() => router.push('/test-route')}>
+                <Text>New route</Text>
+                <Text>New route</Text>
+              </Pressable>
             </View>
 
             {/* Lists Section Header */}

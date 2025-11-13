@@ -31,6 +31,7 @@ export default function RootLayout() {
       </Stack.Protected>
       <Stack.Protected guard={status === 'authenticated'}>
         <Stack.Screen name="(main)" options={{ headerShown: false }} />
+        <Stack.Screen name="(app)" options={{ headerShown: false }} />
       </Stack.Protected>
     </Stack>
   );
