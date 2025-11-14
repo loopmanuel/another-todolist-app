@@ -133,7 +133,6 @@ export default function ListDetails() {
   return (
     <View className={'flex-1'}>
       <DraggableFlatList
-        contentInsetAdjustmentBehavior={'automatic'}
         data={tasks}
         keyExtractor={(item) => item.id}
         renderItem={renderTaskItem}
@@ -142,9 +141,25 @@ export default function ListDetails() {
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
+          paddingTop: 120,
+          paddingBottom: 120,
           paddingHorizontal: 16,
         }}
       />
+      <View className={'absolute bottom-10 w-full px-4'}>
+        <Button
+          variant={'secondary'}
+          onPress={() => {
+            if (projectId) {
+              router.push({
+                pathname: '/task/new',
+                params: { list_id: projectId },
+              });
+            }
+          }}>
+          <Button.Label>Add Task</Button.Label>
+        </Button>
+      </View>
     </View>
   );
 }

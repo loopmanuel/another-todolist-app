@@ -120,7 +120,8 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
         router.back();
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : `Unable to ${isEditMode ? 'update' : 'create'} list.`;
+      const message =
+        err instanceof Error ? err.message : `Unable to ${isEditMode ? 'update' : 'create'} list.`;
       setFormError(message);
     }
   });
@@ -184,7 +185,7 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
                 autoFocus
                 placeholder={isEditMode ? 'List Name' : 'New List'}
                 className={
-                  'mt-6 w-full min-w-0 px-0 py-2 text-2xl font-semibold placeholder:text-muted-foreground/80'
+                  'placeholder:text-muted-foreground/80 mt-6 w-full min-w-0 px-0 py-2 text-2xl font-semibold'
                 }
                 value={field.value}
                 onBlur={field.onBlur}
@@ -216,7 +217,7 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
                     setIsOpen(true);
                   }}
                   className={cn(
-                    'mr-4 flex flex-row items-center gap-2 rounded-md border border-border bg-gray-200 px-4 py-2'
+                    'border-border mr-4 flex flex-row items-center gap-2 rounded-md border bg-gray-200 px-4 py-2'
                   )}>
                   <Text numberOfLines={1}>{field.value ? field.value : 'Select Icon'}</Text>
                 </Pressable>
@@ -228,10 +229,10 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
             <Pressable
               onPress={() => {
                 Keyboard.dismiss();
-                router.push('/lists/color-picker');
+                router.push('/pickers/color-picker');
               }}
               className={cn(
-                'mr-4 flex flex-row items-center gap-2 rounded-md border border-border bg-gray-200 px-4 py-2'
+                'border-border mr-4 flex flex-row items-center gap-2 rounded-md border bg-gray-200 px-4 py-2'
               )}>
               <View
                 className={'h-5 w-5 rounded-full'}
@@ -248,7 +249,7 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
           ) : null}
         </ScrollView>
 
-        <View className="border-t border-border px-6 py-4">
+        <View className="border-border border-t px-6 py-4">
           <Button className="rounded-full bg-black" onPress={submit} isDisabled={isPending}>
             <Button.Label>
               {isPending
