@@ -19,6 +19,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { TaskCard } from '@/features/tasks/components/task-card';
 import { LargeTitleLayout } from '@/components/large-title-layout';
 import { StyledIcon } from '@/components/styled-icon';
+import * as DropdownMenu from 'zeego/dropdown-menu';
 
 export default function ListDetails() {
   const router = useRouter();
@@ -132,6 +133,75 @@ export default function ListDetails() {
 
   return (
     <View className={'flex-1'}>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <View>
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild>
+                  <Pressable className={'px-2'}>
+                    <Ionicons name={'ellipsis-vertical-outline'} size={24} />
+                  </Pressable>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content>
+                  <DropdownMenu.Label />
+                  <DropdownMenu.Item
+                    key={'edit-item'}
+                    onSelect={() => {
+                      if (projectId) {
+                        router.push({
+                          pathname: '/lists/edit',
+                          params: { id: projectId },
+                        });
+                      }
+                    }}>
+                    <DropdownMenu.ItemTitle>Edit List</DropdownMenu.ItemTitle>
+                  </DropdownMenu.Item>
+                  <DropdownMenu.CheckboxItem
+                    key={'show-completed'}
+                    value={list?.hide_completed_tasks ? 'off' : 'on'}
+                    onValueChange={() => {
+                      void handleToggleHideCompleted();
+                    }}>
+                    <DropdownMenu.ItemIndicator />
+                    <DropdownMenu.ItemTitle>Show Completed Tasks</DropdownMenu.ItemTitle>
+                  </DropdownMenu.CheckboxItem>
+                  <DropdownMenu.Separator />
+
+                  <DropdownMenu.Group>
+                    <DropdownMenu.Item
+                      key={'delete-item'}
+                      destructive
+                      onSelect={() => {
+                        Alert.alert(
+                          'Delete List',
+                          `Are you sure you want to delete "${list?.name}"? This action cannot be undone.`,
+                          [
+                            {
+                              text: 'Cancel',
+                              style: 'cancel',
+                            },
+                            {
+                              text: 'Delete',
+                              style: 'destructive',
+                              onPress: () => {
+                                void handleDeleteList();
+                              },
+                            },
+                          ]
+                        );
+                      }}>
+                      <DropdownMenu.ItemTitle>Delete list</DropdownMenu.ItemTitle>
+                    </DropdownMenu.Item>
+                  </DropdownMenu.Group>
+                  <DropdownMenu.Arrow />
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
+            </View>
+          ),
+        }}
+      />
+
       <DraggableFlatList
         data={tasks}
         keyExtractor={(item) => item.id}
