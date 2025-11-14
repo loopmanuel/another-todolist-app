@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import BackButton from '@/components/ui/back-button';
 import { useListFormStore } from '@/store/list-form-store';
 import { cn } from '@/lib/utils';
 import { COLORS } from '@/features/lists/utils/colors';
@@ -21,12 +20,18 @@ export default function ColorPicker() {
   };
 
   return (
-    <View className="flex-1 bg-gray-100">
-      <View className="flex flex-row items-center justify-between bg-white px-4 pb-4 pt-4">
-        <BackButton />
-        <Text className="text-xl font-semibold">Choose Color</Text>
-        <View style={{ width: 40 }} />
-      </View>
+    <View className="bg-background">
+      <Stack.Screen
+        options={{
+          title: 'Choose Color',
+          headerShown: true,
+          headerLeft: () => (
+            <Pressable onPress={() => router.back()} className="px-2">
+              <Ionicons name="close-outline" size={24} />
+            </Pressable>
+          ),
+        }}
+      />
 
       <LegendList
         data={COLORS}
@@ -40,11 +45,11 @@ export default function ColorPicker() {
               key={color.name}
               onPress={() => handleSelectColor(color.value)}
               className={cn(
-                'items-center justify-center rounded-lg bg-white p-3',
+                'items-center justify-center rounded-lg p-4',
                 isSelected && 'border-2 border-blue-500'
               )}>
               <View
-                className="mb-2 h-10 w-10 rounded-full"
+                className="mb-2 h-12 w-12 rounded-full"
                 style={{ backgroundColor: displayColor }}
               />
               <Text className="text-center text-sm font-medium">{color.name}</Text>
@@ -58,7 +63,8 @@ export default function ColorPicker() {
         }}
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingBottom: 120,
+          paddingTop: 16,
+          paddingBottom: 40,
         }}
       />
     </View>

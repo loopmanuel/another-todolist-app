@@ -20,6 +20,7 @@ import { useListQuery } from '../queries/use-list';
 import { createListSchema, type CreateListValues } from '../validation/create-list-schema';
 import { cn } from '@/lib/utils';
 import { getColorName } from '../utils/colors';
+import { ColorPickerSheet } from '@/components/color-picker';
 
 type ListFormProps = {
   listId?: string;
@@ -33,6 +34,7 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
   const { data: existingList, isLoading: listLoading } = useListQuery(listId);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isColorPickerVisible, setIsColorPickerVisible] = useState<boolean>(false);
 
   const [formError, setFormError] = useState<string | null>(null);
   const { user } = useAuthStore((state) => ({ user: state.user }));
@@ -240,6 +242,20 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
 
               <Text numberOfLines={1}>{getColorName(selectedColor)}</Text>
             </Pressable>
+
+            <Pressable
+              onPress={() => {
+                setIsColorPickerVisible(true);
+              }}
+              className={cn(
+                'border-border mr-4 flex flex-row items-center gap-2 rounded-md border bg-gray-200 px-4 py-2'
+              )}>
+              <View
+                className={'h-5 w-5 rounded-full'}
+                style={{ backgroundColor: selectedColor || '#9ca3af' }}></View>
+
+              <Text numberOfLines={1}>New Color Picker {getColorName(selectedColor)}</Text>
+            </Pressable>
           </ScrollView>
 
           {formError ? (
@@ -263,6 +279,7 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
           </Button>
         </View>
       </View>
+      <ColorPickerSheet isVisible={isColorPickerVisible} setIsVisible={setIsColorPickerVisible} />
     </KeyboardAvoidingView>
   );
 }

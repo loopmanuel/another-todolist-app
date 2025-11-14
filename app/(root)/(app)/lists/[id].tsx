@@ -136,14 +136,13 @@ export default function ListDetails() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <View>
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger asChild>
-                  <Pressable className={'px-2'}>
-                    <Ionicons name={'ellipsis-vertical-outline'} size={24} />
-                  </Pressable>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content>
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <Pressable className={'mr-2 h-9 w-9 items-center justify-center rounded-full'}>
+                  <Ionicons name={'ellipsis-vertical-outline'} size={20} />
+                </Pressable>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Content>
                   <DropdownMenu.Label />
                   <DropdownMenu.Item
                     key={'edit-item'}
@@ -151,7 +150,7 @@ export default function ListDetails() {
                       if (projectId) {
                         router.push({
                           pathname: '/lists/edit',
-                          params: { id: projectId },
+                          params: { list_id: projectId },
                         });
                       }
                     }}>
@@ -196,8 +195,7 @@ export default function ListDetails() {
                   </DropdownMenu.Group>
                   <DropdownMenu.Arrow />
                 </DropdownMenu.Content>
-              </DropdownMenu.Root>
-            </View>
+            </DropdownMenu.Root>
           ),
         }}
       />

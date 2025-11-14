@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppThemeProvider, useAppTheme } from '@/contexts/app-theme-contexts';
 import { StatusBar } from 'expo-status-bar';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 export const queryClient = new QueryClient();
 
@@ -20,7 +21,9 @@ export default function Layout() {
           <AppThemeProvider>
             <HeroUINativeProvider>
               {/*<StatusBar style={isDark ? 'light' : 'dark'} />*/}
-              <Slot />
+              <BottomSheetModalProvider>
+                <Slot />
+              </BottomSheetModalProvider>
             </HeroUINativeProvider>
           </AppThemeProvider>
         </QueryClientProvider>

@@ -258,8 +258,9 @@ export default function NewTask() {
                   onBlur={onBlur}
                   value={value ?? ''}
                   placeholder={'New Task'}
+                  multiline
                   className={
-                    'w-full min-w-0 px-0 py-2 text-2xl font-semibold placeholder:text-muted-foreground/80'
+                    'placeholder:text-muted-foreground/80 w-full min-w-0 px-0 py-2 text-2xl font-semibold'
                   }
                   autoFocus
                 />
@@ -271,9 +272,9 @@ export default function NewTask() {
           {isSubtask ? (
             <View className={'px-6 pt-2'}>
               {parentLoading ? (
-                <Text className={'text-sm text-muted-foreground'}>Loading parent task…</Text>
+                <Text className={'text-muted-foreground text-sm'}>Loading parent task…</Text>
               ) : parentTask ? (
-                <Text className={'text-sm text-muted-foreground'}>
+                <Text className={'text-muted-foreground text-sm'}>
                   Subtask of “{parentTask.title}”
                 </Text>
               ) : (
@@ -297,7 +298,7 @@ export default function NewTask() {
                 <TextInput
                   placeholder={'Description'}
                   className={
-                    'w-full min-w-0 px-0 py-2 text-base font-medium placeholder:text-muted-foreground/80'
+                    'placeholder:text-muted-foreground/80 w-full min-w-0 px-0 py-2 text-base font-medium'
                   }
                   multiline
                   onChangeText={(text) => {
@@ -321,7 +322,7 @@ export default function NewTask() {
             {isSubtask ? (
               <View
                 className={
-                  'mr-4 flex flex-row items-center gap-2 rounded-md border border-border bg-gray-200 px-4 py-2'
+                  'border-border mr-4 flex flex-row items-center gap-2 rounded-md border bg-gray-200 px-4 py-2'
                 }>
                 <Ionicons name={'git-branch-outline'} size={18} />
                 <Text className={'max-w-[180px]'} numberOfLines={1}>
@@ -341,7 +342,7 @@ export default function NewTask() {
               }}
               disabled={!canSelectList}
               className={cn(
-                'mr-4 flex flex-row items-center gap-2 rounded-md border border-border bg-gray-200 px-4 py-2',
+                'border-border mr-4 flex flex-row items-center gap-2 rounded-md border bg-gray-200 px-4 py-2',
                 !canSelectList && 'opacity-60'
               )}>
               <Ionicons name={'file-tray-outline'} size={18} />
