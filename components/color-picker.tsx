@@ -5,15 +5,22 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import { FC, useCallback, useEffect, useRef } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StyleSheet, View } from 'react-native';
-import { Text } from '@/components/ui/text';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { COLORS } from '@/features/lists/utils/colors';
 
 type Props = {
   isVisible: boolean;
   setIsVisible: (isVisible: boolean) => void;
+  selectedColor?: string | null;
+  onSelectColor: (color: string) => void;
 };
 
-export const ColorPickerSheet: FC<Props> = ({ isVisible, setIsVisible }) => {
+export const ColorPickerSheet: FC<Props> = ({
+  isVisible,
+  setIsVisible,
+  selectedColor,
+  onSelectColor,
+}) => {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -35,6 +42,11 @@ export const ColorPickerSheet: FC<Props> = ({ isVisible, setIsVisible }) => {
     );
   }, []);
 
+  const handleColorSelect = (color: string) => {
+    onSelectColor(color);
+    setIsVisible(false);
+  };
+
   return (
     <BottomSheet
       ref={ref}
@@ -54,12 +66,27 @@ export const ColorPickerSheet: FC<Props> = ({ isVisible, setIsVisible }) => {
       <BottomSheetView>
         <View className="mt-2 h-[6px] w-[45] self-center rounded-full bg-white/30" />
 
-        <View className={'bg-white'}>
-          {Array.from({ length: 100 }).map((_, index) => (
-            <Text key={index} style={{ paddingVertical: 4 }}>
-              Item {index}
-            </Text>
-          ))}
+        <View className="px-6 py-6">
+          <View className="flex-row flex-wrap gap-3">
+            {COLORS.map((color) => (
+              <Pressable
+                key={color.value}
+                onPress={() => handleColorSelect(color.value || COLORS[0].value!)}
+                className="items-center justify-center"
+                style={{ width: '17%' }}>
+                <View
+                  style={{
+                    backgroundColor: color.value || COLORS[0].value!,
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    borderWidth: selectedColor === color.value ? 3 : 0,
+                    borderColor: '#000',
+                  }}
+                />
+              </Pressable>
+            ))}
+          </View>
         </View>
       </BottomSheetView>
     </BottomSheet>
@@ -72,7 +99,7 @@ const styles = StyleSheet.create({
   },
   backgroundStyle: {
     marginHorizontal: 16,
-    backgroundColor: '#ffaeae',
+    backgroundColor: '#fff',
     borderRadius: 24,
     borderWidth: 1,
     borderColor: 'rgba(64, 64, 64, 0.5)',

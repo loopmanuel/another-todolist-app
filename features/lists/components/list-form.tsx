@@ -3,7 +3,7 @@ import { ActivityIndicator, Keyboard, Pressable, ScrollView, TextInput, View } f
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 
-import { Button, TextField } from 'heroui-native';
+import { Button } from 'heroui-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,8 +19,6 @@ import { useUpdateListMutation } from '../mutations/use-update-list';
 import { useListQuery } from '../queries/use-list';
 import { createListSchema, type CreateListValues } from '../validation/create-list-schema';
 import { cn } from '@/lib/utils';
-import { getColorName } from '../utils/colors';
-import { ColorPickerSheet } from '@/components/color-picker';
 
 type ListFormProps = {
   listId?: string;
@@ -34,7 +32,6 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
   const { data: existingList, isLoading: listLoading } = useListQuery(listId);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [isColorPickerVisible, setIsColorPickerVisible] = useState<boolean>(false);
 
   const [formError, setFormError] = useState<string | null>(null);
   const { user } = useAuthStore((state) => ({ user: state.user }));
@@ -238,23 +235,8 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
               )}>
               <View
                 className={'h-5 w-5 rounded-full'}
-                style={{ backgroundColor: selectedColor || '#9ca3af' }}></View>
-
-              <Text numberOfLines={1}>{getColorName(selectedColor)}</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={() => {
-                setIsColorPickerVisible(true);
-              }}
-              className={cn(
-                'border-border mr-4 flex flex-row items-center gap-2 rounded-md border bg-gray-200 px-4 py-2'
-              )}>
-              <View
-                className={'h-5 w-5 rounded-full'}
-                style={{ backgroundColor: selectedColor || '#9ca3af' }}></View>
-
-              <Text numberOfLines={1}>New Color Picker {getColorName(selectedColor)}</Text>
+                style={{ backgroundColor: selectedColor || '#9ca3af' }}
+              />
             </Pressable>
           </ScrollView>
 
@@ -264,22 +246,7 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
             </Text>
           ) : null}
         </ScrollView>
-
-        <View className="border-border border-t px-6 py-4">
-          <Button className="rounded-full bg-black" onPress={submit} isDisabled={isPending}>
-            <Button.Label>
-              {isPending
-                ? isEditMode
-                  ? 'Updating…'
-                  : 'Creating…'
-                : isEditMode
-                  ? 'Update List'
-                  : 'Create List'}
-            </Button.Label>
-          </Button>
-        </View>
       </View>
-      <ColorPickerSheet isVisible={isColorPickerVisible} setIsVisible={setIsColorPickerVisible} />
     </KeyboardAvoidingView>
   );
 }

@@ -85,6 +85,17 @@ export default function AppLayout() {
         name="lists/new"
         options={{
           title: '',
+          presentation: 'formSheet',
+          sheetCornerRadius: 30,
+          headerShown: false,
+          sheetExpandsWhenScrolledToEdge: false,
+          sheetAllowedDetents: 'fitToContents',
+        }}
+      />
+      <Stack.Screen
+        name="lists/edit"
+        options={{
+          title: '',
           presentation: 'transparentModal',
           sheetCornerRadius: 30,
           headerShown: false,
@@ -93,18 +104,6 @@ export default function AppLayout() {
           contentStyle: {
             backgroundColor: 'transparent',
           },
-        }}
-      />
-      <Stack.Screen
-        name="lists/edit"
-        options={{
-          title: '',
-          presentation: 'formSheet',
-          sheetAllowedDetents: 'fitToContents',
-          sheetGrabberVisible: false,
-          sheetCornerRadius: 30,
-          headerShown: false,
-          sheetExpandsWhenScrolledToEdge: false,
         }}
       />
       <Stack.Screen

@@ -26,7 +26,6 @@ export const COLORS: ColorOption[] = [
   { name: 'Slate', value: '#64748b' },
   { name: 'Gray', value: '#6b7280' },
   { name: 'Zinc', value: '#71717a' },
-  { name: 'Stone', value: '#78716c' },
 ];
 
 export function getColorName(colorValue: string | null): string {
