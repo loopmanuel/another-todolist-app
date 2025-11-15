@@ -118,6 +118,7 @@ export default function UpcomingScreen() {
           todayButtonTextColor: isDark ? '#60a5fa' : '#3b82f6',
         }}>
         <ExpandableCalendar
+          key={`calendar-${Object.keys(markedDates).length}`}
           firstDay={0}
           markedDates={markedDates}
           theme={calendarTheme}
