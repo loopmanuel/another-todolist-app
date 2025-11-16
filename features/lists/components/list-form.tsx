@@ -1,15 +1,13 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Keyboard, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import EmojiPicker, { type EmojiType } from 'rn-emoji-keyboard';
 
-import { Button } from 'heroui-native';
+import { Card } from 'heroui-native';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-import BackButton from '@/components/ui/back-button';
 import { Text } from '@/components/ui/text';
 import { useAuthStore } from '@/store/auth-store';
 import { useListFormStore } from '@/store/list-form-store';
@@ -18,20 +16,25 @@ import { useCreateListMutation } from '../mutations/use-create-list';
 import { useUpdateListMutation } from '../mutations/use-update-list';
 import { useListQuery } from '../queries/use-list';
 import { createListSchema, type CreateListValues } from '../validation/create-list-schema';
-import { cn } from '@/lib/utils';
+import { COLORS } from '@/features/lists/utils/colors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type ListFormProps = {
   listId?: string;
   onSuccess?: () => void;
+  onSubmitRef?: React.MutableRefObject<(() => void) | null>;
+  onClose?: () => void;
 };
 
-export function ListForm({ listId, onSuccess }: ListFormProps) {
+export function ListForm({ listId, onSuccess, onSubmitRef, onClose }: ListFormProps) {
   const router = useRouter();
 
   const isEditMode = Boolean(listId);
   const { data: existingList, isLoading: listLoading } = useListQuery(listId);
 
   const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  const inset = useSafeAreaInsets();
 
   const [formError, setFormError] = useState<string | null>(null);
   const { user } = useAuthStore((state) => ({ user: state.user }));
@@ -139,6 +142,13 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
 */
   };
 
+  // Expose submit handler to parent via ref
+  React.useEffect(() => {
+    if (onSubmitRef) {
+      onSubmitRef.current = submit;
+    }
+  }, [onSubmitRef, submit]);
+
   // Show loading state while fetching list data in edit mode
   if (isEditMode && listLoading) {
     return (
@@ -150,26 +160,8 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
 
   return (
     <KeyboardAvoidingView className="flex-1">
-      <View className="flex-1">
+      <View className="flex-1" style={{ paddingTop: inset.top }}>
         <EmojiPicker onEmojiSelected={handlePick} open={isOpen} onClose={() => setIsOpen(false)} />
-
-        <View className="flex flex-row items-center justify-between pt-6">
-          <BackButton isClose />
-          <Button
-            className="mr-4 rounded-full"
-            isIconOnly
-            variant="tertiary"
-            onPress={submit}
-            isDisabled={isPending}>
-            <Button.Label>
-              {isPending ? (
-                <ActivityIndicator size="small" color="#000" />
-              ) : (
-                <Ionicons name="checkmark-outline" size={22} />
-              )}
-            </Button.Label>
-          </Button>
-        </View>
 
         <ScrollView
           className="px-6"
@@ -182,9 +174,9 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
             render={({ field }) => (
               <TextInput
                 autoFocus
-                placeholder={isEditMode ? 'List Name' : 'New List'}
+                placeholder={isEditMode ? 'List Name' : 'Enter list name'}
                 className={
-                  'placeholder:text-muted-foreground/80 mt-6 w-full min-w-0 px-0 py-2 text-2xl font-semibold'
+                  'placeholder:text-muted-foreground/80 mt-6 w-full min-w-0 px-2 py-2 text-2xl font-semibold'
                 }
                 value={field.value}
                 onBlur={field.onBlur}
@@ -197,48 +189,54 @@ export function ListForm({ listId, onSuccess }: ListFormProps) {
             )}
           />
 
+          <Controller
+            control={control}
+            name="icon"
+            render={({ field }) => (
+              <Card className={'mt-4'}>
+                <Card.Body>
+                  <Pressable
+                    className={'flex-row items-center justify-between'}
+                    onPress={() => setIsOpen(true)}>
+                    <Text>Icon</Text>
+                    <Text className="text-2xl">{field.value || '📋'}</Text>
+                  </Pressable>
+                </Card.Body>
+              </Card>
+            )}
+          />
+
+          <Card className={'mt-4'}>
+            <Card.Body>
+              <Text>List Color</Text>
+
+              <View className="mt-4 flex-row flex-wrap gap-3">
+                {COLORS.map((color) => (
+                  <Pressable
+                    key={color.value}
+                    className="items-center justify-center"
+                    onPress={() => setSelectedColor(color.value)}>
+                    <View
+                      style={{
+                        backgroundColor: color.value || COLORS[0].value!,
+                        width: 38,
+                        height: 38,
+                        borderRadius: 24,
+                        borderWidth: selectedColor === color.value ? 3 : 0,
+                        borderColor: '#000',
+                      }}
+                    />
+                  </Pressable>
+                ))}
+              </View>
+            </Card.Body>
+          </Card>
+
           {errors.name ? (
             <Text className="mt-1 text-sm text-red-500" role="alert">
               {errors.name.message}
             </Text>
           ) : null}
-
-          <ScrollView
-            horizontal={true}
-            keyboardDismissMode={'none'}
-            keyboardShouldPersistTaps={'always'}
-            className={'mt-4'}
-            showsHorizontalScrollIndicator={false}>
-            <Controller
-              render={({ field }) => (
-                <Pressable
-                  onPress={() => {
-                    setIsOpen(true);
-                  }}
-                  className={cn(
-                    'border-border mr-4 flex flex-row items-center gap-2 rounded-md border bg-gray-200 px-4 py-2'
-                  )}>
-                  <Text numberOfLines={1}>{field.value ? field.value : 'Select Icon'}</Text>
-                </Pressable>
-              )}
-              name={'icon'}
-              control={control}
-            />
-
-            <Pressable
-              onPress={() => {
-                Keyboard.dismiss();
-                router.push('/pickers/color-picker');
-              }}
-              className={cn(
-                'border-border mr-4 flex flex-row items-center gap-2 rounded-md border bg-gray-200 px-4 py-2'
-              )}>
-              <View
-                className={'h-5 w-5 rounded-full'}
-                style={{ backgroundColor: selectedColor || '#9ca3af' }}
-              />
-            </Pressable>
-          </ScrollView>
 
           {formError ? (
             <Text className="mt-4 text-sm text-red-500" role="alert">

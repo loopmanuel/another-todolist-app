@@ -84,26 +84,17 @@ export default function AppLayout() {
       <Stack.Screen
         name="lists/new"
         options={{
-          title: '',
-          presentation: 'formSheet',
+          title: 'Add List',
+          presentation: 'modal',
           sheetCornerRadius: 30,
-          headerShown: false,
-          sheetExpandsWhenScrolledToEdge: false,
-          sheetAllowedDetents: 'fitToContents',
+          headerTransparent: true,
         }}
       />
       <Stack.Screen
         name="lists/edit"
         options={{
-          title: '',
-          presentation: 'transparentModal',
-          sheetCornerRadius: 30,
-          headerShown: false,
-          sheetExpandsWhenScrolledToEdge: false,
-          animation: 'fade',
-          contentStyle: {
-            backgroundColor: 'transparent',
-          },
+          title: 'Edit List',
+          presentation: 'modal',
         }}
       />
       <Stack.Screen
