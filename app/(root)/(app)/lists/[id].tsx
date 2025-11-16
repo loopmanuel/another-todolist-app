@@ -6,7 +6,7 @@ import DraggableFlatList, {
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
 import { Text } from '@/components/ui/text';
-import { Button, Dialog, Popover } from 'heroui-native';
+import { Button } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -17,8 +17,6 @@ import { useDeleteListMutation } from '@/features/lists/mutations/use-delete-lis
 import { useReorderTasksMutation } from '@/features/tasks/mutations/use-reorder-tasks';
 import { useAuthStore } from '@/store/auth-store';
 import { TaskCard } from '@/features/tasks/components/task-card';
-import { LargeTitleLayout } from '@/components/large-title-layout';
-import { StyledIcon } from '@/components/styled-icon';
 import * as DropdownMenu from 'zeego/dropdown-menu';
 
 export default function ListDetails() {
@@ -44,8 +42,6 @@ export default function ListDetails() {
   const { mutateAsync: deleteList, isPending: isDeletingList } = useDeleteListMutation();
   const { mutateAsync: reorderTasks } = useReorderTasksMutation();
 
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
   const handleToggleHideCompleted = useCallback(async () => {
     if (!projectId || !user?.id || !list) return;
 
@@ -69,7 +65,6 @@ export default function ListDetails() {
         ownerId: user.id,
       });
 
-      setIsDeleteDialogOpen(false);
       router.back();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to delete list.';
@@ -136,13 +131,17 @@ export default function ListDetails() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger asChild>
-                <Pressable className={'mr-2 h-9 w-9 items-center justify-center rounded-full'}>
-                  <Ionicons name={'ellipsis-vertical-outline'} size={20} />
-                </Pressable>
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content>
+            <View className={'w-10 overflow-hidden border border-green-500'}>
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild>
+                  <Pressable
+                    className={
+                      'mr-2 h-9 w-9 items-center justify-center rounded-full border border-red-500'
+                    }>
+                    <Ionicons name={'ellipsis-vertical-outline'} size={20} />
+                  </Pressable>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content>
                   <DropdownMenu.Label />
                   <DropdownMenu.Item
                     key={'edit-item'}
@@ -195,7 +194,8 @@ export default function ListDetails() {
                   </DropdownMenu.Group>
                   <DropdownMenu.Arrow />
                 </DropdownMenu.Content>
-            </DropdownMenu.Root>
+              </DropdownMenu.Root>
+            </View>
           ),
         }}
       />

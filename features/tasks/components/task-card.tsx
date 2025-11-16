@@ -86,6 +86,7 @@ export function TaskCard({ task, isDisabled, onPress, onLongPress, isActive }: T
         onSelectedChange={(next) => {
           void handleToggleStatus(next);
         }}
+        className={'border border-gray-300'}
       />
       <View className={cn('flex-1', isCompleted && 'opacity-50')}>
         <Text className={cn('text-lg font-medium', isCompleted && 'text-gray-600 line-through')}>

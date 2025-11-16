@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { ActivityIndicator, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ListForm } from '@/features/lists/components/list-form';

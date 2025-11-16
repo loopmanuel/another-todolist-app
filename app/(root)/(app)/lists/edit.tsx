@@ -1,5 +1,4 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { ListSheetForm } from '@/features/lists/components/list-sheet-form';
 import { Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ListForm } from '@/features/lists/components/list-form';
