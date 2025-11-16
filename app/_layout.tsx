@@ -7,7 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppThemeProvider } from '@/contexts/app-theme-contexts';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import ToastManager from 'toastify-react-native';
+import { Toaster } from 'sonner-native';
 
 export const queryClient = new QueryClient();
 
@@ -24,7 +24,7 @@ export default function Layout() {
               <BottomSheetModalProvider>
                 <Slot />
                 {/* Toast provider should be at the root level */}
-                <ToastManager />
+                <Toaster position="bottom-center" />
               </BottomSheetModalProvider>
             </HeroUINativeProvider>
           </AppThemeProvider>

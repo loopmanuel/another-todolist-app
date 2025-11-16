@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { Alert, Pressable, View, TouchableOpacity } from 'react-native';
 import { Checkbox } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -8,7 +8,10 @@ import Animated, {
   withDelay,
   withTiming,
   withSequence,
+  cancelAnimation,
 } from 'react-native-reanimated';
+
+import { toast } from 'sonner-native';
 
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
@@ -59,16 +62,55 @@ export function TaskCard({
   shouldAnimateOnComplete = true,
 }: TaskCardProps) {
   const { user } = useAuthStore((state) => ({ user: state.user }));
+
   const { mutateAsync: updateTaskStatus } = useUpdateTaskStatusMutation();
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [isAnimatingOut, setIsAnimatingOut] = useState(false);
   const [isCompleted, setIsCompleted] = useState<boolean>(task.status === 'done');
 
+  const [toastId, setToastId] = useState<string | number>('');
+
   // Animated values for micro animation
   const opacity = useSharedValue(1);
   const scale = useSharedValue(1);
   const translateX = useSharedValue(0);
+
+  const handleUndo = async () => {
+    if (!user?.id) return;
+
+    // Cancel ongoing animations
+    cancelAnimation(opacity);
+    cancelAnimation(scale);
+    cancelAnimation(translateX);
+
+    // Reset animation values immediately
+    opacity.value = 1;
+    scale.value = 1;
+    translateX.value = 0;
+
+    setIsAnimatingOut(false);
+    setIsCompleted(false);
+    setIsUpdating(true);
+
+    try {
+      await updateTaskStatus({
+        taskId: task.id,
+        projectId: task.project_id,
+        parentId: task.parent_id ?? null,
+        status: 'todo',
+        delayInvalidation: undefined,
+      });
+
+      toast.dismiss();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to undo.';
+      Alert.alert('Undo failed', message);
+      setIsCompleted(true);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const handleToggleStatus = async (nextSelected: boolean) => {
     if (!user?.id) {
@@ -108,9 +150,25 @@ export function TaskCard({
       scale.value = withTiming(1, { duration: 100 });
       translateX.value = withTiming(0, { duration: 100 });
       setIsCompleted(!nextSelected);
-    } finally {
       setIsUpdating(false);
+      return;
     }
+
+    // Show toast with undo button when marking as complete (after successful update)
+    if (nextSelected) {
+      const newToastId = toast.success('Undo', {
+        description: 'Completed',
+        duration: 4000,
+        action: {
+          label: 'Undo',
+          onClick: () => handleUndo(),
+        },
+      });
+
+      setToastId(newToastId);
+    }
+
+    setIsUpdating(false);
   };
 
   // Reset animation when task becomes uncompleted

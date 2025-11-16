@@ -37,7 +37,7 @@ export function useUpdateTaskStatusMutation() {
     onSuccess: (_data, variables) => {
       const invalidate = () => {
         void queryClient.invalidateQueries();
-        void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+        // void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
         void queryClient.invalidateQueries({ queryKey: taskKeys.task(variables.taskId) });
         if (variables.parentId) {
           void queryClient.invalidateQueries({ queryKey: taskKeys.subtasks(variables.parentId) });
