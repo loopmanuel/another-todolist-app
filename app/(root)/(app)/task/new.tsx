@@ -32,14 +32,29 @@ import {
   getPriorityBgColor,
 } from '@/features/tasks/utils/priority';
 import { cn } from '@/lib/utils';
+import dayjs from 'dayjs';
 
 // Local YYYY-MM-DD (avoids UTC off-by-one)
 function todayLocal(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  return dayjs().format('YYYY-MM-DD');
+}
+
+// Format due date for display
+function formatDueDate(dateString: string | null): string {
+  if (!dateString) return 'Due Date';
+
+  const date = dayjs(dateString);
+  const today = dayjs();
+  const tomorrow = today.add(1, 'day');
+
+  if (date.isSame(today, 'day')) {
+    return 'Today';
+  } else if (date.isSame(tomorrow, 'day')) {
+    return 'Tomorrow';
+  } else {
+    // Format as "MMM D, YYYY" (e.g., "Nov 16, 2025")
+    return date.format('MMM D, YYYY');
+  }
 }
 
 // ----- Zod schema -----
@@ -392,7 +407,7 @@ export default function NewTask() {
                 <Card.Body>
                   <View className={'flex-row items-center gap-2'}>
                     <Ionicons name={'calendar-outline'} size={18} />
-                    <Text>{dueDate === todayLocal() ? 'Today' : dueDate || 'Due Date'}</Text>
+                    <Text>{formatDueDate(dueDate)}</Text>
                   </View>
                 </Card.Body>
               </Card>
