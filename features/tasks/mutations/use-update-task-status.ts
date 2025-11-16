@@ -12,6 +12,7 @@ type UpdateTaskStatusVariables = {
   projectId: string;
   parentId?: string | null;
   status: TaskRow['status'];
+  delayInvalidation?: number; // Delay in milliseconds before invalidating queries
 };
 
 export function useUpdateTaskStatusMutation() {
@@ -34,11 +35,20 @@ export function useUpdateTaskStatusMutation() {
       return data;
     },
     onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries();
-      void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
-      void queryClient.invalidateQueries({ queryKey: taskKeys.task(variables.taskId) });
-      if (variables.parentId) {
-        void queryClient.invalidateQueries({ queryKey: taskKeys.subtasks(variables.parentId) });
+      const invalidate = () => {
+        void queryClient.invalidateQueries();
+        void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+        void queryClient.invalidateQueries({ queryKey: taskKeys.task(variables.taskId) });
+        if (variables.parentId) {
+          void queryClient.invalidateQueries({ queryKey: taskKeys.subtasks(variables.parentId) });
+        }
+      };
+
+      // Delay invalidation if requested (for animations)
+      if (variables.delayInvalidation) {
+        setTimeout(invalidate, variables.delayInvalidation);
+      } else {
+        invalidate();
       }
     },
   });

@@ -104,12 +104,13 @@ export default function ListDetails() {
               onPress={(task) => router.push(`/task/${task.id}`)}
               onLongPress={drag}
               isActive={isActive}
+              shouldAnimateOnComplete={list?.hide_completed_tasks ?? true}
             />
           </View>
         </ScaleDecorator>
       );
     },
-    [router]
+    [router, list?.hide_completed_tasks]
   );
 
   const listEmpty = (
