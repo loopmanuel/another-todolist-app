@@ -20,6 +20,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMMKVString } from 'react-native-mmkv';
 import { useAuthStore } from '@/store/auth-store';
 import { useTaskFormStore } from '@/store/task-form-store';
+import { useDatePickerStore } from '@/store/date-picker-store';
 import { useListsQuery } from '@/features/lists/queries/use-lists';
 import { useLabelsQuery } from '@/features/labels/queries/use-labels';
 import { useCreateTaskMutation } from '@/features/tasks/mutations/use-create-task';
@@ -74,8 +75,8 @@ export default function NewTask() {
   const inputRef = React.useRef<TextInput>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Persisted date (shared with your date-picker screen)
-  const [dateMMKV, setDateMMKV] = useMMKVString('date');
+  // Date picker state (shared with date-picker screen)
+  const { selectedDate, clearDate } = useDatePickerStore();
   const [listMMKV, setListMMKV] = useMMKVString(TASK_LIST_STORAGE_KEY);
   const { user } = useAuthStore((state) => ({ user: state.user }));
   const { selectedLabels, priority, clearAll } = useTaskFormStore();
@@ -105,8 +106,8 @@ export default function NewTask() {
     ? (parentProject?.name ?? (listsLoading ? 'Loading list…' : 'Parent list'))
     : (selectedList?.name ?? (listsLoading ? 'Loading list…' : 'Select a list'));
 
-  // RHF defaults: use MMKV if present, else null
-  const initialDue = useMemo(() => dateMMKV ?? null, [dateMMKV]); // stable default
+  // RHF defaults: use selectedDate if present, else null
+  const initialDue = useMemo(() => selectedDate ?? null, [selectedDate]); // stable default
 
   const {
     control,
@@ -131,14 +132,14 @@ export default function NewTask() {
     }, [])
   );
 
-  // Sync from MMKV -> RHF (when returning from date picker)
+  // Sync from date picker store -> RHF (when returning from date picker)
   useEffect(() => {
-    if (dateMMKV === undefined) {
+    if (selectedDate === null) {
       setValue('dueDate', null, { shouldDirty: false, shouldValidate: true });
     } else {
-      setValue('dueDate', dateMMKV, { shouldDirty: false, shouldValidate: true });
+      setValue('dueDate', selectedDate, { shouldDirty: false, shouldValidate: true });
     }
-  }, [dateMMKV, setValue]);
+  }, [selectedDate, setValue]);
 
   useEffect(() => {
     if (isSubtask || !listParamId || !setListMMKV) {
@@ -207,7 +208,7 @@ export default function NewTask() {
         description: '',
         dueDate: null,
       });
-      setDateMMKV?.(undefined);
+      clearDate();
       clearAll();
       setFormError(null);
       router.back();

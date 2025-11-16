@@ -1,59 +1,71 @@
 import { View } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Calendar, CalendarProps } from 'react-native-calendars';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useMMKVString } from 'react-native-mmkv';
-import BackButton from '@/components/ui/back-button';
+import React, { useCallback, useMemo } from 'react';
 import { Button } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
+import dayjs from 'dayjs';
+
+import { useDatePickerStore } from '@/store/date-picker-store';
 
 type DayPress = Parameters<NonNullable<CalendarProps['onDayPress']>>[0];
-
-// Helper: "YYYY-MM-DD" in LOCAL time (avoids UTC off-by-one)
-function todayLocal(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 export default function DatePicker() {
   const router = useRouter();
 
-  // Persisted value (may be undefined on first render if not set yet)
-  const [dateMMKV, setDateMMKV] = useMMKVString('date');
-
-  // Start with today or the stored date
-  const [selected, setSelected] = useState<string>(dateMMKV || todayLocal());
-
-  // On mount or when MMKV changes, sync state.
-  useEffect(() => {
-    if (dateMMKV && dateMMKV !== selected) {
-      setSelected(dateMMKV);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateMMKV]);
+  const { selectedDate, setSelectedDate, clearDate, getTodayLocal } = useDatePickerStore();
 
   const onDayPress = useCallback(
     (day: DayPress) => {
-      setSelected(day.dateString);
-      setDateMMKV?.(day.dateString);
+      setSelectedDate(day.dateString);
     },
-    [setDateMMKV]
+    [setSelectedDate]
   );
 
   const handleClear = useCallback(() => {
-    setDateMMKV?.(undefined);
+    clearDate();
     router.dismiss();
-  }, [setDateMMKV, router]);
+  }, [clearDate, router]);
 
-  const marked = useMemo(
-    () => ({
-      [selected]: { selected: true, selectedColor: 'black', selectedTextColor: 'white' },
-    }),
-    [selected]
-  );
+  const handleToday = useCallback(() => {
+    setSelectedDate(getTodayLocal());
+  }, [setSelectedDate, getTodayLocal]);
+
+  const handleTomorrow = useCallback(() => {
+    const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD');
+    setSelectedDate(tomorrow);
+  }, [setSelectedDate]);
+
+  const handleNextMonday = useCallback(() => {
+    const today = dayjs();
+    const currentDay = today.day(); // 0 = Sunday, 1 = Monday, etc.
+
+    // Calculate days until next Monday
+    let daysUntilMonday: number;
+    if (currentDay === 1) {
+      // If today is Monday, next Monday is in 7 days
+      daysUntilMonday = 7;
+    } else if (currentDay === 0) {
+      // If today is Sunday, next Monday is tomorrow
+      daysUntilMonday = 1;
+    } else {
+      // For other days, calculate days until next Monday
+      daysUntilMonday = 8 - currentDay;
+    }
+
+    const nextMonday = today.add(daysUntilMonday, 'day').format('YYYY-MM-DD');
+    setSelectedDate(nextMonday);
+  }, [setSelectedDate]);
+
+  const marked = useMemo(() => {
+    if (!selectedDate) return {};
+    return {
+      [selectedDate]: { selected: true, selectedColor: 'black', selectedTextColor: 'white' },
+    };
+  }, [selectedDate]);
+
+  // Use selected date for calendar current, or default to today for initial view
+  const calendarCurrent = selectedDate || getTodayLocal();
 
   return (
     <View className="pb-safe flex-1 bg-white">
@@ -69,8 +81,33 @@ export default function DatePicker() {
         </Button>
       </View>
 
+      {/* Quick date selection buttons */}
+      <View className={'mx-4 mb-4 flex flex-row gap-2'}>
+        <Button
+          className={'flex-1'}
+          variant={'secondary'}
+          size={'sm'}
+          onPress={handleToday}>
+          <Button.Label>Today</Button.Label>
+        </Button>
+        <Button
+          className={'flex-1'}
+          variant={'secondary'}
+          size={'sm'}
+          onPress={handleTomorrow}>
+          <Button.Label>Tomorrow</Button.Label>
+        </Button>
+        <Button
+          className={'flex-1'}
+          variant={'secondary'}
+          size={'sm'}
+          onPress={handleNextMonday}>
+          <Button.Label>Next Monday</Button.Label>
+        </Button>
+      </View>
+
       <Calendar
-        current={selected} // keep calendar focused on the selected day
+        current={calendarCurrent} // keep calendar focused on the selected day or today
         markedDates={marked}
         onDayPress={onDayPress}
         enableSwipeMonths={false}

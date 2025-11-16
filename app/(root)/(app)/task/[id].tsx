@@ -35,6 +35,8 @@ import { useSubtasksQuery, type SubtaskWithCounts } from '@/features/tasks/queri
 import { TaskCard, formatDueLabel } from '@/features/tasks/components/task-card';
 import { getPriorityLabel, getPriorityColor } from '@/features/tasks/utils/priority';
 import { useMMKVString } from 'react-native-mmkv';
+import dayjs from 'dayjs';
+import { useDatePickerStore } from '@/store/date-picker-store';
 
 const TaskFormSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(200, 'Max 200 characters'),
@@ -78,7 +80,7 @@ export default function TaskDetails() {
   } = useSubtasksQuery({ parentId: taskId, createdBy: user?.id });
   const { data: lists = [], isLoading: listsLoading } = useListsQuery(user?.id ?? undefined);
 
-  const [dateMMKV, setDateMMKV] = useMMKVString('date');
+  const { selectedDate, setSelectedDate, clearDate } = useDatePickerStore();
   const currentList = useMemo(
     () => lists.find((list) => list.id === task?.project_id),
     [lists, task?.project_id]
@@ -126,15 +128,12 @@ export default function TaskDetails() {
     setEditingTaskId(taskId);
     setStorePriority(task.priority);
 
-    // Set date in MMKV
+    // Set date in store using dayjs
     if (task.due_at) {
-      const date = new Date(task.due_at);
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, '0');
-      const d = String(date.getDate()).padStart(2, '0');
-      setDateMMKV?.(`${y}-${m}-${d}`);
+      const formattedDate = dayjs(task.due_at).format('YYYY-MM-DD');
+      setSelectedDate(formattedDate);
     } else {
-      setDateMMKV?.(undefined);
+      clearDate();
     }
 
     setIsInitialized(true);
@@ -226,7 +225,7 @@ export default function TaskDetails() {
       return;
     }
 
-    const currentDate = dateMMKV ?? '';
+    const currentDate = selectedDate ?? '';
 
     // Only update if date changed AND it's different from current task date
     if (currentDate !== currentTaskDate && currentDate !== prevDate.current) {
@@ -240,7 +239,7 @@ export default function TaskDetails() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateMMKV]);
+  }, [selectedDate]);
 
   const handleToggleStatus = useCallback(
     async (nextSelected: boolean) => {

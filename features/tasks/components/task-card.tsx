@@ -75,7 +75,7 @@ export function TaskCard({
       return;
     }
 
-    setIsCompleted(true);
+    setIsCompleted(nextSelected);
     setIsUpdating(true);
 
     // Trigger animation when marking as done
