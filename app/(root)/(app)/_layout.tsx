@@ -94,6 +94,7 @@ export default function AppLayout() {
         options={{
           title: 'Edit List',
           presentation: 'modal',
+          sheetCornerRadius: 30,
           headerTransparent: true,
         }}
       />

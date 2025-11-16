@@ -66,6 +66,7 @@
     "tailwind-variants": "^3.1.0",
     "tailwindcss-animate": "^1.0.7",
     "tinycolor2": "^1.6.0",
+    "toastify-react-native": "^7.2.3",
     "uniwind": "^1.0.0",
     "zeego": "^3.0.6",
     "zod": "^4.1.12",

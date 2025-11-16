@@ -5,9 +5,9 @@ import { HeroUINativeProvider } from 'heroui-native';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AppThemeProvider, useAppTheme } from '@/contexts/app-theme-contexts';
-import { StatusBar } from 'expo-status-bar';
+import { AppThemeProvider } from '@/contexts/app-theme-contexts';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import ToastManager from 'toastify-react-native';
 
 export const queryClient = new QueryClient();
 
@@ -23,6 +23,8 @@ export default function Layout() {
               {/*<StatusBar style={isDark ? 'light' : 'dark'} />*/}
               <BottomSheetModalProvider>
                 <Slot />
+                {/* Toast provider should be at the root level */}
+                <ToastManager />
               </BottomSheetModalProvider>
             </HeroUINativeProvider>
           </AppThemeProvider>

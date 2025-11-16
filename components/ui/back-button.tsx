@@ -11,9 +11,9 @@ export default function BackButton({ isClose = false }: { isClose?: boolean }) {
       <Button
         variant={'tertiary'}
         isIconOnly
-        className={'rounded-full'}
+        className={'items-center justify-center rounded-full'}
         onPress={() => router.back()}>
-        <Button.Label>
+        <Button.Label className={'items-center justify-center'}>
           {isClose ? (
             <Ionicons name={'close-outline'} size={24} />
           ) : (
