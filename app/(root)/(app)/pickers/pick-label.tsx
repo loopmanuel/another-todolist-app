@@ -118,7 +118,11 @@ export default function PickLabel() {
         <Pressable
           className="flex flex-row items-center gap-3 rounded-lg bg-white p-4"
           onPress={() => handleToggleLabel(item.id)}>
-          <Checkbox isSelected={isSelected} onSelectedChange={() => handleToggleLabel(item.id)} />
+          <Checkbox
+            isSelected={isSelected}
+            onSelectedChange={() => handleToggleLabel(item.id)}
+            isOnSurface
+          />
           <View
             className="h-4 w-4 rounded-full"
             style={{ backgroundColor: item.color || '#6366f1' }}
@@ -135,8 +139,8 @@ export default function PickLabel() {
       {isLoading ? (
         <ActivityIndicator />
       ) : (
-        <View className="mx-6 rounded-2xl border border-dashed border-border p-6">
-          <Text className="text-center text-base text-muted-foreground">
+        <View className="border-border mx-6 rounded-2xl border border-dashed p-6">
+          <Text className="text-muted-foreground text-center text-base">
             {searchQuery.trim()
               ? 'No labels found. Create one by typing above.'
               : user?.id

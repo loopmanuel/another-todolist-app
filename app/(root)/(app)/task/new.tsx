@@ -9,7 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Button } from 'heroui-native';
+import { Button, Card } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -314,6 +314,34 @@ export default function NewTask() {
             />
           </View>
 
+          {selectedLabels.size > 0 && (
+            <View className={'flex-1 flex-row px-6'}>
+              <Pressable
+                onPress={() => {
+                  Keyboard.dismiss();
+                  router.push('/pickers/pick-label');
+                }}
+                className={'mb-4'}>
+                <Card>
+                  <Card.Body>
+                    <View className={'flex-row items-center gap-2'}>
+                      <Ionicons name={'pricetag-outline'} size={18} />
+                      <Text>
+                        {Array.from(selectedLabels)
+                          .map((labelId) => {
+                            const label = allLabels.find((l) => l.id === labelId);
+                            return label?.name;
+                          })
+                          .filter(Boolean)
+                          .join(', ')}
+                      </Text>
+                    </View>
+                  </Card.Body>
+                </Card>
+              </Pressable>
+            </View>
+          )}
+
           <ScrollView
             horizontal={true}
             keyboardShouldPersistTaps="handled"
@@ -332,6 +360,7 @@ export default function NewTask() {
                 </Text>
               </View>
             ) : null}
+
             <Pressable
               onPress={() => {
                 if (!canSelectList) {
@@ -341,12 +370,15 @@ export default function NewTask() {
                 router.push('/pickers/inbox-picker');
               }}
               disabled={!canSelectList}
-              className={cn(
-                'border-border mr-4 flex flex-row items-center gap-2 rounded-md border bg-gray-200 px-4 py-2',
-                !canSelectList && 'opacity-60'
-              )}>
-              <Ionicons name={'file-tray-outline'} size={18} />
-              <Text numberOfLines={1}>{activeProjectName}</Text>
+              className={cn(!canSelectList && 'opacity-60')}>
+              <Card className={'border border-gray-200'}>
+                <Card.Body>
+                  <View className={'flex-row items-center gap-2'}>
+                    <Ionicons name={'file-tray-outline'} size={18} />
+                    <Text>App todo</Text>
+                  </View>
+                </Card.Body>
+              </Card>
             </Pressable>
 
             <Pressable
@@ -354,54 +386,53 @@ export default function NewTask() {
                 Keyboard.dismiss();
                 router.push('/pickers/date-picker');
               }}
-              className={'mr-4 flex flex-row items-center gap-2 rounded-md bg-gray-200 px-4 py-2'}>
-              <Ionicons name={'calendar-outline'} size={18} />
-              <Text>{dueDate === todayLocal() ? 'Today' : dueDate || 'Due Date'}</Text>
+              className={'ml-4 mr-4'}>
+              <Card className={'border border-gray-200'}>
+                <Card.Body>
+                  <View className={'flex-row items-center gap-2'}>
+                    <Ionicons name={'calendar-outline'} size={18} />
+                    <Text>{dueDate === todayLocal() ? 'Today' : dueDate || 'Due Date'}</Text>
+                  </View>
+                </Card.Body>
+              </Card>
             </Pressable>
 
-            <Pressable
-              onPress={() => handlePriorityButtonPress()}
-              className={'mr-4 flex flex-row items-center gap-2 rounded-md px-4 py-2'}
-              style={{
-                backgroundColor: priority > 0 ? getPriorityBgColor(priority) : '#e5e7eb',
-              }}>
-              <Ionicons
-                name={priority > 0 ? 'flag' : 'flag-outline'}
-                size={18}
-                color={priority > 0 ? getPriorityColor(priority) : undefined}
-              />
-              <Text
+            <Pressable onPress={() => handlePriorityButtonPress()} className={'mr-4'}>
+              <Card
+                className={'border border-gray-200'}
                 style={{
-                  color: priority > 0 ? getPriorityColor(priority) : undefined,
+                  backgroundColor: priority > 0 ? getPriorityBgColor(priority) : '#e5e7eb',
                 }}>
-                {getPriorityLabel(priority)}
-              </Text>
+                <Card.Body>
+                  <View className={'flex-row items-center gap-2'}>
+                    <Ionicons
+                      name={priority > 0 ? 'flag' : 'flag-outline'}
+                      size={18}
+                      color={priority > 0 ? getPriorityColor(priority) : undefined}
+                    />
+                    <Text
+                      style={{
+                        color: priority > 0 ? getPriorityColor(priority) : undefined,
+                      }}>
+                      {getPriorityLabel(priority)}
+                    </Text>
+                  </View>
+                </Card.Body>
+              </Card>
             </Pressable>
 
-            <Pressable
-              onPress={() => router.push('/pickers/pick-label')}
-              className={'mr-4 flex flex-row items-center gap-2 rounded-md bg-gray-200 px-4 py-2'}>
-              <Ionicons name={'pricetag-outline'} size={18} />
-              <Text>{selectedLabels.size > 0 ? `Labels (${selectedLabels.size})` : 'Label'}</Text>
-            </Pressable>
-            {selectedLabels.size > 0
-              ? Array.from(selectedLabels)
-                  .slice(0, 3)
-                  .map((labelId) => {
-                    const label = allLabels.find((l) => l.id === labelId);
-                    if (!label) return null;
-                    return (
-                      <View
-                        key={labelId}
-                        className={'mr-4 flex flex-row items-center gap-2 rounded-md px-4 py-2'}
-                        style={{ backgroundColor: label.color || '#6366f1' }}>
-                        <Text className={'text-white'} numberOfLines={1}>
-                          {label.name}
-                        </Text>
-                      </View>
-                    );
-                  })
-              : null}
+            {selectedLabels.size === 0 && (
+              <Pressable onPress={() => router.push('/pickers/pick-label')} className={'mr-4'}>
+                <Card className={'border border-gray-200'}>
+                  <Card.Body>
+                    <View className={'flex-row items-center gap-2'}>
+                      <Ionicons name={'pricetag-outline'} size={18} />
+                      <Text>Labels</Text>
+                    </View>
+                  </Card.Body>
+                </Card>
+              </Pressable>
+            )}
           </ScrollView>
           {formError ? (
             <Text className={'px-6 pt-4 text-sm text-red-500'} role={'alert'}>
