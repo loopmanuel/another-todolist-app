@@ -375,7 +375,7 @@ export default function NewTask() {
                 <Card.Body>
                   <View className={'flex-row items-center gap-2'}>
                     <Ionicons name={'file-tray-outline'} size={18} />
-                    <Text>App todo</Text>
+                    <Text>{activeProjectName}</Text>
                   </View>
                 </Card.Body>
               </Card>

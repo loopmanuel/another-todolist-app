@@ -42,7 +42,7 @@ export default function InboxPicker() {
         </View>
         <Card className={'mx-6 mt-6 rounded-2xl'}>
           <Card.Body>
-            <Text className={'text-base text-muted-foreground'}>
+            <Text className={'text-muted-foreground text-base'}>
               Sign in to choose a list for your task.
             </Text>
           </Card.Body>
@@ -59,7 +59,7 @@ export default function InboxPicker() {
 
       <View className={'px-6 pt-4'}>
         <Text className={'text-2xl font-semibold'}>Select a list</Text>
-        <Text className={'mt-1 text-base text-muted-foreground'}>
+        <Text className={'text-muted-foreground mt-1 text-base'}>
           Choose where the task should live.
         </Text>
       </View>
@@ -68,7 +68,7 @@ export default function InboxPicker() {
         {isLoading ? (
           <ActivityIndicator />
         ) : lists.length === 0 ? (
-          <Text className={'text-base text-muted-foreground'}>
+          <Text className={'text-muted-foreground text-base'}>
             Create a list first to assign tasks.
           </Text>
         ) : (
@@ -79,15 +79,12 @@ export default function InboxPicker() {
                 <Pressable
                   key={item.id}
                   className={
-                    'flex flex-row items-center justify-between rounded-2xl border border-border bg-white px-4 py-3'
+                    'border-border flex flex-row items-center justify-between rounded-2xl border bg-white px-4 py-3'
                   }
                   onPress={() => handleSelect(item.id)}>
                   <View className={'flex-1 pr-3'}>
                     <Text className={'text-lg font-semibold'} numberOfLines={1}>
                       {item.name}
-                    </Text>
-                    <Text className={'text-sm text-muted-foreground'} numberOfLines={2}>
-                      No description
                     </Text>
                   </View>
                   {isSelected ? <Ionicons name="checkmark-circle" size={24} /> : null}

@@ -86,7 +86,6 @@ export default function AppLayout() {
         options={{
           title: 'Add List',
           presentation: 'modal',
-          sheetCornerRadius: 30,
           headerTransparent: true,
         }}
       />
@@ -95,6 +94,7 @@ export default function AppLayout() {
         options={{
           title: 'Edit List',
           presentation: 'modal',
+          headerTransparent: true,
         }}
       />
       <Stack.Screen
