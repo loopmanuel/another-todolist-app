@@ -482,12 +482,19 @@ export default function TaskDetails() {
                 ) : null}
               </View>
 
-              <View className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: '/pickers/project-picker',
+                    params: { currentProjectId: task?.project_id, taskId: task?.id },
+                  })
+                }
+                className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
                 <Ionicons name={'file-tray-outline'} size={18} />
                 <Text>
                   {listsLoading ? 'Loading list…' : (currentList?.name ?? 'No list selected')}
                 </Text>
-              </View>
+              </Pressable>
 
               <Pressable
                 onPress={() => router.push('/pickers/date-picker')}

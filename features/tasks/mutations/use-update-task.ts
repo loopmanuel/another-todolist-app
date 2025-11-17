@@ -4,13 +4,14 @@ import type { Tables, TablesUpdate } from '@/supabase/database.types';
 import { supabase } from '@/utils/supabase';
 
 import { taskKeys } from '../queries/keys';
+import { listKeys } from '@/features/lists/queries/keys';
 
 type TaskRow = Tables<'tasks'>;
 
 export type UpdateTaskVariables = {
   taskId: string;
   projectId: string;
-  payload: Partial<Pick<TablesUpdate<'tasks'>, 'title' | 'description' | 'due_at' | 'priority'>>;
+  payload: Partial<Pick<TablesUpdate<'tasks'>, 'title' | 'description' | 'due_at' | 'priority' | 'project_id'>>;
 };
 
 export function useUpdateTaskMutation() {
@@ -40,9 +41,18 @@ export function useUpdateTaskMutation() {
 
       return data;
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (data, variables) => {
       void queryClient.invalidateQueries({ queryKey: taskKeys.task(variables.taskId) });
       void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+
+      // If project changed, invalidate the new project's queries and all lists
+      if (variables.payload.project_id && variables.payload.project_id !== variables.projectId) {
+        void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.payload.project_id) });
+        // Invalidate all lists queries to refresh task counts everywhere
+        void queryClient.invalidateQueries({ queryKey: listKeys.all });
+        // Invalidate all task queries (including project-counts used on index page)
+        void queryClient.invalidateQueries({ queryKey: taskKeys.all });
+      }
     },
   });
 }
