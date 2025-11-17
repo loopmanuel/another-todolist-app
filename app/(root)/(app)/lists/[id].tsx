@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, View } from 'react-native';
+import { useCallback, useMemo } from 'react';
+import { ActivityIndicator, Alert, Pressable, RefreshControl, View } from 'react-native';
 
 import DraggableFlatList, {
   RenderItemParams,
@@ -18,9 +18,12 @@ import { useReorderTasksMutation } from '@/features/tasks/mutations/use-reorder-
 import { useAuthStore } from '@/store/auth-store';
 import { TaskCard } from '@/features/tasks/components/task-card';
 import * as DropdownMenu from 'zeego/dropdown-menu';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ListDetails() {
   const router = useRouter();
+
+  const insets = useSafeAreaInsets();
 
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const projectId = useMemo(() => {
@@ -31,8 +34,17 @@ export default function ListDetails() {
   }, [params.id]);
 
   const { user } = useAuthStore((state) => ({ user: state.user }));
-  const { data: list } = useListQuery(projectId);
-  const { data: tasks = [], isLoading } = useTasksQuery({
+  const {
+    data: list,
+    isRefetching: isRefetchingList,
+    refetch: refetchList,
+  } = useListQuery(projectId);
+  const {
+    data: tasks = [],
+    isLoading,
+    isRefetching: isRefetchingTasks,
+    refetch: refetchTasks,
+  } = useTasksQuery({
     projectId,
     createdBy: user?.id,
     hideCompleted: list?.hide_completed_tasks ?? false,
@@ -41,6 +53,11 @@ export default function ListDetails() {
     useToggleHideCompletedMutation();
   const { mutateAsync: deleteList, isPending: isDeletingList } = useDeleteListMutation();
   const { mutateAsync: reorderTasks } = useReorderTasksMutation();
+
+  const isRefreshing = isRefetchingList || isRefetchingTasks;
+  const handleRefresh = useCallback(() => {
+    void Promise.all([refetchList(), refetchTasks()]);
+  }, [refetchList, refetchTasks]);
 
   const handleToggleHideCompleted = useCallback(async () => {
     if (!projectId || !user?.id || !list) return;
@@ -128,7 +145,7 @@ export default function ListDetails() {
   );
 
   return (
-    <View className={'flex-1'}>
+    <>
       <Stack.Screen
         options={{
           headerRight: () => (
@@ -206,8 +223,9 @@ export default function ListDetails() {
         ListEmptyComponent={listEmpty}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
         contentContainerStyle={{
-          paddingTop: 120,
+          paddingTop: 140,
           paddingBottom: 120,
           paddingHorizontal: 16,
         }}
@@ -226,6 +244,6 @@ export default function ListDetails() {
           <Button.Label>Add Task</Button.Label>
         </Button>
       </View>
-    </View>
+    </>
   );
 }
