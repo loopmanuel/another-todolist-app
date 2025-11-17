@@ -9,11 +9,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Button, Card } from 'heroui-native';
+import { Card } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import BackButton from '@/components/ui/back-button';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,11 +32,7 @@ import {
 } from '@/features/tasks/utils/priority';
 import { cn } from '@/lib/utils';
 import dayjs from 'dayjs';
-
-// Local YYYY-MM-DD (avoids UTC off-by-one)
-function todayLocal(): string {
-  return dayjs().format('YYYY-MM-DD');
-}
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Format due date for display
 function formatDueDate(dateString: string | null): string {
@@ -70,6 +65,9 @@ const LIST_REQUIRED_ERROR = 'Select a list before adding tasks.';
 
 export default function NewTask() {
   const router = useRouter();
+
+  const inset = useSafeAreaInsets();
+
   const params = useLocalSearchParams<{
     parent_id?: string | string[];
     list_id?: string | string[];
@@ -241,25 +239,30 @@ export default function NewTask() {
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1 }}>
-      <View className={'flex-1'}>
-        <View className={'flex flex-row items-center justify-between pt-6'}>
-          <BackButton isClose />
-          <Button
-            className={'mr-4 rounded-full'}
-            isIconOnly
-            onPress={submit}
-            isDisabled={isPrimaryDisabled}>
-            <Button.Label>
+      <Stack.Screen
+        options={{
+          headerLeft: () => (
+            <Pressable className={'p-1 px-2'} onPress={() => router.dismiss()}>
+              <Ionicons name={'close-outline'} size={24} />
+            </Pressable>
+          ),
+          headerRight: () => (
+            <Pressable className={'p-1 px-2'} onPress={submit} disabled={isPrimaryDisabled}>
               {isSaving ? (
                 <ActivityIndicator size={'small'} />
               ) : (
                 <Ionicons name={'checkmark-outline'} size={22} />
               )}
-            </Button.Label>
-          </Button>
-        </View>
+            </Pressable>
+          ),
+        }}
+      />
 
-        <ScrollView className={'pt-safe'} keyboardShouldPersistTaps={'always'}>
+      <View className={'flex-1'}>
+        <ScrollView
+          className={'pt-safe'}
+          style={{ paddingTop: inset.top }}
+          keyboardShouldPersistTaps={'always'}>
           <View className={'p-6 pb-0'}>
             <Controller
               render={({ field: { onChange, onBlur, value } }) => (

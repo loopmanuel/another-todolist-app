@@ -124,7 +124,8 @@ export default function AppLayout() {
           sheetAllowedDetents: 'fitToContents',
           sheetGrabberVisible: false,
           sheetCornerRadius: 30,
-          headerShown: false,
+          headerShown: true,
+          headerTransparent: true,
           sheetExpandsWhenScrolledToEdge: false,
         }}
       />
