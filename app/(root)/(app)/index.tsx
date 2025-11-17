@@ -1,7 +1,10 @@
 import React, { useCallback } from 'react';
 import { ActivityIndicator, Pressable, TouchableOpacity, View } from 'react-native';
 
-import { FlashList, type ListRenderItem } from '@shopify/flash-list';
+import DraggableFlatList, {
+  RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from 'heroui-native';
 import { Href, Stack, useRouter } from 'expo-router';
@@ -11,6 +14,7 @@ import NewFab from '@/components/new-fab';
 import { ListTile } from '@/features/lists/components/list-tile';
 import { useListsQuery } from '@/features/lists/queries/use-lists';
 import { useProjectTaskCountsQuery } from '@/features/tasks/queries/use-project-task-counts';
+import { useReorderListsMutation } from '@/features/lists/mutations/use-reorder-lists';
 import type { Tables } from '@/supabase/database.types';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -54,6 +58,7 @@ export default function Home() {
   }));
   const { data: lists = [], isLoading } = useListsQuery(user?.id ?? undefined);
   const { data: taskCounts = {} } = useProjectTaskCountsQuery(user?.id);
+  const { mutateAsync: reorderLists } = useReorderListsMutation();
 
   const handleListPress = useCallback(
     (listId: string) => {
@@ -62,19 +67,45 @@ export default function Home() {
     [router]
   );
 
-  const renderListItem = useCallback<ListRenderItem<Tables<'projects'>>>(
-    ({ item }) => (
-      <ListTile
-        list={item}
-        onPress={() => handleListPress(item.id)}
-        uncompletedCount={taskCounts[item.id] || 0}
-      />
+  const handleListDragEnd = useCallback(
+    async ({ data }: { data: Tables<'projects'>[] }) => {
+      if (!user?.id) return;
+
+      try {
+        // Assign new sort_order values based on position
+        const updates = data.map((list, index) => ({
+          id: list.id,
+          sortOrder: (index + 1) * 1000, // Use increments of 1000
+        }));
+
+        await reorderLists({
+          ownerId: user.id,
+          lists: updates,
+        });
+      } catch (err) {
+        console.error('Failed to reorder lists:', err);
+      }
+    },
+    [user?.id, reorderLists]
+  );
+
+  const renderListItem = useCallback(
+    ({ item, drag, isActive }: RenderItemParams<Tables<'projects'>>) => (
+      <ScaleDecorator>
+        <ListTile
+          list={item}
+          onPress={() => router.push(`/lists/${item.id}`)}
+          onLongPress={drag}
+          isActive={isActive}
+          uncompletedCount={taskCounts[item.id] || 0}
+        />
+      </ScaleDecorator>
     ),
     [handleListPress, taskCounts]
   );
 
   return (
-    <View className={'bg-background relative flex-1'}>
+    <View className={'bg-background relative flex-1 px-6'}>
       <NewFab />
 
       <Button
@@ -86,10 +117,11 @@ export default function Home() {
         <Button.Label>New List</Button.Label>
       </Button>
 
-      <FlashList
+      <DraggableFlatList
         data={lists}
         keyExtractor={(item) => item.id}
         renderItem={renderListItem}
+        onDragEnd={handleListDragEnd}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={() => (
           <View className={'pt-10'}>
@@ -122,11 +154,9 @@ export default function Home() {
             </View>
           </View>
         )}
-        nestedScrollEnabled={true}
-        contentContainerStyle={{
+        containerStyle={{
           paddingTop: 100,
           paddingBottom: 120,
-          paddingHorizontal: 16,
         }}
         ListEmptyComponent={
           lists.length === 0 ? (

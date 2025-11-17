@@ -10,10 +10,12 @@ import type { Tables } from '@/supabase/database.types';
 type ListTileProps = {
   list: Tables<'projects'>;
   onPress?: (list: Tables<'projects'>) => void;
+  onLongPress?: () => void;
+  isActive?: boolean;
   uncompletedCount?: number;
 };
 
-function ListTileComponent({ list, onPress, uncompletedCount }: ListTileProps) {
+function ListTileComponent({ list, onPress, onLongPress, isActive, uncompletedCount }: ListTileProps) {
   const accentColor = useMemo(() => {
     const fallback = '#e5e7eb';
     if (!list.color) {
@@ -23,7 +25,13 @@ function ListTileComponent({ list, onPress, uncompletedCount }: ListTileProps) {
   }, [list.color]);
 
   return (
-    <Pressable className="mb-4 flex flex-row items-center gap-3" onPress={() => onPress?.(list)}>
+    <Pressable
+      className="mb-4 flex flex-row items-center gap-3"
+      onPress={() => onPress?.(list)}
+      onLongPress={onLongPress}
+      style={{
+        opacity: isActive ? 0.6 : 1,
+      }}>
       <View
         className="h-11 w-11 items-center justify-center rounded-xl"
         style={{
