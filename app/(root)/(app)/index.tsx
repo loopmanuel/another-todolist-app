@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ActivityIndicator, Pressable, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 
 import DraggableFlatList, {
   RenderItemParams,
@@ -7,7 +7,7 @@ import DraggableFlatList, {
 } from 'react-native-draggable-flatlist';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from 'heroui-native';
-import { Href, Stack, useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 
 import { Text } from '@/components/ui/text';
 import NewFab from '@/components/new-fab';
@@ -60,13 +60,6 @@ export default function Home() {
   const { data: taskCounts = {} } = useProjectTaskCountsQuery(user?.id);
   const { mutateAsync: reorderLists } = useReorderListsMutation();
 
-  const handleListPress = useCallback(
-    (listId: string) => {
-      router.push({ pathname: '/lists/[id]', params: { id: listId } });
-    },
-    [router]
-  );
-
   const handleListDragEnd = useCallback(
     async ({ data }: { data: Tables<'projects'>[] }) => {
       if (!user?.id) return;
@@ -94,14 +87,13 @@ export default function Home() {
       <ScaleDecorator>
         <ListTile
           list={item}
-          onPress={() => router.push(`/lists/${item.id}`)}
           onLongPress={drag}
           isActive={isActive}
           uncompletedCount={taskCounts[item.id] || 0}
         />
       </ScaleDecorator>
     ),
-    [handleListPress, taskCounts]
+    [router, taskCounts]
   );
 
   return (
@@ -123,6 +115,8 @@ export default function Home() {
         renderItem={renderListItem}
         onDragEnd={handleListDragEnd}
         showsVerticalScrollIndicator={false}
+        autoscrollSpeed={150}
+        autoscrollThreshold={80}
         ListHeaderComponent={() => (
           <View className={'pt-10'}>
             {/* Main Header Section */}
@@ -154,9 +148,8 @@ export default function Home() {
             </View>
           </View>
         )}
-        containerStyle={{
+        contentContainerStyle={{
           paddingTop: 100,
-          paddingBottom: 120,
         }}
         ListEmptyComponent={
           lists.length === 0 ? (

@@ -6,16 +6,18 @@ import tinycolor from 'tinycolor2';
 
 import { Text } from '@/components/ui/text';
 import type { Tables } from '@/supabase/database.types';
+import { useRouter } from 'expo-router';
 
 type ListTileProps = {
   list: Tables<'projects'>;
-  onPress?: (list: Tables<'projects'>) => void;
   onLongPress?: () => void;
   isActive?: boolean;
   uncompletedCount?: number;
 };
 
-function ListTileComponent({ list, onPress, onLongPress, isActive, uncompletedCount }: ListTileProps) {
+function ListTileComponent({ list, onLongPress, isActive, uncompletedCount }: ListTileProps) {
+  const router = useRouter();
+
   const accentColor = useMemo(() => {
     const fallback = '#e5e7eb';
     if (!list.color) {
@@ -27,7 +29,7 @@ function ListTileComponent({ list, onPress, onLongPress, isActive, uncompletedCo
   return (
     <Pressable
       className="mb-4 flex flex-row items-center gap-3"
-      onPress={() => onPress?.(list)}
+      onPress={() => router.push(`/lists/${list.id}`)}
       onLongPress={onLongPress}
       style={{
         opacity: isActive ? 0.6 : 1,
