@@ -224,8 +224,8 @@ export default function ListDetails() {
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
+        ListHeaderComponent={() => <View style={{ paddingTop: insets.top + 80 }} />}
         contentContainerStyle={{
-          paddingTop: 140,
           paddingBottom: 120,
           paddingHorizontal: 16,
         }}

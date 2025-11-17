@@ -198,6 +198,14 @@ export default function AppLayout() {
         }}
       />
       <Stack.Screen
+        name="inbox"
+        options={{
+          title: 'Inbox',
+          headerLargeTitle: true,
+          headerTransparent: true,
+        }}
+      />
+      <Stack.Screen
         name="test-route"
         options={{
           title: 'New Routes',

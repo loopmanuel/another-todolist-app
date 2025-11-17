@@ -61,7 +61,7 @@ const TaskSchema = z.object({
 
 type TaskForm = z.infer<typeof TaskSchema>;
 
-const LIST_REQUIRED_ERROR = 'Select a list before adding tasks.';
+// List is no longer required - tasks can go to Inbox by default
 
 export default function NewTask() {
   const router = useRouter();
@@ -117,7 +117,7 @@ export default function NewTask() {
   const canSelectList = !isSubtask && Boolean(user?.id);
   const activeProjectName = isSubtask
     ? (parentProject?.name ?? (listsLoading ? 'Loading list…' : 'Parent list'))
-    : (selectedList?.name ?? (listsLoading ? 'Loading list…' : 'Select a list'));
+    : (selectedList?.name ?? (listsLoading ? 'Loading list…' : 'Inbox'));
 
   // RHF defaults: use selectedDate if present, else null
   const initialDue = useMemo(() => selectedDate ?? null, [selectedDate]); // stable default
@@ -154,20 +154,24 @@ export default function NewTask() {
     }
   }, [selectedDate, setValue]);
 
+  // Set or clear list selection on mount
   useEffect(() => {
-    if (isSubtask || !listParamId || !setListMMKV) {
+    if (isSubtask || !setListMMKV) {
       return;
     }
-    if (listParamId !== listMMKV) {
-      setListMMKV(listParamId);
-    }
-  }, [isSubtask, listMMKV, listParamId, setListMMKV]);
 
-  useEffect(() => {
-    if (formError === LIST_REQUIRED_ERROR && selectedListId) {
-      setFormError(null);
+    if (listParamId) {
+      // If list_id param provided, use it
+      setListMMKV(listParamId);
+    } else {
+      // No param provided, clear storage to default to "Inbox"
+      setListMMKV(undefined);
     }
-  }, [formError, selectedListId]);
+    // Only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Removed error clearing effect - no longer needed since list is optional
 
   const dueDate = watch('dueDate');
   const { mutateAsync: createTask, isPending } = useCreateTaskMutation();
@@ -199,15 +203,16 @@ export default function NewTask() {
 
     const targetProjectId = selectedListId;
 
-    if (!targetProjectId) {
-      setFormError(isSubtask ? 'Unable to determine the parent project.' : LIST_REQUIRED_ERROR);
+    // For subtasks, project is required (inherited from parent)
+    if (isSubtask && !targetProjectId) {
+      setFormError('Unable to determine the parent project.');
       return;
     }
 
     try {
       await createTask({
         createdBy: user.id,
-        projectId: targetProjectId,
+        projectId: targetProjectId, // Can be null for inbox tasks
         parentId: parentTaskId,
         title: data.title,
         description: data.description ?? '',

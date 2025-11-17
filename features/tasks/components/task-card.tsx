@@ -35,6 +35,12 @@ type TaskCardProps = {
   onLongPress?: () => void;
   isActive?: boolean;
   shouldAnimateOnComplete?: boolean;
+  showProject?: boolean;
+  projectInfo?: {
+    name: string;
+    color?: string | null;
+    icon?: string | null;
+  };
 };
 
 export function formatDueLabel(dateString?: string | null) {
@@ -60,6 +66,8 @@ export function TaskCard({
   onLongPress,
   isActive,
   shouldAnimateOnComplete = true,
+  showProject = false,
+  projectInfo,
 }: TaskCardProps) {
   const { user } = useAuthStore((state) => ({ user: state.user }));
 
@@ -243,6 +251,29 @@ export function TaskCard({
                 <Ionicons name={'list-outline'} size={14} />
                 <Text className="text-sm">
                   {task.subtaskCounts.completed}/{task.subtaskCounts.total}
+                </Text>
+              </View>
+            ) : null}
+
+            {showProject && projectInfo ? (
+              <View
+                className="flex w-fit flex-row items-center justify-center gap-1 rounded-full px-2 py-1"
+                style={{
+                  backgroundColor: projectInfo.color
+                    ? `${projectInfo.color}20`
+                    : 'rgba(107, 114, 128, 0.1)',
+                }}>
+                {projectInfo.icon ? (
+                  <Text className="text-xs">{projectInfo.icon}</Text>
+                ) : (
+                  <Ionicons name={'file-tray-outline'} size={12} />
+                )}
+                <Text
+                  className="text-xs font-medium"
+                  style={{
+                    color: projectInfo.color || '#6b7280',
+                  }}>
+                  {projectInfo.name}
                 </Text>
               </View>
             ) : null}

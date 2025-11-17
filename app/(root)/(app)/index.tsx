@@ -35,6 +35,7 @@ const mainHeaderList = [
   {
     icon: 'file-tray-outline',
     title: 'Inbox',
+    to: '/inbox' as const,
     color: '#3b82f6',
   },
   {

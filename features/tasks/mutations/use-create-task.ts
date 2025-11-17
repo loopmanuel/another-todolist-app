@@ -9,7 +9,7 @@ type TaskRow = Tables<'tasks'>;
 
 export type CreateTaskVariables = {
   createdBy: string;
-  projectId: string;
+  projectId?: string | null;
   parentId?: string;
   title: string;
   description?: string | null;
@@ -35,7 +35,7 @@ export function useCreateTaskMutation() {
     mutationFn: async ({ createdBy, projectId, parentId, title, description, dueDate, labelIds, priority }) => {
       const payload: TablesInsert<'tasks'> = {
         created_by: createdBy,
-        project_id: projectId,
+        project_id: projectId ?? null,
         parent_id: parentId ?? null,
         title: title.trim(),
         description: description?.trim() ? description.trim() : null,
@@ -69,7 +69,14 @@ export function useCreateTaskMutation() {
       return data;
     },
     onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+      // Invalidate project queries if task was assigned to a project
+      if (variables.projectId) {
+        void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+      }
+
+      // Invalidate inbox queries (for tasks with no project)
+      void queryClient.invalidateQueries({ queryKey: [...taskKeys.all, 'inbox'] });
+
       if (variables.parentId) {
         void queryClient.invalidateQueries({ queryKey: taskKeys.task(variables.parentId) });
         void queryClient.invalidateQueries({ queryKey: taskKeys.subtasks(variables.parentId) });

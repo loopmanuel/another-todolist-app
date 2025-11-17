@@ -40,8 +40,9 @@ export function useDeleteTaskMutation() {
         void queryClient.invalidateQueries({ queryKey: taskKeys.subtasks(variables.parentId) });
       }
 
-      // Invalidate today's tasks as well
+      // Invalidate today's and inbox tasks
       void queryClient.invalidateQueries({ queryKey: [...taskKeys.all, 'today'] });
+      void queryClient.invalidateQueries({ queryKey: [...taskKeys.all, 'inbox'] });
     },
   });
 }

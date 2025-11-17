@@ -45,6 +45,11 @@ export function useUpdateTaskMutation() {
       void queryClient.invalidateQueries({ queryKey: taskKeys.task(variables.taskId) });
       void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
 
+      // Invalidate inbox queries if due_at or priority changed
+      if (variables.payload.due_at !== undefined || variables.payload.priority !== undefined) {
+        void queryClient.invalidateQueries({ queryKey: [...taskKeys.all, 'inbox'] });
+      }
+
       // If project changed, invalidate the new project's queries and all lists
       if (variables.payload.project_id && variables.payload.project_id !== variables.projectId) {
         void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.payload.project_id) });

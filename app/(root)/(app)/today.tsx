@@ -38,6 +38,7 @@ export default function Today() {
           </View>
         )}
         keyExtractor={(item) => item.id}
+        ListHeaderComponent={() => <View className={'h-8'} />}
         contentContainerStyle={{
           paddingHorizontal: 16,
         }}
