@@ -78,6 +78,7 @@ export default function AppLayout() {
           title: 'Lists Details',
           headerShadowVisible: false,
           headerBackButtonDisplayMode: 'minimal',
+          headerLargeTitle: true,
           headerTransparent: true,
         }}
       />

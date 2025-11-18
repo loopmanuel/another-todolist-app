@@ -165,118 +165,133 @@ export default function ListDetails() {
     <>
       <Stack.Screen
         options={{
-          title: list?.name ?? 'List Details',
+          title: list?.name ?? '',
           headerRight: () => (
-            <Popover>
-              <Popover.Trigger asChild>
-                <Pressable className="h-9 w-9 items-center justify-center rounded-full">
-                  <Ionicons name="ellipsis-vertical-outline" size={20} />
-                </Pressable>
-              </Popover.Trigger>
-              <Popover.Portal>
-                <Popover.Overlay className="bg-black/15" />
-                <Popover.Content presentation="bottom-sheet">
-                  <View className="gap-4">
-                    <View className="gap-2">
-                      <Pressable
-                        className="flex-row items-center gap-3 rounded-lg p-3"
-                        onPress={() => {
-                          setOpen(false);
-                          if (projectId) {
-                            router.push({
-                              pathname: '/lists/edit',
-                              params: { list_id: projectId },
-                            });
-                          }
-                        }}>
-                        <View className="bg-accent/10 size-10 items-center justify-center rounded-full">
-                          <Ionicons name="pencil-outline" size={20} className="text-accent" />
-                        </View>
-                        <View className="flex-1">
-                          <Text className="text-foreground text-base font-medium">Edit List</Text>
-                        </View>
-                      </Pressable>
+            <View className="flex-row items-center gap-2">
+              <Pressable
+                className="h-9 w-9 items-center justify-center rounded-full"
+                onPress={() => {
+                  void handleToggleFavorite();
+                }}>
+                <Ionicons
+                  name={list?.is_favorite ? 'star' : 'star-outline'}
+                  size={22}
+                  className="text-warning"
+                />
+              </Pressable>
+              <Popover>
+                <Popover.Trigger asChild>
+                  <Pressable className="h-9 w-9 items-center justify-center rounded-full">
+                    <Ionicons name="ellipsis-vertical-outline" size={20} />
+                  </Pressable>
+                </Popover.Trigger>
+                <Popover.Portal>
+                  <Popover.Overlay className="bg-black/15" />
+                  <Popover.Content presentation="bottom-sheet" detached>
+                    <View className="gap-4">
+                      <View className="gap-2">
+                        <Pressable
+                          className="flex-row items-center gap-3 rounded-lg p-3"
+                          onPress={() => {
+                            setOpen(false);
+                            if (projectId) {
+                              router.push({
+                                pathname: '/lists/edit',
+                                params: { list_id: projectId },
+                              });
+                            }
+                          }}>
+                          <View className="bg-accent/10 size-10 items-center justify-center rounded-full">
+                            <Ionicons name="pencil-outline" size={20} className="text-accent" />
+                          </View>
+                          <View className="flex-1">
+                            <Text className="text-foreground text-base font-medium">Edit List</Text>
+                          </View>
+                        </Pressable>
 
-                      <Pressable
-                        className="flex-row items-center gap-3 rounded-lg p-3"
-                        onPress={() => {
-                          void handleToggleHideCompleted();
-                        }}>
-                        <View className="bg-primary/10 size-10 items-center justify-center rounded-full">
-                          <Ionicons
-                            name={list?.hide_completed_tasks ? 'eye-outline' : 'eye-off-outline'}
-                            size={20}
-                            className="text-primary"
-                          />
-                        </View>
-                        <View className="flex-1">
-                          <Text className="text-foreground text-base font-medium">
-                            {list?.hide_completed_tasks ? 'Show' : 'Hide'} Completed Tasks
-                          </Text>
-                        </View>
-                        {!list?.hide_completed_tasks && (
-                          <Ionicons name="checkmark" size={20} className="text-success" />
-                        )}
-                      </Pressable>
+                        <Pressable
+                          className="flex-row items-center gap-3 rounded-lg p-3"
+                          onPress={() => {
+                            void handleToggleHideCompleted();
+                          }}>
+                          <View className="bg-primary/10 size-10 items-center justify-center rounded-full">
+                            <Ionicons
+                              name={list?.hide_completed_tasks ? 'eye-outline' : 'eye-off-outline'}
+                              size={20}
+                              className="text-primary"
+                            />
+                          </View>
+                          <View className="flex-1">
+                            <Text className="text-foreground text-base font-medium">
+                              {list?.hide_completed_tasks ? 'Show' : 'Hide'} Completed Tasks
+                            </Text>
+                          </View>
+                          {!list?.hide_completed_tasks && (
+                            <Ionicons name="checkmark" size={20} className="text-success" />
+                          )}
+                        </Pressable>
 
-                      <Pressable
-                        className="flex-row items-center gap-3 rounded-lg p-3"
-                        onPress={() => {
-                          void handleToggleFavorite();
-                        }}>
-                        <View className="bg-warning/10 size-10 items-center justify-center rounded-full">
-                          <Ionicons
-                            name={list?.is_favorite ? 'star' : 'star-outline'}
-                            size={20}
-                            className="text-warning"
-                          />
-                        </View>
-                        <View className="flex-1">
-                          <Text className="text-foreground text-base font-medium">
-                            {list?.is_favorite ? 'Remove from' : 'Add to'} Favorites
-                          </Text>
-                        </View>
-                        {list?.is_favorite && (
-                          <Ionicons name="checkmark" size={20} className="text-success" />
-                        )}
-                      </Pressable>
+                        <Pressable
+                          className="flex-row items-center gap-3 rounded-lg p-3"
+                          onPress={() => {
+                            void handleToggleFavorite();
+                          }}>
+                          <View className="bg-warning/10 size-10 items-center justify-center rounded-full">
+                            <Ionicons
+                              name={list?.is_favorite ? 'star' : 'star-outline'}
+                              size={20}
+                              className="text-warning"
+                            />
+                          </View>
+                          <View className="flex-1">
+                            <Text className="text-foreground text-base font-medium">
+                              {list?.is_favorite ? 'Remove from' : 'Add to'} Favorites
+                            </Text>
+                          </View>
+                          {list?.is_favorite && (
+                            <Ionicons name="checkmark" size={20} className="text-success" />
+                          )}
+                        </Pressable>
 
-                      <View className="my-2 border-t border-gray-200" />
+                        <View className="my-2 border-t border-gray-200" />
 
-                      <Pressable
-                        className="bg-destructive/5 flex-row items-center gap-3 rounded-lg p-3"
-                        onPress={() => {
-                          setOpen(false);
-                          Alert.alert(
-                            'Delete List',
-                            `Are you sure you want to delete "${list?.name}"? This action cannot be undone.`,
-                            [
-                              {
-                                text: 'Cancel',
-                                style: 'cancel',
-                              },
-                              {
-                                text: 'Delete',
-                                style: 'destructive',
-                                onPress: () => {
-                                  void handleDeleteList();
+                        <Pressable
+                          className="bg-destructive/5 flex-row items-center gap-3 rounded-lg p-3"
+                          onPress={() => {
+                            setOpen(false);
+                            Alert.alert(
+                              'Delete List',
+                              `Are you sure you want to delete "${list?.name}"? This action cannot be undone.`,
+                              [
+                                {
+                                  text: 'Cancel',
+                                  style: 'cancel',
                                 },
-                              },
-                            ]
-                          );
-                        }}>
-                        <View className="bg-danger/10 size-10 items-center justify-center rounded-full">
-                          <Ionicons name="trash-outline" size={20} className="text-destructive" />
-                        </View>
-                        <View className="flex-1">
-                          <Text className="text-danger font-medium text-red-600">Delete List</Text>
-                        </View>
-                      </Pressable>
+                                {
+                                  text: 'Delete',
+                                  style: 'destructive',
+                                  onPress: () => {
+                                    void handleDeleteList();
+                                  },
+                                },
+                              ]
+                            );
+                          }}>
+                          <View className="bg-danger/10 size-10 items-center justify-center rounded-full">
+                            <Ionicons name="trash-outline" size={20} className="text-destructive" />
+                          </View>
+                          <View className="flex-1">
+                            <Text className="text-danger font-medium text-red-600">
+                              Delete List
+                            </Text>
+                          </View>
+                        </Pressable>
+                      </View>
                     </View>
-                  </View>
-                </Popover.Content>
-              </Popover.Portal>
-            </Popover>
+                  </Popover.Content>
+                </Popover.Portal>
+              </Popover>
+            </View>
           ),
         }}
       />
@@ -290,7 +305,7 @@ export default function ListDetails() {
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
-        ListHeaderComponent={() => <View style={{ paddingTop: insets.top + 80 }} />}
+        ListHeaderComponent={() => <View style={{ paddingTop: insets.top + 130 }} />}
         contentContainerStyle={{
           paddingBottom: 120,
           paddingHorizontal: 16,
