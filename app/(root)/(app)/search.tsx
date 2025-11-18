@@ -9,6 +9,7 @@ import { useSearchTasksQuery } from '@/features/tasks/queries/use-search-tasks';
 import { useAuthStore } from '@/store/auth-store';
 import { cn } from '@/lib/utils';
 import { TextField } from 'heroui-native';
+import { TaskCard } from '@/features/tasks/components/task-card';
 
 export default function SearchScreen() {
   const router = useRouter();
@@ -64,7 +65,7 @@ export default function SearchScreen() {
 
             {searchQuery.length > 0 && (
               <TextField.InputEndContent>
-                <Pressable>
+                <Pressable onPress={() => setSearchQuery('')}>
                   <Ionicons name="close-circle" size={20} color="#6b7280" />
                 </Pressable>
               </TextField.InputEndContent>
@@ -129,33 +130,19 @@ export default function SearchScreen() {
                 <Text className="text-muted-foreground mb-3 px-4 text-sm font-semibold uppercase">
                   Tasks ({tasks.length})
                 </Text>
-                {tasks.map((task) => (
-                  <Pressable
-                    key={task.id}
-                    onPress={() => {
-                      router.dismiss();
-                      router.push(`/task/${task.id}`);
-                    }}
-                    className={cn(
-                      'border-border flex-row items-center gap-3 border-b px-4 py-3 active:bg-gray-50'
-                    )}>
-                    <View className="flex-1">
-                      <Text
-                        className={cn(
-                          'text-base font-medium',
-                          task.status === 'done' && 'text-muted-foreground line-through'
-                        )}>
-                        {task.title}
-                      </Text>
-                      {task.description && (
-                        <Text className="text-muted-foreground mt-1 text-sm" numberOfLines={1}>
-                          {task.description}
-                        </Text>
-                      )}
+                <View className="px-4">
+                  {tasks.map((task) => (
+                    <View key={task.id} className="mb-3">
+                      <TaskCard
+                        task={task}
+                        onPress={(selectedTask) => {
+                          router.dismiss();
+                          router.push(`/task/${selectedTask.id}`);
+                        }}
+                      />
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-                  </Pressable>
-                ))}
+                  ))}
+                </View>
               </View>
             )}
           </View>
