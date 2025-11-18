@@ -4,6 +4,7 @@ import type { Tables, TablesUpdate } from '@/supabase/database.types';
 import { supabase } from '@/utils/supabase';
 
 import { listKeys } from '../queries/keys';
+import { taskKeys } from '../../tasks/queries/keys';
 
 type ProjectRow = Tables<'projects'>;
 
@@ -39,6 +40,7 @@ export function useToggleHideCompletedMutation() {
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({ queryKey: listKeys.lists(variables.ownerId) });
       void queryClient.invalidateQueries({ queryKey: listKeys.list(variables.listId) });
+      void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.listId) });
     },
   });
 }

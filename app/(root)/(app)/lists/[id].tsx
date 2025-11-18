@@ -58,8 +58,10 @@ export default function ListDetails() {
   const [open, setOpen] = useState(false);
 
   const isRefreshing = isRefetchingList || isRefetchingTasks;
-  const handleRefresh = useCallback(() => {
-    void Promise.all([refetchList(), refetchTasks()]);
+  const handleRefresh = useCallback(async () => {
+    // Stagger refresh operations for smoother transitions
+    await refetchList();
+    await refetchTasks();
   }, [refetchList, refetchTasks]);
 
   const handleToggleHideCompleted = useCallback(async () => {
@@ -304,9 +306,13 @@ export default function ListDetails() {
         ListEmptyComponent={listEmpty}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
+        contentInsetAdjustmentBehavior="automatic"
+        maintainVisibleContentPosition={{
+          minIndexForVisible: 0,
+        }}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
-        ListHeaderComponent={() => <View style={{ paddingTop: insets.top + 130 }} />}
         contentContainerStyle={{
+          paddingTop: 30,
           paddingBottom: 120,
           paddingHorizontal: 16,
         }}
