@@ -149,10 +149,10 @@ export default function ListDetails() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <View className={'w-10 overflow-hidden'}>
+            <View className={''} style={{ width: 50, overflow: 'hidden' }}>
               <DropdownMenu.Root>
                 <DropdownMenu.Trigger asChild>
-                  <Pressable className={'mr-2 h-9 w-9 items-center justify-center rounded-full'}>
+                  <Pressable className={'h-9 w-9 items-center justify-center rounded-full'}>
                     <Ionicons name={'ellipsis-vertical-outline'} size={20} />
                   </Pressable>
                 </DropdownMenu.Trigger>
