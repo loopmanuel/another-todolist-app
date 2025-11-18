@@ -12,6 +12,12 @@ export type TaskWithSubtaskCounts = TaskRow & {
     total: number;
     completed: number;
   };
+  project?: {
+    id: string;
+    name: string;
+    icon: string | null;
+    color: string | null;
+  } | null;
 };
 
 type UseTodayTasksParams = {
@@ -36,7 +42,8 @@ export function useTodayTasksQuery({ createdBy }: UseTodayTasksParams) {
         .select(
           `
           *,
-          subtasks:tasks!parent_id(id, status)
+          subtasks:tasks!parent_id(id, status),
+          project:projects(id, name, icon, color)
         `
         )
         .eq('created_by', createdBy)
@@ -52,17 +59,18 @@ export function useTodayTasksQuery({ createdBy }: UseTodayTasksParams) {
         throw new Error(error.message);
       }
 
-      // Transform data to include subtask counts
+      // Transform data to include subtask counts and project info
       const tasksWithCounts: TaskWithSubtaskCounts[] = (data ?? []).map((task: any) => {
         const subtasks = task.subtasks || [];
         const total = subtasks.length;
         const completed = subtasks.filter((st: any) => st.status === 'done').length;
 
-        const { subtasks: _, ...taskWithoutSubtasks } = task;
+        const { subtasks: _, project, ...taskWithoutSubtasks } = task;
 
         return {
           ...taskWithoutSubtasks,
           subtaskCounts: total > 0 ? { total, completed } : undefined,
+          project: Array.isArray(project) ? project[0] : project,
         };
       });
 
