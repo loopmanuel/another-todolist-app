@@ -310,9 +310,10 @@ export default function ListDetails() {
         maintainVisibleContentPosition={{
           minIndexForVisible: 0,
         }}
+        ListFooterComponent={<View style={{ height: 50 }} />}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />}
         contentContainerStyle={{
-          paddingTop: 30,
+          paddingTop: 50,
           paddingBottom: 120,
           paddingHorizontal: 16,
         }}
