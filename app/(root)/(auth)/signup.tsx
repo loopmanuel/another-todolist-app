@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { Text } from '@/components/ui/text';
 import { useAuthStore } from '@/store/auth-store';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const signupSchema = z
   .object({
@@ -39,6 +40,8 @@ type SignupValues = z.infer<typeof signupSchema>;
 
 export default function SignupScreen() {
   const [info, setInfo] = useState<string | null>(null);
+
+  const insets = useSafeAreaInsets();
 
   const { signUp, submitting, error, clearError } = useAuthStore((state) => ({
     signUp: state.signUp,
@@ -102,12 +105,12 @@ export default function SignupScreen() {
   const message = error;
 
   return (
-    <KeyboardAwareScrollView className="pt-safe flex-1 bg-white px-6">
-      <View className="mt-safe mb-10">
+    <KeyboardAwareScrollView className="flex-1 bg-white px-6" style={{ paddingTop: insets.top }}>
+      <View className="mb-10" style={{ marginTop: insets.top }}>
         <Text variant="h1" className="text-left text-3xl font-bold">
           Create an account ✨
         </Text>
-        <Text className="mt-2 text-base text-muted-foreground">
+        <Text className="text-muted-foreground mt-2 text-base">
           Get started with smarter task management.
         </Text>
       </View>
