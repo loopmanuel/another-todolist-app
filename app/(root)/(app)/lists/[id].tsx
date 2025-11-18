@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, View } from 'react-native';
 
 import DraggableFlatList, {
@@ -6,18 +6,18 @@ import DraggableFlatList, {
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
 import { Text } from '@/components/ui/text';
-import { Button } from 'heroui-native';
+import { Button, Popover } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
 import { useTasksQuery, type TaskWithSubtaskCounts } from '@/features/tasks/queries/use-tasks';
 import { useListQuery } from '@/features/lists/queries/use-list';
 import { useToggleHideCompletedMutation } from '@/features/lists/mutations/use-toggle-hide-completed';
+import { useToggleFavoriteMutation } from '@/features/lists/mutations/use-toggle-favorite';
 import { useDeleteListMutation } from '@/features/lists/mutations/use-delete-list';
 import { useReorderTasksMutation } from '@/features/tasks/mutations/use-reorder-tasks';
 import { useAuthStore } from '@/store/auth-store';
 import { TaskCard } from '@/features/tasks/components/task-card';
-import * as DropdownMenu from 'zeego/dropdown-menu';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ListDetails() {
@@ -51,8 +51,11 @@ export default function ListDetails() {
   });
   const { mutateAsync: toggleHideCompleted, isPending: isToggling } =
     useToggleHideCompletedMutation();
+  const { mutateAsync: toggleFavorite } = useToggleFavoriteMutation();
   const { mutateAsync: deleteList, isPending: isDeletingList } = useDeleteListMutation();
   const { mutateAsync: reorderTasks } = useReorderTasksMutation();
+
+  const [open, setOpen] = useState(false);
 
   const isRefreshing = isRefetchingList || isRefetchingTasks;
   const handleRefresh = useCallback(() => {
@@ -72,6 +75,20 @@ export default function ListDetails() {
       console.error('Failed to toggle hide completed:', err);
     }
   }, [projectId, user?.id, list, toggleHideCompleted]);
+
+  const handleToggleFavorite = useCallback(async () => {
+    if (!projectId || !user?.id || !list) return;
+
+    try {
+      await toggleFavorite({
+        listId: projectId,
+        ownerId: user.id,
+        isFavorite: !list.is_favorite,
+      });
+    } catch (err) {
+      console.error('Failed to toggle favorite:', err);
+    }
+  }, [projectId, user?.id, list, toggleFavorite]);
 
   const handleDeleteList = useCallback(async () => {
     if (!projectId || !user?.id) return;
@@ -148,69 +165,118 @@ export default function ListDetails() {
     <>
       <Stack.Screen
         options={{
+          title: list?.name ?? 'List Details',
           headerRight: () => (
-            <View className={''} style={{ width: 50, overflow: 'hidden' }}>
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger asChild>
-                  <Pressable className={'h-9 w-9 items-center justify-center rounded-full'}>
-                    <Ionicons name={'ellipsis-vertical-outline'} size={20} />
-                  </Pressable>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content>
-                  <DropdownMenu.Label />
-                  <DropdownMenu.Item
-                    key={'edit-item'}
-                    onSelect={() => {
-                      if (projectId) {
-                        router.push({
-                          pathname: '/lists/edit',
-                          params: { list_id: projectId },
-                        });
-                      }
-                    }}>
-                    <DropdownMenu.ItemTitle>Edit List</DropdownMenu.ItemTitle>
-                  </DropdownMenu.Item>
-                  <DropdownMenu.CheckboxItem
-                    key={'show-completed'}
-                    value={list?.hide_completed_tasks ? 'off' : 'on'}
-                    onValueChange={() => {
-                      void handleToggleHideCompleted();
-                    }}>
-                    <DropdownMenu.ItemIndicator />
-                    <DropdownMenu.ItemTitle>Show Completed Tasks</DropdownMenu.ItemTitle>
-                  </DropdownMenu.CheckboxItem>
-                  <DropdownMenu.Separator />
+            <Popover>
+              <Popover.Trigger asChild>
+                <Pressable className="h-9 w-9 items-center justify-center rounded-full">
+                  <Ionicons name="ellipsis-vertical-outline" size={20} />
+                </Pressable>
+              </Popover.Trigger>
+              <Popover.Portal>
+                <Popover.Overlay className="bg-black/15" />
+                <Popover.Content presentation="bottom-sheet">
+                  <View className="gap-4">
+                    <View className="gap-2">
+                      <Pressable
+                        className="flex-row items-center gap-3 rounded-lg p-3"
+                        onPress={() => {
+                          setOpen(false);
+                          if (projectId) {
+                            router.push({
+                              pathname: '/lists/edit',
+                              params: { list_id: projectId },
+                            });
+                          }
+                        }}>
+                        <View className="bg-accent/10 size-10 items-center justify-center rounded-full">
+                          <Ionicons name="pencil-outline" size={20} className="text-accent" />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-foreground text-base font-medium">Edit List</Text>
+                        </View>
+                      </Pressable>
 
-                  <DropdownMenu.Group>
-                    <DropdownMenu.Item
-                      key={'delete-item'}
-                      destructive
-                      onSelect={() => {
-                        Alert.alert(
-                          'Delete List',
-                          `Are you sure you want to delete "${list?.name}"? This action cannot be undone.`,
-                          [
-                            {
-                              text: 'Cancel',
-                              style: 'cancel',
-                            },
-                            {
-                              text: 'Delete',
-                              style: 'destructive',
-                              onPress: () => {
-                                void handleDeleteList();
+                      <Pressable
+                        className="flex-row items-center gap-3 rounded-lg p-3"
+                        onPress={() => {
+                          void handleToggleHideCompleted();
+                        }}>
+                        <View className="bg-primary/10 size-10 items-center justify-center rounded-full">
+                          <Ionicons
+                            name={list?.hide_completed_tasks ? 'eye-outline' : 'eye-off-outline'}
+                            size={20}
+                            className="text-primary"
+                          />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-foreground text-base font-medium">
+                            {list?.hide_completed_tasks ? 'Show' : 'Hide'} Completed Tasks
+                          </Text>
+                        </View>
+                        {!list?.hide_completed_tasks && (
+                          <Ionicons name="checkmark" size={20} className="text-success" />
+                        )}
+                      </Pressable>
+
+                      <Pressable
+                        className="flex-row items-center gap-3 rounded-lg p-3"
+                        onPress={() => {
+                          void handleToggleFavorite();
+                        }}>
+                        <View className="bg-warning/10 size-10 items-center justify-center rounded-full">
+                          <Ionicons
+                            name={list?.is_favorite ? 'star' : 'star-outline'}
+                            size={20}
+                            className="text-warning"
+                          />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-foreground text-base font-medium">
+                            {list?.is_favorite ? 'Remove from' : 'Add to'} Favorites
+                          </Text>
+                        </View>
+                        {list?.is_favorite && (
+                          <Ionicons name="checkmark" size={20} className="text-success" />
+                        )}
+                      </Pressable>
+
+                      <View className="my-2 border-t border-gray-200" />
+
+                      <Pressable
+                        className="bg-destructive/5 flex-row items-center gap-3 rounded-lg p-3"
+                        onPress={() => {
+                          setOpen(false);
+                          Alert.alert(
+                            'Delete List',
+                            `Are you sure you want to delete "${list?.name}"? This action cannot be undone.`,
+                            [
+                              {
+                                text: 'Cancel',
+                                style: 'cancel',
                               },
-                            },
-                          ]
-                        );
-                      }}>
-                      <DropdownMenu.ItemTitle>Delete list</DropdownMenu.ItemTitle>
-                    </DropdownMenu.Item>
-                  </DropdownMenu.Group>
-                  <DropdownMenu.Arrow />
-                </DropdownMenu.Content>
-              </DropdownMenu.Root>
-            </View>
+                              {
+                                text: 'Delete',
+                                style: 'destructive',
+                                onPress: () => {
+                                  void handleDeleteList();
+                                },
+                              },
+                            ]
+                          );
+                        }}>
+                        <View className="bg-danger/10 size-10 items-center justify-center rounded-full">
+                          <Ionicons name="trash-outline" size={20} className="text-destructive" />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-danger font-medium text-red-600">Delete List</Text>
+                        </View>
+                      </Pressable>
+                    </View>
+                  </View>
+                </Popover.Content>
+              </Popover.Portal>
+            </Popover>
           ),
         }}
       />
