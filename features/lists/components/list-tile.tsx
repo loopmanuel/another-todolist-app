@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 // @ts-ignore
 import tinycolor from 'tinycolor2';
@@ -7,6 +7,8 @@ import tinycolor from 'tinycolor2';
 import { Text } from '@/components/ui/text';
 import type { Tables } from '@/supabase/database.types';
 import { useRouter } from 'expo-router';
+import { useToggleFavoriteMutation } from '../mutations/use-toggle-favorite';
+import { useAuthStore } from '@/store/auth-store';
 
 type ListTileProps = {
   list: Tables<'projects'>;
@@ -17,6 +19,8 @@ type ListTileProps = {
 
 function ListTileComponent({ list, onLongPress, isActive, uncompletedCount }: ListTileProps) {
   const router = useRouter();
+  const { user } = useAuthStore((state) => ({ user: state.user }));
+  const { mutate: toggleFavorite } = useToggleFavoriteMutation();
 
   const accentColor = useMemo(() => {
     const fallback = '#e5e7eb';
@@ -25,6 +29,17 @@ function ListTileComponent({ list, onLongPress, isActive, uncompletedCount }: Li
     }
     return list.color.trim().length > 0 ? list.color : fallback;
   }, [list.color]);
+
+  const handleToggleFavorite = (e: any) => {
+    e.stopPropagation();
+    if (!user?.id) return;
+
+    toggleFavorite({
+      listId: list.id,
+      ownerId: user.id,
+      isFavorite: !list.is_favorite,
+    });
+  };
 
   return (
     <Pressable
@@ -57,6 +72,13 @@ function ListTileComponent({ list, onLongPress, isActive, uncompletedCount }: Li
           <Text className={'text-muted text-sm font-medium'}>{uncompletedCount}</Text>
         </View>
       )}
+      <TouchableOpacity onPress={handleToggleFavorite} className="ml-2 p-1">
+        <Ionicons
+          name={list.is_favorite ? 'star' : 'star-outline'}
+          size={20}
+          color={list.is_favorite ? '#fbbf24' : '#9ca3af'}
+        />
+      </TouchableOpacity>
     </Pressable>
   );
 }

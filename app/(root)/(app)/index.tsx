@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 
 import DraggableFlatList, {
@@ -61,6 +61,13 @@ export default function Home() {
   const { data: taskCounts = {} } = useProjectTaskCountsQuery(user?.id);
   const { mutateAsync: reorderLists } = useReorderListsMutation();
 
+  // Separate favorites from regular lists
+  const { favoriteLists, regularLists } = useMemo(() => {
+    const favorites = lists.filter((list) => list.is_favorite);
+    const regular = lists.filter((list) => !list.is_favorite);
+    return { favoriteLists: favorites, regularLists: regular };
+  }, [lists]);
+
   const handleListDragEnd = useCallback(
     async ({ data }: { data: Tables<'projects'>[] }) => {
       if (!user?.id) return;
@@ -111,7 +118,7 @@ export default function Home() {
       </Button>
 
       <DraggableFlatList
-        data={lists}
+        data={regularLists}
         keyExtractor={(item) => item.id}
         renderItem={renderListItem}
         onDragEnd={handleListDragEnd}
@@ -143,6 +150,18 @@ export default function Home() {
               ))}
             </View>
 
+            {/* Favorites Section */}
+            {favoriteLists.length > 0 && (
+              <View className="mb-6">
+                <View className={'mb-4'}>
+                  <Text className="border-none text-base font-semibold">Favorites</Text>
+                </View>
+                {favoriteLists.map((list) => (
+                  <ListTile key={list.id} list={list} uncompletedCount={taskCounts[list.id] || 0} />
+                ))}
+              </View>
+            )}
+
             {/* Lists Section Header */}
             <View className={'mb-4'}>
               <Text className="border-none text-base font-semibold">Lists</Text>
@@ -151,16 +170,19 @@ export default function Home() {
         )}
         contentContainerStyle={{
           paddingTop: 100,
+          paddingBottom: 120,
         }}
         ListEmptyComponent={
-          lists.length === 0 ? (
+          regularLists.length === 0 ? (
             <View className="py-8">
               {isLoading ? (
                 <ActivityIndicator />
               ) : (
                 <View className="border-border rounded-2xl border border-dashed p-6">
                   <Text className="text-muted-foreground text-center text-base">
-                    Create your first list to keep things organized.
+                    {favoriteLists.length > 0
+                      ? 'Create more lists to keep things organized.'
+                      : 'Create your first list to keep things organized.'}
                   </Text>
                 </View>
               )}
