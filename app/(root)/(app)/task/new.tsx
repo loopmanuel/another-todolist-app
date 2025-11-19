@@ -97,6 +97,7 @@ export default function NewTask() {
   // Pattern parsing state
   const patternPopoverRef = React.useRef<PatternSuggestionsPopoverRef>(null);
   const [titleInputValue, setTitleInputValue] = useState('');
+  const [hasShownPopoverForCurrentInput, setHasShownPopoverForCurrentInput] = useState(false);
 
   // Date picker state (shared with date-picker screen)
   const { selectedDate, clearDate } = useDatePickerStore();
@@ -117,12 +118,13 @@ export default function NewTask() {
     allLabels.map((l) => ({ id: l.id, name: l.name, color: l.color }))
   );
 
-  // Show popover when patterns are detected
+  // Show popover when patterns are detected (only once per input session)
   useEffect(() => {
-    if (parsedPatterns.hasPatterns && titleInputValue.trim().length > 0) {
+    if (parsedPatterns.hasPatterns && titleInputValue.trim().length > 0 && !hasShownPopoverForCurrentInput) {
       patternPopoverRef.current?.open();
+      setHasShownPopoverForCurrentInput(true);
     }
-  }, [parsedPatterns.hasPatterns, titleInputValue]);
+  }, [parsedPatterns.hasPatterns, titleInputValue, hasShownPopoverForCurrentInput]);
 
   const parentProject = useMemo(() => {
     if (!parentTask?.project_id) {
@@ -216,6 +218,8 @@ export default function NewTask() {
       setTitleInputValue(newTitle);
       setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
 
+      // Reset the flag so new patterns can trigger popover again
+      setHasShownPopoverForCurrentInput(false);
       patternPopoverRef.current?.close();
     },
     [titleInputValue, setValue]
@@ -237,6 +241,8 @@ export default function NewTask() {
       setTitleInputValue(newTitle);
       setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
 
+      // Reset the flag so new patterns can trigger popover again
+      setHasShownPopoverForCurrentInput(false);
       patternPopoverRef.current?.close();
     },
     [titleInputValue, setValue, addLabel]
@@ -251,10 +257,17 @@ export default function NewTask() {
       setTitleInputValue(newTitle);
       setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
 
+      // Reset the flag so new patterns can trigger popover again
+      setHasShownPopoverForCurrentInput(false);
       patternPopoverRef.current?.close();
     },
     [titleInputValue, setValue, setPriority]
   );
+
+  const handleDismissPopover = useCallback(() => {
+    patternPopoverRef.current?.close();
+    // Don't reset the flag - user dismissed it, so don't show again for current patterns
+  }, []);
 
   const submit = handleSubmit(async (data) => {
     Keyboard.dismiss();
@@ -549,6 +562,7 @@ export default function NewTask() {
         onApplyDate={handleApplyDate}
         onApplyLabel={handleApplyLabel}
         onApplyPriority={handleApplyPriority}
+        onDismiss={handleDismissPopover}
       />
     </>
   );

@@ -10,6 +10,7 @@ interface PatternSuggestionsPopoverProps {
   onApplyDate: (date: string, patternText: string) => void;
   onApplyLabel: (labelId: string | undefined, labelName: string, patternText: string) => void;
   onApplyPriority: (priority: number, patternText: string) => void;
+  onDismiss: () => void;
 }
 
 export interface PatternSuggestionsPopoverRef {
@@ -20,7 +21,7 @@ export interface PatternSuggestionsPopoverRef {
 export const PatternSuggestionsPopover = forwardRef<
   PatternSuggestionsPopoverRef,
   PatternSuggestionsPopoverProps
->(({ patterns, onApplyDate, onApplyLabel, onApplyPriority }, ref) => {
+>(({ patterns, onApplyDate, onApplyLabel, onApplyPriority, onDismiss }, ref) => {
   const popoverRef = useRef<PopoverTriggerRef>(null);
 
   useImperativeHandle(ref, () => ({
@@ -40,15 +41,11 @@ export const PatternSuggestionsPopover = forwardRef<
 
       <Popover.Portal>
         <Popover.Overlay className="bg-black/15" />
-        <Popover.Content presentation="bottom-sheet" detached>
+        <Popover.Content>
           <View className="gap-3 p-4">
             <View className="mb-2">
-              <Text className="text-foreground text-lg font-semibold">
-                Apply suggestions?
-              </Text>
-              <Text className="text-muted-foreground text-sm">
-                Detected patterns in your task
-              </Text>
+              <Text className="text-foreground text-lg font-semibold">Apply suggestions?</Text>
+              <Text className="text-muted-foreground text-sm">Detected patterns in your task</Text>
             </View>
 
             <View className="gap-2">
@@ -68,9 +65,7 @@ export const PatternSuggestionsPopover = forwardRef<
                       <Text className="text-foreground text-base font-medium">
                         {date.displayText}
                       </Text>
-                      <Text className="text-muted-foreground text-xs">
-                        Detected: "{date.text}"
-                      </Text>
+                      <Text className="text-muted-foreground text-xs">Detected: "{date.text}"</Text>
                     </View>
                   </View>
                   <Ionicons name="checkmark-circle" size={24} color="#3b82f6" />
@@ -94,7 +89,9 @@ export const PatternSuggestionsPopover = forwardRef<
                         {label.labelName}
                       </Text>
                       <Text className="text-muted-foreground text-xs">
-                        {label.isExisting ? `Existing label: "${label.text}"` : `New label: "${label.text}"`}
+                        {label.isExisting
+                          ? `Existing label: "${label.text}"`
+                          : `New label: "${label.text}"`}
                       </Text>
                     </View>
                   </View>
@@ -137,7 +134,7 @@ export const PatternSuggestionsPopover = forwardRef<
                 variant="secondary"
                 size="lg"
                 className="mt-2 self-stretch"
-                onPress={() => popoverRef.current?.close()}>
+                onPress={onDismiss}>
                 <Button.Label>Dismiss</Button.Label>
               </Button>
             </Popover.Close>
