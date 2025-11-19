@@ -89,7 +89,7 @@ export class TaskInputParser {
     const patterns: PriorityPattern[] = [];
 
     // Pattern 1: !!, !!!, !
-    const exclamationRegex = /(!{1,3})\b/g;
+    const exclamationRegex = /(!{1,3})(?:\s|$)/g;
     let match;
 
     while ((match = exclamationRegex.exec(text)) !== null) {

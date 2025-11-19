@@ -97,7 +97,7 @@ export default function NewTask() {
   // Pattern parsing state
   const patternPopoverRef = React.useRef<PatternSuggestionsPopoverRef>(null);
   const [titleInputValue, setTitleInputValue] = useState('');
-  const [hasShownPopoverForCurrentInput, setHasShownPopoverForCurrentInput] = useState(false);
+  const [dismissedPatterns, setDismissedPatterns] = useState<Set<string>>(new Set());
 
   // Date picker state (shared with date-picker screen)
   const { selectedDate, clearDate } = useDatePickerStore();
@@ -118,13 +118,25 @@ export default function NewTask() {
     allLabels.map((l) => ({ id: l.id, name: l.name, color: l.color }))
   );
 
-  // Show popover when patterns are detected (only once per input session)
+  // Show popover when new patterns are detected (not previously dismissed)
   useEffect(() => {
-    if (parsedPatterns.hasPatterns && titleInputValue.trim().length > 0 && !hasShownPopoverForCurrentInput) {
-      patternPopoverRef.current?.open();
-      setHasShownPopoverForCurrentInput(true);
+    if (!parsedPatterns.hasPatterns || titleInputValue.trim().length === 0) {
+      return;
     }
-  }, [parsedPatterns.hasPatterns, titleInputValue, hasShownPopoverForCurrentInput]);
+
+    // Check if there are any new patterns that haven't been dismissed
+    const currentPatternKeys = [
+      ...parsedPatterns.dates.map((d) => `date:${d.text}`),
+      ...parsedPatterns.labels.map((l) => `label:${l.text}`),
+      ...parsedPatterns.priorities.map((p) => `priority:${p.text}`),
+    ];
+
+    const hasNewPatterns = currentPatternKeys.some((key) => !dismissedPatterns.has(key));
+
+    if (hasNewPatterns) {
+      patternPopoverRef.current?.open();
+    }
+  }, [parsedPatterns, titleInputValue, dismissedPatterns]);
 
   const parentProject = useMemo(() => {
     if (!parentTask?.project_id) {
@@ -218,8 +230,13 @@ export default function NewTask() {
       setTitleInputValue(newTitle);
       setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
 
-      // Reset the flag so new patterns can trigger popover again
-      setHasShownPopoverForCurrentInput(false);
+      // Remove this pattern from dismissed list (since it was applied and removed from text)
+      setDismissedPatterns((prev) => {
+        const next = new Set(prev);
+        next.delete(`date:${patternText}`);
+        return next;
+      });
+
       patternPopoverRef.current?.close();
     },
     [titleInputValue, setValue]
@@ -241,8 +258,13 @@ export default function NewTask() {
       setTitleInputValue(newTitle);
       setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
 
-      // Reset the flag so new patterns can trigger popover again
-      setHasShownPopoverForCurrentInput(false);
+      // Remove this pattern from dismissed list (since it was applied and removed from text)
+      setDismissedPatterns((prev) => {
+        const next = new Set(prev);
+        next.delete(`label:${patternText}`);
+        return next;
+      });
+
       patternPopoverRef.current?.close();
     },
     [titleInputValue, setValue, addLabel]
@@ -257,17 +279,30 @@ export default function NewTask() {
       setTitleInputValue(newTitle);
       setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
 
-      // Reset the flag so new patterns can trigger popover again
-      setHasShownPopoverForCurrentInput(false);
+      // Remove this pattern from dismissed list (since it was applied and removed from text)
+      setDismissedPatterns((prev) => {
+        const next = new Set(prev);
+        next.delete(`priority:${patternText}`);
+        return next;
+      });
+
       patternPopoverRef.current?.close();
     },
     [titleInputValue, setValue, setPriority]
   );
 
   const handleDismissPopover = useCallback(() => {
+    // Add all current patterns to the dismissed set
+    setDismissedPatterns((prev) => {
+      const next = new Set(prev);
+      parsedPatterns.dates.forEach((d) => next.add(`date:${d.text}`));
+      parsedPatterns.labels.forEach((l) => next.add(`label:${l.text}`));
+      parsedPatterns.priorities.forEach((p) => next.add(`priority:${p.text}`));
+      return next;
+    });
+
     patternPopoverRef.current?.close();
-    // Don't reset the flag - user dismissed it, so don't show again for current patterns
-  }, []);
+  }, [parsedPatterns]);
 
   const submit = handleSubmit(async (data) => {
     Keyboard.dismiss();
