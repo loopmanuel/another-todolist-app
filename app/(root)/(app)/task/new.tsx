@@ -458,9 +458,6 @@ export default function NewTask() {
               </Text>
             ) : null}
 
-            <Text>Title: {titleInputValue}</Text>
-            <Text>Title watch: {titleWatch}</Text>
-
             <View className={'px-6 pb-6 pt-0'}>
               <Controller
                 name={'description'}
