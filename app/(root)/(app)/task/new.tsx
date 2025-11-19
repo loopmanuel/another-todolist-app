@@ -12,7 +12,7 @@ import {
 import { Card } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,6 +33,12 @@ import {
 import { cn } from '@/lib/utils';
 import dayjs from 'dayjs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTaskInputParser } from '@/features/tasks/parsing/use-parse-task-input';
+import {
+  PatternSuggestionsPopover,
+  type PatternSuggestionsPopoverRef,
+} from '@/features/tasks/components/pattern-suggestions-popover';
+import { useTaskFormStore as useTaskFormStoreImport } from '@/store/task-form-store';
 
 // Format due date for display
 function formatDueDate(dateString: string | null): string {
@@ -88,11 +94,15 @@ export default function NewTask() {
   const inputRef = React.useRef<TextInput>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Pattern parsing state
+  const patternPopoverRef = React.useRef<PatternSuggestionsPopoverRef>(null);
+  const [titleInputValue, setTitleInputValue] = useState('');
+
   // Date picker state (shared with date-picker screen)
   const { selectedDate, clearDate } = useDatePickerStore();
   const [listMMKV, setListMMKV] = useMMKVString(TASK_LIST_STORAGE_KEY);
   const { user } = useAuthStore((state) => ({ user: state.user }));
-  const { selectedLabels, priority, clearAll } = useTaskFormStore();
+  const { selectedLabels, priority, clearAll, setPriority, addLabel } = useTaskFormStore();
   const {
     data: parentTask,
     isLoading: parentLoading,
@@ -100,6 +110,20 @@ export default function NewTask() {
   } = useTaskQuery({ taskId: parentTaskId, createdBy: user?.id });
   const { data: lists = [], isLoading: listsLoading } = useListsQuery(user?.id ?? undefined);
   const { data: allLabels = [] } = useLabelsQuery({ userId: user?.id });
+
+  // Parse title input for patterns
+  const parsedPatterns = useTaskInputParser(
+    titleInputValue,
+    allLabels.map((l) => ({ id: l.id, name: l.name, color: l.color }))
+  );
+
+  // Show popover when patterns are detected
+  useEffect(() => {
+    if (parsedPatterns.hasPatterns && titleInputValue.trim().length > 0) {
+      patternPopoverRef.current?.open();
+    }
+  }, [parsedPatterns.hasPatterns, titleInputValue]);
+
   const parentProject = useMemo(() => {
     if (!parentTask?.project_id) {
       return undefined;
@@ -182,6 +206,56 @@ export default function NewTask() {
     router.push('/pickers/priority-select');
   };
 
+  // Pattern application handlers
+  const handleApplyDate = useCallback(
+    (dateString: string, patternText: string) => {
+      setValue('dueDate', dateString, { shouldDirty: true, shouldValidate: true });
+
+      // Remove pattern from title
+      const newTitle = titleInputValue.replace(patternText, '').trim().replace(/\s+/g, ' ');
+      setTitleInputValue(newTitle);
+      setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
+
+      patternPopoverRef.current?.close();
+    },
+    [titleInputValue, setValue]
+  );
+
+  const handleApplyLabel = useCallback(
+    (labelId: string | undefined, labelName: string, patternText: string) => {
+      // If label exists, use its ID; otherwise create new label
+      if (labelId) {
+        addLabel(labelId);
+      } else {
+        // Note: For new labels, we'd need to create them first
+        // For now, we'll just skip new labels in Phase 1
+        console.log('Creating new label not yet implemented:', labelName);
+      }
+
+      // Remove pattern from title
+      const newTitle = titleInputValue.replace(patternText, '').trim().replace(/\s+/g, ' ');
+      setTitleInputValue(newTitle);
+      setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
+
+      patternPopoverRef.current?.close();
+    },
+    [titleInputValue, setValue, addLabel]
+  );
+
+  const handleApplyPriority = useCallback(
+    (priorityLevel: number, patternText: string) => {
+      setPriority(priorityLevel);
+
+      // Remove pattern from title
+      const newTitle = titleInputValue.replace(patternText, '').trim().replace(/\s+/g, ' ');
+      setTitleInputValue(newTitle);
+      setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
+
+      patternPopoverRef.current?.close();
+    },
+    [titleInputValue, setValue, setPriority]
+  );
+
   const submit = handleSubmit(async (data) => {
     Keyboard.dismiss();
 
@@ -241,230 +315,241 @@ export default function NewTask() {
   const isPrimaryDisabled = isSaving || parentUnavailable;
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}>
-      <Stack.Screen
-        options={{
-          headerLeft: () => (
-            <Pressable className={'p-1 px-2'} onPress={() => router.dismiss()}>
-              <Ionicons name={'close-outline'} size={24} />
-            </Pressable>
-          ),
-          headerRight: () => (
-            <Pressable className={'p-1 px-2'} onPress={submit} disabled={isPrimaryDisabled}>
-              {isSaving ? (
-                <ActivityIndicator size={'small'} />
-              ) : (
-                <Ionicons name={'checkmark-outline'} size={22} />
-              )}
-            </Pressable>
-          ),
-        }}
-      />
+    <>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}>
+        <Stack.Screen
+          options={{
+            headerLeft: () => (
+              <Pressable className={'p-1 px-2'} onPress={() => router.dismiss()}>
+                <Ionicons name={'close-outline'} size={24} />
+              </Pressable>
+            ),
+            headerRight: () => (
+              <Pressable className={'p-1 px-2'} onPress={submit} disabled={isPrimaryDisabled}>
+                {isSaving ? (
+                  <ActivityIndicator size={'small'} />
+                ) : (
+                  <Ionicons name={'checkmark-outline'} size={22} />
+                )}
+              </Pressable>
+            ),
+          }}
+        />
 
-      <View className={'flex-1'}>
-        <ScrollView
-          className={'pt-safe'}
-          style={{ paddingTop: inset.top }}
-          keyboardShouldPersistTaps={'always'}>
-          <View className={'p-6 pb-0'}>
-            <Controller
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  ref={inputRef}
-                  onChangeText={(text) => {
-                    if (formError) {
-                      setFormError(null);
+        <View className={'flex-1'}>
+          <ScrollView
+            className={'pt-safe'}
+            style={{ paddingTop: inset.top }}
+            keyboardShouldPersistTaps={'always'}>
+            <View className={'p-6 pb-0'}>
+              <Controller
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    ref={inputRef}
+                    onChangeText={(text) => {
+                      if (formError) {
+                        setFormError(null);
+                      }
+                      setTitleInputValue(text);
+                      onChange(text);
+                    }}
+                    onBlur={onBlur}
+                    value={value ?? ''}
+                    placeholder={'New Task'}
+                    multiline
+                    className={
+                      'placeholder:text-muted-foreground/80 w-full min-w-0 px-0 py-2 text-2xl font-semibold'
                     }
-                    onChange(text);
-                  }}
-                  onBlur={onBlur}
-                  value={value ?? ''}
-                  placeholder={'New Task'}
-                  multiline
-                  className={
-                    'placeholder:text-muted-foreground/80 w-full min-w-0 px-0 py-2 text-2xl font-semibold'
-                  }
-                  autoFocus
-                />
-              )}
-              name={'title'}
-              control={control}
-            />
-          </View>
-          {isSubtask ? (
-            <View className={'px-6 pt-2'}>
-              {parentLoading ? (
-                <Text className={'text-muted-foreground text-sm'}>Loading parent task…</Text>
-              ) : parentTask ? (
-                <Text className={'text-muted-foreground text-sm'}>
-                  Subtask of “{parentTask.title}”
-                </Text>
-              ) : (
-                <Text className={'text-sm text-red-500'} role={'alert'}>
-                  {parentError?.message ?? 'Parent task not found.'}
-                </Text>
-              )}
+                    autoFocus
+                  />
+                )}
+                name={'title'}
+                control={control}
+              />
             </View>
-          ) : null}
-          {errors.title ? (
-            <Text className={'px-6 text-sm text-red-500'} role={'alert'}>
-              {errors.title.message}
-            </Text>
-          ) : null}
+            {isSubtask ? (
+              <View className={'px-6 pt-2'}>
+                {parentLoading ? (
+                  <Text className={'text-muted-foreground text-sm'}>Loading parent task…</Text>
+                ) : parentTask ? (
+                  <Text className={'text-muted-foreground text-sm'}>
+                    Subtask of “{parentTask.title}”
+                  </Text>
+                ) : (
+                  <Text className={'text-sm text-red-500'} role={'alert'}>
+                    {parentError?.message ?? 'Parent task not found.'}
+                  </Text>
+                )}
+              </View>
+            ) : null}
+            {errors.title ? (
+              <Text className={'px-6 text-sm text-red-500'} role={'alert'}>
+                {errors.title.message}
+              </Text>
+            ) : null}
 
-          <View className={'px-6 pb-6 pt-0'}>
-            <Controller
-              name={'description'}
-              control={control}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  placeholder={'Description'}
-                  className={
-                    'placeholder:text-muted-foreground/80 w-full min-w-0 px-0 py-2 text-base font-medium'
-                  }
-                  multiline
-                  onChangeText={(text) => {
-                    if (formError) {
-                      setFormError(null);
+            <View className={'px-6 pb-6 pt-0'}>
+              <Controller
+                name={'description'}
+                control={control}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    placeholder={'Description'}
+                    className={
+                      'placeholder:text-muted-foreground/80 w-full min-w-0 px-0 py-2 text-base font-medium'
                     }
-                    onChange(text);
-                  }}
-                  onBlur={onBlur}
-                  value={value ?? ''}
-                />
-              )}
-            />
-          </View>
+                    multiline
+                    onChangeText={(text) => {
+                      if (formError) {
+                        setFormError(null);
+                      }
+                      onChange(text);
+                    }}
+                    onBlur={onBlur}
+                    value={value ?? ''}
+                  />
+                )}
+              />
+            </View>
 
-          {selectedLabels.size > 0 && (
-            <View className={'flex-1 flex-row px-6'}>
+            {selectedLabels.size > 0 && (
+              <View className={'flex-1 flex-row px-6'}>
+                <Pressable
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    router.push('/pickers/pick-label');
+                  }}
+                  className={'mb-4'}>
+                  <Card>
+                    <Card.Body>
+                      <View className={'flex-row items-center gap-2'}>
+                        <Ionicons name={'pricetag-outline'} size={18} />
+                        <Text>
+                          {Array.from(selectedLabels)
+                            .map((labelId) => {
+                              const label = allLabels.find((l) => l.id === labelId);
+                              return label?.name;
+                            })
+                            .filter(Boolean)
+                            .join(', ')}
+                        </Text>
+                      </View>
+                    </Card.Body>
+                  </Card>
+                </Pressable>
+              </View>
+            )}
+
+            <ScrollView
+              horizontal={true}
+              keyboardShouldPersistTaps="handled"
+              showsHorizontalScrollIndicator={false}
+              className={'px-6'}>
+              {isSubtask ? (
+                <View
+                  className={
+                    'border-border mr-4 flex flex-row items-center gap-2 rounded-md border bg-gray-200 px-4 py-2'
+                  }>
+                  <Ionicons name={'git-branch-outline'} size={18} />
+                  <Text className={'max-w-[180px]'} numberOfLines={1}>
+                    {parentLoading
+                      ? 'Loading parent…'
+                      : (parentTask?.title ?? parentError?.message ?? 'Parent not found')}
+                  </Text>
+                </View>
+              ) : null}
+
+              <Pressable
+                onPress={() => {
+                  if (!canSelectList) {
+                    return;
+                  }
+                  Keyboard.dismiss();
+                  router.push('/pickers/inbox-picker');
+                }}
+                disabled={!canSelectList}
+                className={cn(!canSelectList && 'opacity-60')}>
+                <Card className={'border border-gray-200'}>
+                  <Card.Body>
+                    <View className={'flex-row items-center gap-2'}>
+                      <Ionicons name={'file-tray-outline'} size={18} />
+                      <Text>{activeProjectName}</Text>
+                    </View>
+                  </Card.Body>
+                </Card>
+              </Pressable>
+
               <Pressable
                 onPress={() => {
                   Keyboard.dismiss();
-                  router.push('/pickers/pick-label');
+                  router.push('/pickers/date-picker');
                 }}
-                className={'mb-4'}>
-                <Card>
+                className={'ml-4 mr-4'}>
+                <Card className={'border border-gray-200'}>
                   <Card.Body>
                     <View className={'flex-row items-center gap-2'}>
-                      <Ionicons name={'pricetag-outline'} size={18} />
-                      <Text>
-                        {Array.from(selectedLabels)
-                          .map((labelId) => {
-                            const label = allLabels.find((l) => l.id === labelId);
-                            return label?.name;
-                          })
-                          .filter(Boolean)
-                          .join(', ')}
+                      <Ionicons name={'calendar-outline'} size={18} />
+                      <Text>{formatDueDate(dueDate)}</Text>
+                    </View>
+                  </Card.Body>
+                </Card>
+              </Pressable>
+
+              <Pressable onPress={() => handlePriorityButtonPress()} className={'mr-4'}>
+                <Card
+                  className={'border border-gray-200'}
+                  style={{
+                    backgroundColor: priority > 0 ? getPriorityBgColor(priority) : '#e5e7eb',
+                  }}>
+                  <Card.Body>
+                    <View className={'flex-row items-center gap-2'}>
+                      <Ionicons
+                        name={priority > 0 ? 'flag' : 'flag-outline'}
+                        size={18}
+                        color={priority > 0 ? getPriorityColor(priority) : undefined}
+                      />
+                      <Text
+                        style={{
+                          color: priority > 0 ? getPriorityColor(priority) : undefined,
+                        }}>
+                        {getPriorityLabel(priority)}
                       </Text>
                     </View>
                   </Card.Body>
                 </Card>
               </Pressable>
-            </View>
-          )}
 
-          <ScrollView
-            horizontal={true}
-            keyboardShouldPersistTaps="handled"
-            showsHorizontalScrollIndicator={false}
-            className={'px-6'}>
-            {isSubtask ? (
-              <View
-                className={
-                  'border-border mr-4 flex flex-row items-center gap-2 rounded-md border bg-gray-200 px-4 py-2'
-                }>
-                <Ionicons name={'git-branch-outline'} size={18} />
-                <Text className={'max-w-[180px]'} numberOfLines={1}>
-                  {parentLoading
-                    ? 'Loading parent…'
-                    : (parentTask?.title ?? parentError?.message ?? 'Parent not found')}
-                </Text>
-              </View>
+              {selectedLabels.size === 0 && (
+                <Pressable onPress={() => router.push('/pickers/pick-label')} className={'mr-4'}>
+                  <Card className={'border border-gray-200'}>
+                    <Card.Body>
+                      <View className={'flex-row items-center gap-2'}>
+                        <Ionicons name={'pricetag-outline'} size={18} />
+                        <Text>Labels</Text>
+                      </View>
+                    </Card.Body>
+                  </Card>
+                </Pressable>
+              )}
+            </ScrollView>
+            {formError ? (
+              <Text className={'px-6 pt-4 text-sm text-red-500'} role={'alert'}>
+                {formError}
+              </Text>
             ) : null}
-
-            <Pressable
-              onPress={() => {
-                if (!canSelectList) {
-                  return;
-                }
-                Keyboard.dismiss();
-                router.push('/pickers/inbox-picker');
-              }}
-              disabled={!canSelectList}
-              className={cn(!canSelectList && 'opacity-60')}>
-              <Card className={'border border-gray-200'}>
-                <Card.Body>
-                  <View className={'flex-row items-center gap-2'}>
-                    <Ionicons name={'file-tray-outline'} size={18} />
-                    <Text>{activeProjectName}</Text>
-                  </View>
-                </Card.Body>
-              </Card>
-            </Pressable>
-
-            <Pressable
-              onPress={() => {
-                Keyboard.dismiss();
-                router.push('/pickers/date-picker');
-              }}
-              className={'ml-4 mr-4'}>
-              <Card className={'border border-gray-200'}>
-                <Card.Body>
-                  <View className={'flex-row items-center gap-2'}>
-                    <Ionicons name={'calendar-outline'} size={18} />
-                    <Text>{formatDueDate(dueDate)}</Text>
-                  </View>
-                </Card.Body>
-              </Card>
-            </Pressable>
-
-            <Pressable onPress={() => handlePriorityButtonPress()} className={'mr-4'}>
-              <Card
-                className={'border border-gray-200'}
-                style={{
-                  backgroundColor: priority > 0 ? getPriorityBgColor(priority) : '#e5e7eb',
-                }}>
-                <Card.Body>
-                  <View className={'flex-row items-center gap-2'}>
-                    <Ionicons
-                      name={priority > 0 ? 'flag' : 'flag-outline'}
-                      size={18}
-                      color={priority > 0 ? getPriorityColor(priority) : undefined}
-                    />
-                    <Text
-                      style={{
-                        color: priority > 0 ? getPriorityColor(priority) : undefined,
-                      }}>
-                      {getPriorityLabel(priority)}
-                    </Text>
-                  </View>
-                </Card.Body>
-              </Card>
-            </Pressable>
-
-            {selectedLabels.size === 0 && (
-              <Pressable onPress={() => router.push('/pickers/pick-label')} className={'mr-4'}>
-                <Card className={'border border-gray-200'}>
-                  <Card.Body>
-                    <View className={'flex-row items-center gap-2'}>
-                      <Ionicons name={'pricetag-outline'} size={18} />
-                      <Text>Labels</Text>
-                    </View>
-                  </Card.Body>
-                </Card>
-              </Pressable>
-            )}
           </ScrollView>
-          {formError ? (
-            <Text className={'px-6 pt-4 text-sm text-red-500'} role={'alert'}>
-              {formError}
-            </Text>
-          ) : null}
-        </ScrollView>
-      </View>
-    </KeyboardAvoidingView>
+        </View>
+      </KeyboardAvoidingView>
+
+      <PatternSuggestionsPopover
+        ref={patternPopoverRef}
+        patterns={parsedPatterns}
+        onApplyDate={handleApplyDate}
+        onApplyLabel={handleApplyLabel}
+        onApplyPriority={handleApplyPriority}
+      />
+    </>
   );
 }
