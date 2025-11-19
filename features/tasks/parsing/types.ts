@@ -2,7 +2,8 @@ export type PatternType = 'date' | 'label' | 'priority';
 
 export type DatePattern = {
   type: 'date';
-  text: string;
+  text: string; // Original matched text (e.g., "tomorr")
+  normalizedText: string; // Normalized/completed text (e.g., "tomorrow")
   startIndex: number;
   endIndex: number;
   suggestedDate: string; // YYYY-MM-DD format

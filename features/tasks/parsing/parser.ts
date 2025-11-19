@@ -41,10 +41,12 @@ export class TaskInputParser {
       const confidence = this.getDateConfidence(result);
       const suggestedDate = dayjs(parsedDate).format('YYYY-MM-DD');
       const displayText = this.formatDateDisplay(parsedDate);
+      const normalizedText = this.normalizeDateText(result.text, parsedDate);
 
       patterns.push({
         type: 'date',
         text: result.text,
+        normalizedText,
         startIndex: result.index,
         endIndex: result.index + result.text.length,
         suggestedDate,
@@ -192,6 +194,33 @@ export class TaskInputParser {
     }
 
     return 'medium';
+  }
+
+  /**
+   * Normalize date text (convert partial text to complete words)
+   */
+  private normalizeDateText(originalText: string, parsedDate: Date): string {
+    const normalized = originalText.toLowerCase().trim();
+    const dayjsDate = dayjs(parsedDate);
+    const today = dayjs().startOf('day');
+    const tomorrow = today.add(1, 'day');
+
+    // Map common partial/full text to normalized versions
+    if (dayjsDate.isSame(today, 'day')) {
+      return 'today';
+    }
+    if (dayjsDate.isSame(tomorrow, 'day')) {
+      return 'tomorrow';
+    }
+
+    // Check for day names (Monday, Tuesday, etc.)
+    const dayName = dayjsDate.format('dddd').toLowerCase();
+    if (normalized.startsWith(dayName.slice(0, 3))) {
+      return dayName;
+    }
+
+    // For other dates, return the original text
+    return originalText;
   }
 
   /**

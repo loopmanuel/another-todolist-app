@@ -177,6 +177,8 @@ export default function NewTask() {
     mode: 'onSubmit',
   });
 
+  const titleWatch = watch('title');
+
   useFocusEffect(
     React.useCallback(() => {
       inputRef.current?.focus();
@@ -222,34 +224,46 @@ export default function NewTask() {
 
   // Pattern application handlers
   const handleApplyDate = useCallback(
-    (dateString: string, patternText: string) => {
+    (dateString: string, patternText: string, normalizedText: string) => {
       setValue('dueDate', dateString, { shouldDirty: true, shouldValidate: true });
 
-      // Find the position of the pattern to calculate cursor position
+      // Replace the pattern text with normalized text (auto-completes "tomorr" to "tomorrow")
       const patternIndex = titleInputValue.indexOf(patternText);
+      if (patternIndex !== -1) {
+        const newTitle =
+          titleInputValue.slice(0, patternIndex) +
+          normalizedText +
+          titleInputValue.slice(patternIndex + patternText.length);
 
-      // Remove pattern from title
-      const newTitle = titleInputValue.replace(patternText, '').trim().replace(/\s+/g, ' ');
-      setTitleInputValue(newTitle);
-      setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
+        const cursorPos = patternIndex + normalizedText.length;
 
-      // Set cursor position at the end of the cleaned text
-      if (inputRef.current) {
-        // Simply put cursor at the end of the new cleaned text
-        const cursorPos = newTitle.length;
+        // Update state and form
+        setTitleInputValue(newTitle);
+        setValue('title', newTitle);
 
-        // Set selection after a brief delay to ensure text is updated
-        setTimeout(() => {
-          inputRef.current?.setNativeProps({
-            selection: { start: cursorPos, end: cursorPos },
+        // Force the TextInput to update by setting text and selection together
+        if (inputRef.current) {
+          requestAnimationFrame(() => {
+            if (inputRef.current) {
+              // First update the text
+              inputRef.current.setNativeProps({
+                text: newTitle,
+              });
+              // Then set cursor position
+              setTimeout(() => {
+                inputRef.current?.setNativeProps({
+                  selection: { start: cursorPos, end: cursorPos },
+                });
+              }, 10);
+            }
           });
-        }, 0);
+        }
       }
 
-      // Remove this pattern from dismissed list (since it was applied and removed from text)
+      // Add this pattern to dismissed list so it doesn't show again
       setDismissedPatterns((prev) => {
         const next = new Set(prev);
-        next.delete(`date:${patternText}`);
+        next.add(`date:${patternText}`);
         return next;
       });
 
@@ -269,64 +283,32 @@ export default function NewTask() {
         console.log('Creating new label not yet implemented:', labelName);
       }
 
-      // Remove pattern from title
-      const newTitle = titleInputValue.replace(patternText, '').trim().replace(/\s+/g, ' ');
-      setTitleInputValue(newTitle);
-      setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
-
-      // Set cursor position at the end of the cleaned text
-      if (inputRef.current) {
-        const cursorPos = newTitle.length;
-
-        setTimeout(() => {
-          inputRef.current?.setNativeProps({
-            selection: { start: cursorPos, end: cursorPos },
-          });
-        }, 0);
-      }
-
-      // Remove this pattern from dismissed list (since it was applied and removed from text)
+      // Add this pattern to dismissed list so it doesn't show again
       setDismissedPatterns((prev) => {
         const next = new Set(prev);
-        next.delete(`label:${patternText}`);
+        next.add(`label:${patternText}`);
         return next;
       });
 
       patternPopoverRef.current?.close();
     },
-    [titleInputValue, setValue, addLabel]
+    [addLabel]
   );
 
   const handleApplyPriority = useCallback(
     (priorityLevel: number, patternText: string) => {
       setPriority(priorityLevel);
 
-      // Remove pattern from title
-      const newTitle = titleInputValue.replace(patternText, '').trim().replace(/\s+/g, ' ');
-      setTitleInputValue(newTitle);
-      setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
-
-      // Set cursor position at the end of the cleaned text
-      if (inputRef.current) {
-        const cursorPos = newTitle.length;
-
-        setTimeout(() => {
-          inputRef.current?.setNativeProps({
-            selection: { start: cursorPos, end: cursorPos },
-          });
-        }, 0);
-      }
-
-      // Remove this pattern from dismissed list (since it was applied and removed from text)
+      // Add this pattern to dismissed list so it doesn't show again
       setDismissedPatterns((prev) => {
         const next = new Set(prev);
-        next.delete(`priority:${patternText}`);
+        next.add(`priority:${patternText}`);
         return next;
       });
 
       patternPopoverRef.current?.close();
     },
-    [titleInputValue, setValue, setPriority]
+    [setPriority]
   );
 
   const handleDismissPopover = useCallback(() => {
@@ -431,7 +413,7 @@ export default function NewTask() {
             keyboardShouldPersistTaps={'always'}>
             <View className={'p-6 pb-0'}>
               <Controller
-                render={({ field: { onChange, onBlur, value } }) => (
+                render={({ field: { onChange, onBlur } }) => (
                   <TextInput
                     ref={inputRef}
                     onChangeText={(text) => {
@@ -442,7 +424,7 @@ export default function NewTask() {
                       onChange(text);
                     }}
                     onBlur={onBlur}
-                    value={value ?? ''}
+                    value={titleInputValue}
                     placeholder={'New Task'}
                     multiline
                     className={
@@ -475,6 +457,9 @@ export default function NewTask() {
                 {errors.title.message}
               </Text>
             ) : null}
+
+            <Text>Title: {titleInputValue}</Text>
+            <Text>Title watch: {titleWatch}</Text>
 
             <View className={'px-6 pb-6 pt-0'}>
               <Controller

@@ -7,7 +7,7 @@ import type { ParsedPatterns } from '../parsing/types';
 
 interface PatternSuggestionsPopoverProps {
   patterns: ParsedPatterns;
-  onApplyDate: (date: string, patternText: string) => void;
+  onApplyDate: (date: string, patternText: string, normalizedText: string) => void;
   onApplyLabel: (labelId: string | undefined, labelName: string, patternText: string) => void;
   onApplyPriority: (priority: number, patternText: string) => void;
   onDismiss: () => void;
@@ -55,7 +55,7 @@ export const PatternSuggestionsPopover = forwardRef<
                   key={`date-${index}`}
                   className="flex-row items-center justify-between rounded-lg bg-blue-50 p-3"
                   onPress={() => {
-                    onApplyDate(date.suggestedDate, date.text);
+                    onApplyDate(date.suggestedDate, date.text, date.normalizedText);
                   }}>
                   <View className="flex-1 flex-row items-center gap-2">
                     <View className="size-8 items-center justify-center rounded-full bg-blue-100">
