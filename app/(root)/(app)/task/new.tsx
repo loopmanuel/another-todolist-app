@@ -225,10 +225,26 @@ export default function NewTask() {
     (dateString: string, patternText: string) => {
       setValue('dueDate', dateString, { shouldDirty: true, shouldValidate: true });
 
+      // Find the position of the pattern to calculate cursor position
+      const patternIndex = titleInputValue.indexOf(patternText);
+
       // Remove pattern from title
       const newTitle = titleInputValue.replace(patternText, '').trim().replace(/\s+/g, ' ');
       setTitleInputValue(newTitle);
       setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
+
+      // Set cursor position at the end of the cleaned text
+      if (inputRef.current) {
+        // Simply put cursor at the end of the new cleaned text
+        const cursorPos = newTitle.length;
+
+        // Set selection after a brief delay to ensure text is updated
+        setTimeout(() => {
+          inputRef.current?.setNativeProps({
+            selection: { start: cursorPos, end: cursorPos },
+          });
+        }, 0);
+      }
 
       // Remove this pattern from dismissed list (since it was applied and removed from text)
       setDismissedPatterns((prev) => {
@@ -258,6 +274,17 @@ export default function NewTask() {
       setTitleInputValue(newTitle);
       setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
 
+      // Set cursor position at the end of the cleaned text
+      if (inputRef.current) {
+        const cursorPos = newTitle.length;
+
+        setTimeout(() => {
+          inputRef.current?.setNativeProps({
+            selection: { start: cursorPos, end: cursorPos },
+          });
+        }, 0);
+      }
+
       // Remove this pattern from dismissed list (since it was applied and removed from text)
       setDismissedPatterns((prev) => {
         const next = new Set(prev);
@@ -278,6 +305,17 @@ export default function NewTask() {
       const newTitle = titleInputValue.replace(patternText, '').trim().replace(/\s+/g, ' ');
       setTitleInputValue(newTitle);
       setValue('title', newTitle, { shouldDirty: true, shouldValidate: true });
+
+      // Set cursor position at the end of the cleaned text
+      if (inputRef.current) {
+        const cursorPos = newTitle.length;
+
+        setTimeout(() => {
+          inputRef.current?.setNativeProps({
+            selection: { start: cursorPos, end: cursorPos },
+          });
+        }, 0);
+      }
 
       // Remove this pattern from dismissed list (since it was applied and removed from text)
       setDismissedPatterns((prev) => {
