@@ -237,26 +237,26 @@ export default function NewTask() {
 
         const cursorPos = patternIndex + normalizedText.length;
 
-        // Update state and form
+        // Update state first - this will trigger TextInput to re-render with new value
         setTitleInputValue(newTitle);
         setValue('title', newTitle);
 
-        // Force the TextInput to update by setting text and selection together
+        // Force TextInput to update by blurring and refocusing
         if (inputRef.current) {
-          requestAnimationFrame(() => {
+          inputRef.current.blur();
+          setTimeout(() => {
             if (inputRef.current) {
-              // First update the text
-              inputRef.current.setNativeProps({
-                text: newTitle,
-              });
-              // Then set cursor position
+              inputRef.current.focus();
+              // Set cursor position after refocus
               setTimeout(() => {
-                inputRef.current?.setNativeProps({
-                  selection: { start: cursorPos, end: cursorPos },
-                });
+                if (inputRef.current) {
+                  inputRef.current.setNativeProps({
+                    selection: { start: cursorPos, end: cursorPos },
+                  });
+                }
               }, 10);
             }
-          });
+          }, 10);
         }
       }
 
@@ -437,6 +437,9 @@ export default function NewTask() {
                 control={control}
               />
             </View>
+
+            <Text>Title: {titleInputValue}</Text>
+
             {isSubtask ? (
               <View className={'px-6 pt-2'}>
                 {parentLoading ? (
