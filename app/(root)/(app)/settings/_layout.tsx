@@ -4,6 +4,7 @@ export default function SettingLayout() {
   return (
     <Stack>
       <Stack.Screen name={'index'} options={{ title: 'Settings' }} />
+      <Stack.Screen name={'labels'} options={{ title: 'Labels' }} />
     </Stack>
   );
 }
