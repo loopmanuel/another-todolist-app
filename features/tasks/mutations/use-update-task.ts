@@ -11,7 +11,7 @@ type TaskRow = Tables<'tasks'>;
 export type UpdateTaskVariables = {
   taskId: string;
   projectId: string | null;
-  payload: Partial<Pick<TablesUpdate<'tasks'>, 'title' | 'description' | 'due_at' | 'priority' | 'project_id'>>;
+  payload: Partial<Pick<TablesUpdate<'tasks'>, 'title' | 'description' | 'due_at' | 'priority' | 'project_id' | 'estimated_time' | 'actual_time'>>;
 };
 
 export function useUpdateTaskMutation() {

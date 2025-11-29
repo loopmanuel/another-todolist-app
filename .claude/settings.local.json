@@ -6,7 +6,8 @@
       "Bash(ls:*)",
       "Bash(mkdir:*)",
       "Bash(cp:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npm run generate:types:*)"
     ],
     "deny": [],
     "ask": []

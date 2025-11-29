@@ -21,6 +21,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@legendapp/list": "^2.0.14",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/datetimepicker": "^8.5.1",
     "@react-navigation/elements": "^2.8.1",
     "@react-navigation/native": "^7.1.6",
     "@rn-primitives/slot": "^1.2.0",
@@ -83,7 +84,7 @@
     "eslint-config-prettier": "^10.1.2",
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.11",
-    "supabase": "^2.58.5",
+    "supabase": "^2.62.10",
     "tailwindcss": "^4.1.17",
     "typescript": "~5.9.2"
   },
