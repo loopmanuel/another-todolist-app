@@ -6,7 +6,7 @@ import { taskKeys } from '../queries/keys';
 
 export type UpdateTaskLabelsVariables = {
   taskId: string;
-  projectId: string;
+  projectId: string | null;
   labelIds: string[];
 };
 
@@ -44,7 +44,10 @@ export function useUpdateTaskLabelsMutation() {
     },
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({ queryKey: taskKeys.task(variables.taskId) });
-      void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+
+      if (variables.projectId) {
+        void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+      }
     },
   });
 }

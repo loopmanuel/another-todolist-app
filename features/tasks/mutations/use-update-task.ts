@@ -10,7 +10,7 @@ type TaskRow = Tables<'tasks'>;
 
 export type UpdateTaskVariables = {
   taskId: string;
-  projectId: string;
+  projectId: string | null;
   payload: Partial<Pick<TablesUpdate<'tasks'>, 'title' | 'description' | 'due_at' | 'priority' | 'project_id'>>;
 };
 
@@ -43,7 +43,10 @@ export function useUpdateTaskMutation() {
     },
     onSuccess: (data, variables) => {
       void queryClient.invalidateQueries({ queryKey: taskKeys.task(variables.taskId) });
-      void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+
+      if (variables.projectId) {
+        void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+      }
 
       // Invalidate inbox queries if due_at or priority changed
       if (variables.payload.due_at !== undefined || variables.payload.priority !== undefined) {

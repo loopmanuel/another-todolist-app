@@ -2,13 +2,13 @@ import { Text } from '@/components/ui/text';
 import {
   ActivityIndicator,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   TextInput,
   View,
 } from 'react-native';
+import { KeyboardToolbar, KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Card } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -38,7 +38,6 @@ import {
   PatternSuggestionsPopover,
   type PatternSuggestionsPopoverRef,
 } from '@/features/tasks/components/pattern-suggestions-popover';
-import { useTaskFormStore as useTaskFormStoreImport } from '@/store/task-form-store';
 
 // Format due date for display
 function formatDueDate(dateString: string | null): string {
@@ -176,8 +175,6 @@ export default function NewTask() {
     },
     mode: 'onSubmit',
   });
-
-  const titleWatch = watch('title');
 
   useFocusEffect(
     React.useCallback(() => {
@@ -437,8 +434,6 @@ export default function NewTask() {
                 control={control}
               />
             </View>
-
-            <Text>Title: {titleInputValue}</Text>
 
             {isSubtask ? (
               <View className={'px-6 pt-2'}>

@@ -1,22 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  TextInput,
-  View,
-} from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
 import DraggableFlatList, {
   RenderItemParams,
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
 import { Text } from '@/components/ui/text';
-import BackButton from '@/components/ui/back-button';
 import { Button, Card, Checkbox, Dialog } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -34,7 +25,6 @@ import { useUpdateTaskMutation } from '@/features/tasks/mutations/use-update-tas
 import { useSubtasksQuery, type SubtaskWithCounts } from '@/features/tasks/queries/use-subtasks';
 import { TaskCard, formatDueLabel } from '@/features/tasks/components/task-card';
 import { getPriorityLabel, getPriorityColor } from '@/features/tasks/utils/priority';
-import { useMMKVString } from 'react-native-mmkv';
 import dayjs from 'dayjs';
 import { useDatePickerStore } from '@/store/date-picker-store';
 
@@ -48,13 +38,8 @@ type TaskForm = z.infer<typeof TaskFormSchema>;
 export default function TaskDetails() {
   const router = useRouter();
 
-  const params = useLocalSearchParams<{ id?: string | string[] }>();
-  const taskId = useMemo(() => {
-    if (!params.id) {
-      return undefined;
-    }
-    return Array.isArray(params.id) ? params.id[0] : params.id;
-  }, [params.id]);
+  const params = useLocalSearchParams<{ id?: string }>();
+  const taskId = params.id;
 
   const { user } = useAuthStore((state) => ({ user: state.user }));
   const {
@@ -65,30 +50,17 @@ export default function TaskDetails() {
     setEditingTaskId,
   } = useTaskFormStore();
 
-  const {
-    data: task,
-    isLoading,
-    isRefetching,
-    refetch,
-  } = useTaskQuery({ taskId, createdBy: user?.id });
+  const { data: task, isLoading } = useTaskQuery({ taskId, createdBy: user?.id });
   const { data: taskLabels = [], isLoading: labelsLoading } = useTaskLabelsQuery({ taskId });
-  const {
-    data: subtasks = [],
-    isLoading: subtasksLoading,
-    isRefetching: subtasksRefetching,
-    refetch: refetchSubtasks,
-  } = useSubtasksQuery({ parentId: taskId, createdBy: user?.id });
+  const { data: subtasks = [], isLoading: subtasksLoading } = useSubtasksQuery({
+    parentId: taskId,
+    createdBy: user?.id,
+  });
   const { data: lists = [], isLoading: listsLoading } = useListsQuery(user?.id ?? undefined);
 
-  const { selectedDate, setSelectedDate, clearDate } = useDatePickerStore();
-  const currentList = useMemo(
-    () => lists.find((list) => list.id === task?.project_id),
-    [lists, task?.project_id]
-  );
-  const completedSubtasks = useMemo(
-    () => subtasks.filter((item) => item.status === 'done').length,
-    [subtasks]
-  );
+  const { selectedDate, setSelectedDate } = useDatePickerStore();
+  const currentList = lists.find((list) => list.id === task?.project_id);
+  const completedSubtasks = subtasks.filter((item) => item.status === 'done').length;
   const totalSubtasks = subtasks.length;
 
   const {
@@ -119,63 +91,56 @@ export default function TaskDetails() {
   const { mutateAsync: reorderTasks } = useReorderTasksMutation();
   const [formError, setFormError] = useState<string | null>(null);
 
-  const [isInitialized, setIsInitialized] = useState(false);
+  const isInitializedRef = useRef(false);
 
-  // Initialize store with task data when editing (only once)
+  // Initialize store with task data (only once)
   useEffect(() => {
-    if (!task || !taskId || isInitialized) return;
+    if (!task || !taskId || isInitializedRef.current) return;
 
     setEditingTaskId(taskId);
     setStorePriority(task.priority);
+    setSelectedDate(task.due_at ? dayjs(task.due_at).format('YYYY-MM-DD') : null);
 
-    // Set date in store using dayjs
-    if (task.due_at) {
-      const formattedDate = dayjs(task.due_at).format('YYYY-MM-DD');
-      setSelectedDate(formattedDate);
-    } else {
-      clearDate();
+    if (!labelsLoading) {
+      setSelectedLabels(new Set(taskLabels.map((label) => label.id)));
     }
 
-    setIsInitialized(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [task?.id, taskId]);
+    isInitializedRef.current = true;
+  }, [
+    task,
+    taskId,
+    taskLabels,
+    labelsLoading,
+    setEditingTaskId,
+    setStorePriority,
+    setSelectedDate,
+    setSelectedLabels,
+  ]);
 
-  // Initialize labels (only once)
+  // Watch for priority changes from the store
+  const prevPriorityRef = useRef<number | undefined>(undefined);
   useEffect(() => {
-    if (labelsLoading || !isInitialized) return;
+    if (!task || !user?.id || !isInitializedRef.current) return;
 
-    const labelIds = taskLabels.map((label) => label.id);
-    setSelectedLabels(new Set(labelIds));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInitialized, labelsLoading]);
-
-  // Watch for priority changes from the store (when user changes it in picker)
-  const prevPriority = React.useRef<number | null>(null);
-  useEffect(() => {
-    if (!task || !user?.id || !isInitialized) return;
-
-    // Initialize on first run after initialization
-    if (prevPriority.current === null) {
-      prevPriority.current = task.priority;
+    if (prevPriorityRef.current === undefined) {
+      prevPriorityRef.current = task.priority;
       return;
     }
 
-    // Only update if priority changed AND it's different from task priority
-    if (storePriority !== task.priority && storePriority !== prevPriority.current) {
-      prevPriority.current = storePriority;
+    if (storePriority !== task.priority && storePriority !== prevPriorityRef.current) {
+      prevPriorityRef.current = storePriority;
       void updateTask({
         taskId: task.id,
         projectId: task.project_id,
         payload: { priority: storePriority },
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storePriority]);
+  }, [storePriority, task, user?.id, updateTask]);
 
-  // Watch for label changes from the store (when user changes it in picker)
-  const prevLabelIdsStr = React.useRef<string>('');
+  // Watch for label changes from the store
+  const prevLabelIdsRef = useRef<string>('');
   useEffect(() => {
-    if (!task || !user?.id || !isInitialized || labelsLoading) return;
+    if (!task || !user?.id || !isInitializedRef.current || labelsLoading) return;
 
     const currentTaskLabelIds = taskLabels
       .map((l) => l.id)
@@ -183,53 +148,39 @@ export default function TaskDetails() {
       .join(',');
     const selectedLabelIdsStr = Array.from(selectedLabels).sort().join(',');
 
-    // Initialize on first run after initialization
-    if (prevLabelIdsStr.current === '') {
-      prevLabelIdsStr.current = currentTaskLabelIds;
+    if (prevLabelIdsRef.current === '') {
+      prevLabelIdsRef.current = currentTaskLabelIds;
       return;
     }
 
-    // Only update if labels changed AND it's different from current task labels
     if (
       selectedLabelIdsStr !== currentTaskLabelIds &&
-      selectedLabelIdsStr !== prevLabelIdsStr.current
+      selectedLabelIdsStr !== prevLabelIdsRef.current
     ) {
-      prevLabelIdsStr.current = selectedLabelIdsStr;
+      prevLabelIdsRef.current = selectedLabelIdsStr;
       void updateTaskLabels({
         taskId: task.id,
         projectId: task.project_id,
         labelIds: Array.from(selectedLabels),
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLabels.size]);
+  }, [selectedLabels, task, taskLabels, user?.id, labelsLoading, updateTaskLabels]);
 
-  // Watch for date changes from MMKV (when user changes it in picker)
-  const prevDate = React.useRef<string | null>(null);
+  // Watch for date changes from the store
+  const prevDateRef = useRef<string>('');
   useEffect(() => {
-    if (!task || !user?.id || !isInitialized) return;
+    if (!task || !user?.id || !isInitializedRef.current) return;
 
-    const currentTaskDate = task.due_at
-      ? (() => {
-          const date = new Date(task.due_at);
-          const y = date.getFullYear();
-          const m = String(date.getMonth() + 1).padStart(2, '0');
-          const d = String(date.getDate()).padStart(2, '0');
-          return `${y}-${m}-${d}`;
-        })()
-      : '';
+    const currentTaskDate = task.due_at ? dayjs(task.due_at).format('YYYY-MM-DD') : '';
+    const currentDate = selectedDate ?? '';
 
-    // Initialize on first run after initialization
-    if (prevDate.current === null) {
-      prevDate.current = currentTaskDate;
+    if (prevDateRef.current === '') {
+      prevDateRef.current = currentTaskDate;
       return;
     }
 
-    const currentDate = selectedDate ?? '';
-
-    // Only update if date changed AND it's different from current task date
-    if (currentDate !== currentTaskDate && currentDate !== prevDate.current) {
-      prevDate.current = currentDate;
+    if (currentDate !== currentTaskDate && currentDate !== prevDateRef.current) {
+      prevDateRef.current = currentDate;
       void updateTask({
         taskId: task.id,
         projectId: task.project_id,
@@ -238,8 +189,7 @@ export default function TaskDetails() {
         },
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate]);
+  }, [selectedDate, task, user?.id, updateTask]);
 
   const handleToggleStatus = useCallback(
     async (nextSelected: boolean) => {
@@ -288,15 +238,10 @@ export default function TaskDetails() {
   });
 
   const isCompleted = task?.status === 'done';
-  const actionDisabled = !task || !user?.id || updatingStatus;
-  const showSignIn = !user?.id;
-  const showEmptyState = !isLoading && !task && !showSignIn;
-  const saveDisabled = !task || !user?.id || !isDirty;
-  const isRefreshing = isRefetching || subtasksRefetching;
-  const handleRefresh = useCallback(() => {
-    void Promise.all([refetch(), refetchSubtasks()]);
-  }, [refetch, refetchSubtasks]);
-  const canAddSubtask = Boolean(task?.id && user?.id);
+  const hasUser = Boolean(user?.id);
+  const actionDisabled = !task || !hasUser || updatingStatus;
+  const saveDisabled = !task || !hasUser || !isDirty;
+  const canAddSubtask = Boolean(task?.id && hasUser);
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -356,239 +301,222 @@ export default function TaskDetails() {
     [router]
   );
 
-  if (!task)
+  if (isLoading) {
     return (
-      <View className={'p-6'}>
-        <Text className={'text-center font-semibold'}>Task Not Found</Text>
+      <View className={'flex-1 items-center justify-center p-6'}>
+        <ActivityIndicator />
       </View>
     );
+  }
+
+  if (!hasUser) {
+    return (
+      <View className={'flex-1 items-center justify-center p-6'}>
+        <Text className={'text-muted-foreground text-center text-base'}>
+          Sign in to view this task.
+        </Text>
+      </View>
+    );
+  }
+
+  if (!task) {
+    return (
+      <View className={'flex-1 items-center justify-center p-6'}>
+        <Text className={'text-muted-foreground text-center text-base'}>
+          Task not found or you no longer have access.
+        </Text>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView
-      className={'pb-safe flex-1'}
-      style={{ paddingTop: 30 }}
-      refreshControl={
-        <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={'#000'} />
-      }>
-      <View className={'flex flex-row items-center justify-between pr-4 pt-6'}>
-        {!saveDisabled && (
-          <Button
-            className={'rounded-full'}
-            isIconOnly
-            onPress={() => void onSubmit()}
-            isDisabled={saveDisabled || isSubmitting || isUpdatingTask}>
-            <Button.Label>
-              {isSubmitting || isUpdatingTask ? (
-                <ActivityIndicator size={'small'} />
-              ) : (
-                <Ionicons name={'checkmark-outline'} size={22} />
-              )}
-            </Button.Label>
-          </Button>
-        )}
-      </View>
+    <ScrollView className={'pb-safe flex-1'} style={{ paddingTop: 60 }}>
+      <Stack.Screen
+        options={{
+          headerRight: () =>
+            !saveDisabled ? (
+              <View className={'flex flex-row items-center justify-between pr-4 pt-6'}>
+                <Button
+                  className={'rounded-full'}
+                  isIconOnly
+                  onPress={() => void onSubmit()}
+                  isDisabled={saveDisabled || isSubmitting || isUpdatingTask}>
+                  <Button.Label>
+                    {isSubmitting || isUpdatingTask ? (
+                      <ActivityIndicator size={'small'} />
+                    ) : (
+                      <Ionicons name={'checkmark-outline'} size={22} />
+                    )}
+                  </Button.Label>
+                </Button>
+              </View>
+            ) : null,
+        }}
+      />
 
       <Card className={'mx-6 mt-6 rounded-2xl'}>
         <Card.Body>
-          {isLoading ? (
-            <View className={'py-8'}>
-              <ActivityIndicator />
-            </View>
-          ) : showSignIn ? (
-            <Text className={'text-muted-foreground text-center text-base'}>
-              Sign in to view this task.
-            </Text>
-          ) : showEmptyState ? (
-            <Text className={'text-muted-foreground text-center text-base'}>
-              Task not found or you no longer have access.
-            </Text>
-          ) : (
-            <>
-              <View className={'mb-4 flex flex-row items-start gap-4'}>
-                <Checkbox
-                  isSelected={isCompleted}
-                  isDisabled={actionDisabled}
-                  onSelectedChange={(next) => {
-                    void handleToggleStatus(next);
-                  }}
-                />
+          <View className={'mb-4 flex flex-row items-start gap-4'}>
+            <Checkbox
+              isSelected={isCompleted}
+              isDisabled={actionDisabled}
+              onSelectedChange={(next) => void handleToggleStatus(next)}
+            />
 
-                <View className={'flex-1 items-center'}>
-                  <Controller
-                    control={control}
-                    name={'title'}
-                    render={({ field: { value, onChange, onBlur } }) => (
-                      <TextInput
-                        value={value}
-                        onBlur={onBlur}
-                        onChangeText={(text) => {
-                          if (formError) {
-                            setFormError(null);
-                          }
-                          onChange(text);
-                        }}
-                        editable={Boolean(task && user?.id)}
-                        placeholder={'Task title'}
-                        className={
-                          'placeholder:text-muted-foreground/80 w-full min-w-0 p-0 text-2xl font-semibold'
-                        }
-                        multiline
-                        style={{
-                          lineHeight: 24,
-                        }}
-                      />
-                    )}
+            <View className={'flex-1 items-center'}>
+              <Controller
+                control={control}
+                name={'title'}
+                render={({ field: { value, onChange, onBlur } }) => (
+                  <TextInput
+                    value={value}
+                    onBlur={onBlur}
+                    onChangeText={(text) => {
+                      if (formError) setFormError(null);
+                      onChange(text);
+                    }}
+                    editable={hasUser}
+                    placeholder={'Task title'}
+                    className={
+                      'placeholder:text-muted-foreground/80 w-full min-w-0 p-0 text-2xl font-semibold'
+                    }
+                    multiline
+                    style={{ lineHeight: 24 }}
                   />
-                  {errors.title ? (
-                    <Text className={'mt-1 text-sm text-red-500'} role={'alert'}>
-                      {errors.title.message}
-                    </Text>
-                  ) : null}
-                  {formError ? (
-                    <Text className={'mt-1 text-sm text-red-500'} role={'alert'}>
-                      {formError}
-                    </Text>
-                  ) : null}
-                </View>
-              </View>
-
-              <View className={'mb-4'}>
-                <Controller
-                  control={control}
-                  name={'description'}
-                  render={({ field: { value, onChange, onBlur } }) => (
-                    <TextInput
-                      value={value ?? ''}
-                      onChangeText={(text) => {
-                        if (formError) {
-                          setFormError(null);
-                        }
-                        onChange(text);
-                      }}
-                      onBlur={onBlur}
-                      editable={Boolean(task && user?.id)}
-                      placeholder={'Add description...'}
-                      multiline
-                      className={
-                        'text-muted-foreground placeholder:text-muted-foreground/60 w-full min-w-0 px-0 py-2 text-base'
-                      }
-                    />
-                  )}
-                />
-                {errors.description ? (
-                  <Text className={'mt-1 text-sm text-red-500'} role={'alert'}>
-                    {errors.description.message}
-                  </Text>
-                ) : null}
-              </View>
-
-              <Pressable
-                onPress={() =>
-                  router.push({
-                    pathname: '/pickers/project-picker',
-                    params: { currentProjectId: task?.project_id, taskId: task?.id },
-                  })
-                }
-                className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
-                <Ionicons name={'file-tray-outline'} size={18} />
-                <Text>
-                  {listsLoading ? 'Loading list…' : (currentList?.name ?? 'No list selected')}
+                )}
+              />
+              {errors.title && (
+                <Text className={'mt-1 text-sm text-red-500'} role={'alert'}>
+                  {errors.title.message}
                 </Text>
-              </Pressable>
+              )}
+              {formError && (
+                <Text className={'mt-1 text-sm text-red-500'} role={'alert'}>
+                  {formError}
+                </Text>
+              )}
+            </View>
+          </View>
 
-              <Pressable
-                onPress={() => router.push('/pickers/date-picker')}
-                className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
-                <Ionicons name={'calendar-outline'} size={18} />
-                <Text>{formatDueLabel(task?.due_at)}</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => router.push('/pickers/priority-select')}
-                className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
-                <Ionicons
-                  name={task?.priority && task.priority > 0 ? 'flag' : 'flag-outline'}
-                  size={18}
-                  color={
-                    task?.priority && task.priority > 0
-                      ? getPriorityColor(task.priority)
-                      : undefined
+          <View className={'mb-4'}>
+            <Controller
+              control={control}
+              name={'description'}
+              render={({ field: { value, onChange, onBlur } }) => (
+                <TextInput
+                  value={value ?? ''}
+                  onChangeText={(text) => {
+                    if (formError) setFormError(null);
+                    onChange(text);
+                  }}
+                  onBlur={onBlur}
+                  editable={hasUser}
+                  placeholder={'Add description...'}
+                  multiline
+                  className={
+                    'text-muted-foreground placeholder:text-muted-foreground/60 w-full min-w-0 px-0 py-2 text-base'
                   }
                 />
-                <Text
-                  style={
-                    task?.priority && task.priority > 0
-                      ? { color: getPriorityColor(task.priority) }
-                      : undefined
-                  }>
-                  {task?.priority !== undefined ? getPriorityLabel(task.priority) : 'No priority'}
-                </Text>
-              </Pressable>
+              )}
+            />
+            {errors.description && (
+              <Text className={'mt-1 text-sm text-red-500'} role={'alert'}>
+                {errors.description.message}
+              </Text>
+            )}
+          </View>
 
-              <Pressable
-                onPress={() => router.push('/pickers/pick-label')}
-                className={'flex flex-row items-center gap-2 border-b-gray-200 py-3'}>
-                <Ionicons name={'pricetags-outline'} size={18} />
-                <View className={'flex-1 flex-row flex-wrap gap-2'}>
-                  {labelsLoading ? (
-                    <Text>Loading labels...</Text>
-                  ) : taskLabels.length > 0 ? (
-                    taskLabels.map((label) => (
-                      <View
-                        key={label.id}
-                        className={'flex-row items-center gap-1 rounded-full px-3 py-1'}
-                        style={{ backgroundColor: label.color || '#6366f1' }}>
-                        <Text className={'text-sm text-white'}>{label.name}</Text>
-                      </View>
-                    ))
-                  ) : (
-                    <Text className={'text-muted-foreground'}>Add labels</Text>
-                  )}
-                </View>
-              </Pressable>
-            </>
-          )}
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: '/pickers/project-picker',
+                params: { currentProjectId: task.project_id, taskId: task.id },
+              })
+            }
+            className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
+            <Ionicons name={'file-tray-outline'} size={18} />
+            <Text>
+              {listsLoading ? 'Loading list…' : (currentList?.name ?? 'No list selected')}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push('/pickers/date-picker')}
+            className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
+            <Ionicons name={'calendar-outline'} size={18} />
+            <Text>{formatDueLabel(task.due_at)}</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push('/pickers/priority-select')}
+            className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
+            <Ionicons
+              name={task.priority > 0 ? 'flag' : 'flag-outline'}
+              size={18}
+              color={task.priority > 0 ? getPriorityColor(task.priority) : undefined}
+            />
+            <Text
+              style={task.priority > 0 ? { color: getPriorityColor(task.priority) } : undefined}>
+              {getPriorityLabel(task.priority)}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push('/pickers/pick-label')}
+            className={'flex flex-row items-center gap-2 border-b-gray-200 py-3'}>
+            <Ionicons name={'pricetags-outline'} size={18} />
+            <View className={'flex-1 flex-row flex-wrap gap-2'}>
+              {labelsLoading ? (
+                <Text>Loading labels...</Text>
+              ) : taskLabels.length > 0 ? (
+                taskLabels.map((label) => (
+                  <View
+                    key={label.id}
+                    className={'flex-row items-center gap-1 rounded-full px-3 py-1'}
+                    style={{ backgroundColor: label.color || '#6366f1' }}>
+                    <Text className={'text-sm text-white'}>{label.name}</Text>
+                  </View>
+                ))
+              ) : (
+                <Text className={'text-muted-foreground'}>Add labels</Text>
+              )}
+            </View>
+          </Pressable>
         </Card.Body>
       </Card>
 
       <View className={'mb-4 mt-6 flex flex-row items-center gap-2 px-8'}>
         <Text className={'font-semibold'}>Sub Tasks</Text>
-        <Text>{showSignIn ? '--' : `${completedSubtasks}/${totalSubtasks}`}</Text>
+        <Text>{`${completedSubtasks}/${totalSubtasks}`}</Text>
       </View>
 
       <Card className={'mx-6 rounded-2xl'}>
         <Card.Body>
-          {showSignIn ? (
-            <Text className={'text-muted-foreground mb-4 text-sm'}>
-              Sign in to manage subtasks.
-            </Text>
-          ) : subtasksLoading ? (
+          {subtasksLoading ? (
             <View className={'py-4'}>
               <ActivityIndicator />
             </View>
-          ) : totalSubtasks === 0 ? (
-            <Text className={'text-muted-foreground mb-4 text-sm'}>No subtasks yet.</Text>
           ) : (
-            <View className={'mb-4'}>
-              <DraggableFlatList
-                data={subtasks}
-                keyExtractor={(item) => item.id}
-                renderItem={renderSubtaskItem}
-                onDragEnd={handleSubtaskDragEnd}
-                scrollEnabled={false}
-              />
-            </View>
+            totalSubtasks > 0 && (
+              <View className={'mb-4'}>
+                <DraggableFlatList
+                  data={subtasks}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderSubtaskItem}
+                  onDragEnd={handleSubtaskDragEnd}
+                  scrollEnabled={false}
+                />
+              </View>
+            )
           )}
           <Button
             variant={'tertiary'}
             isDisabled={!canAddSubtask}
             onPress={() =>
-              task?.id
-                ? router.push({
-                    pathname: '/task/new',
-                    params: { parent_id: task.id },
-                  })
-                : undefined
+              router.push({
+                pathname: '/task/new',
+                params: { parent_id: task.id },
+              })
             }>
             <Ionicons name="add" size={20} />
             <Button.Label>Add Subtask</Button.Label>
@@ -616,7 +544,7 @@ export default function TaskDetails() {
               <View className="flex-row justify-end gap-3">
                 <Dialog.Close asChild>
                   <Button variant="ghost" size="sm">
-                    Cancel
+                    <Button.Label>Cancel</Button.Label>
                   </Button>
                 </Dialog.Close>
                 <Button size="sm" onPress={() => void handleDelete()} isDisabled={isDeletingTask}>

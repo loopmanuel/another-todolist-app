@@ -6,7 +6,7 @@ import { supabase } from '@/utils/supabase';
 import { taskKeys } from '../queries/keys';
 
 export type ReorderTasksVariables = {
-  projectId: string;
+  projectId: string | null;
   tasks: Array<{
     id: string;
     sortOrder: number;
@@ -40,7 +40,9 @@ export function useReorderTasksMutation() {
       }
     },
     onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+      if (variables.projectId) {
+        void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+      }
     },
   });
 }

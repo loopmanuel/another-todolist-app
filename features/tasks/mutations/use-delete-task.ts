@@ -7,7 +7,7 @@ import { taskKeys } from '../queries/keys';
 
 export type DeleteTaskVariables = {
   taskId: string;
-  projectId: string;
+  projectId: string | null;
   parentId?: string | null;
 };
 
@@ -32,7 +32,10 @@ export function useDeleteTaskMutation() {
     },
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({ queryKey: taskKeys.task(variables.taskId) });
-      void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+
+      if (variables.projectId) {
+        void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+      }
 
       // If this was a subtask, invalidate parent task queries
       if (variables.parentId) {

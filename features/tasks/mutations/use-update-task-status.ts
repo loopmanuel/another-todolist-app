@@ -9,7 +9,7 @@ type TaskRow = Tables<'tasks'>;
 
 type UpdateTaskStatusVariables = {
   taskId: string;
-  projectId: string;
+  projectId: string | null;
   parentId?: string | null;
   status: TaskRow['status'];
   delayInvalidation?: number; // Delay in milliseconds before invalidating queries
@@ -36,7 +36,9 @@ export function useUpdateTaskStatusMutation() {
     },
     onSuccess: (_data, variables) => {
       const invalidate = () => {
-        void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+        if (variables.projectId) {
+          void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+        }
         void queryClient.invalidateQueries({ queryKey: taskKeys.task(variables.taskId) });
         if (variables.parentId) {
           void queryClient.invalidateQueries({ queryKey: taskKeys.subtasks(variables.parentId) });
