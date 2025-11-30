@@ -8,7 +8,11 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { KeyboardToolbar, KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import {
+  KeyboardToolbar,
+  KeyboardAvoidingView,
+  KeyboardStickyView,
+} from 'react-native-keyboard-controller';
 import { Card } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -34,10 +38,7 @@ import { cn } from '@/lib/utils';
 import dayjs from 'dayjs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTaskInputParser } from '@/features/tasks/parsing/use-parse-task-input';
-import {
-  PatternSuggestionsPopover,
-  type PatternSuggestionsPopoverRef,
-} from '@/features/tasks/components/pattern-suggestions-popover';
+import { PatternSuggestionsCard } from '@/features/tasks/components/pattern-suggestions-card';
 
 // Format due date for display
 function formatDueDate(dateString: string | null): string {
@@ -94,7 +95,6 @@ export default function NewTask() {
   const [formError, setFormError] = useState<string | null>(null);
 
   // Pattern parsing state
-  const patternPopoverRef = React.useRef<PatternSuggestionsPopoverRef>(null);
   const [titleInputValue, setTitleInputValue] = useState('');
   const [dismissedPatterns, setDismissedPatterns] = useState<Set<string>>(new Set());
 
@@ -117,10 +117,10 @@ export default function NewTask() {
     allLabels.map((l) => ({ id: l.id, name: l.name, color: l.color }))
   );
 
-  // Show popover when new patterns are detected (not previously dismissed)
-  useEffect(() => {
+  // Determine if suggestions should be shown based on patterns
+  const shouldShowSuggestions = useMemo(() => {
     if (!parsedPatterns.hasPatterns || titleInputValue.trim().length === 0) {
-      return;
+      return false;
     }
 
     // Check if there are any new patterns that haven't been dismissed
@@ -130,11 +130,7 @@ export default function NewTask() {
       ...parsedPatterns.priorities.map((p) => `priority:${p.text}`),
     ];
 
-    const hasNewPatterns = currentPatternKeys.some((key) => !dismissedPatterns.has(key));
-
-    if (hasNewPatterns) {
-      patternPopoverRef.current?.open();
-    }
+    return currentPatternKeys.some((key) => !dismissedPatterns.has(key));
   }, [parsedPatterns, titleInputValue, dismissedPatterns]);
 
   const parentProject = useMemo(() => {
@@ -263,8 +259,6 @@ export default function NewTask() {
         next.add(`date:${patternText}`);
         return next;
       });
-
-      patternPopoverRef.current?.close();
     },
     [titleInputValue, setValue]
   );
@@ -286,8 +280,6 @@ export default function NewTask() {
         next.add(`label:${patternText}`);
         return next;
       });
-
-      patternPopoverRef.current?.close();
     },
     [addLabel]
   );
@@ -302,13 +294,11 @@ export default function NewTask() {
         next.add(`priority:${patternText}`);
         return next;
       });
-
-      patternPopoverRef.current?.close();
     },
     [setPriority]
   );
 
-  const handleDismissPopover = useCallback(() => {
+  const handleDismissSuggestions = useCallback(() => {
     // Add all current patterns to the dismissed set
     setDismissedPatterns((prev) => {
       const next = new Set(prev);
@@ -317,8 +307,6 @@ export default function NewTask() {
       parsedPatterns.priorities.forEach((p) => next.add(`priority:${p.text}`));
       return next;
     });
-
-    patternPopoverRef.current?.close();
   }, [parsedPatterns]);
 
   const submit = handleSubmit(async (data) => {
@@ -381,242 +369,240 @@ export default function NewTask() {
 
   return (
     <>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}>
-        <Stack.Screen
-          options={{
-            headerLeft: () => (
-              <Pressable className={'p-1 px-2'} onPress={() => router.dismiss()}>
-                <Ionicons name={'close-outline'} size={24} />
-              </Pressable>
-            ),
-            headerRight: () => (
-              <Pressable className={'p-1 px-2'} onPress={submit} disabled={isPrimaryDisabled}>
-                {isSaving ? (
-                  <ActivityIndicator size={'small'} />
-                ) : (
-                  <Ionicons name={'checkmark-outline'} size={22} />
-                )}
-              </Pressable>
-            ),
-          }}
-        />
+      <Stack.Screen
+        options={{
+          headerLeft: () => (
+            <Pressable className={'p-1 px-2'} onPress={() => router.dismiss()}>
+              <Ionicons name={'close-outline'} size={24} />
+            </Pressable>
+          ),
+          headerRight: () => (
+            <Pressable className={'p-1 px-2'} onPress={submit} disabled={isPrimaryDisabled}>
+              {isSaving ? (
+                <ActivityIndicator size={'small'} />
+              ) : (
+                <Ionicons name={'checkmark-outline'} size={22} />
+              )}
+            </Pressable>
+          ),
+        }}
+      />
 
-        <View className={'flex-1'}>
-          <ScrollView
-            className={'pt-safe'}
-            style={{ paddingTop: inset.top }}
-            keyboardShouldPersistTaps={'always'}>
-            <View className={'p-6 pb-0'}>
-              <Controller
-                render={({ field: { onChange, onBlur } }) => (
-                  <TextInput
-                    ref={inputRef}
-                    onChangeText={(text) => {
-                      if (formError) {
-                        setFormError(null);
-                      }
-                      setTitleInputValue(text);
-                      onChange(text);
-                    }}
-                    onBlur={onBlur}
-                    value={titleInputValue}
-                    placeholder={'New Task'}
-                    multiline
-                    className={
-                      'placeholder:text-muted-foreground/80 w-full min-w-0 px-0 py-2 text-2xl font-semibold'
+      <View className={'flex-1'}>
+        <ScrollView
+          className={'pt-safe'}
+          style={{ paddingTop: inset.top }}
+          keyboardShouldPersistTaps={'always'}>
+          <View className={'p-6 pb-0'}>
+            <Controller
+              render={({ field: { onChange, onBlur } }) => (
+                <TextInput
+                  ref={inputRef}
+                  onChangeText={(text) => {
+                    if (formError) {
+                      setFormError(null);
                     }
-                    autoFocus
-                  />
-                )}
-                name={'title'}
-                control={control}
-              />
-            </View>
-
-            {isSubtask ? (
-              <View className={'px-6 pt-2'}>
-                {parentLoading ? (
-                  <Text className={'text-muted-foreground text-sm'}>Loading parent task…</Text>
-                ) : parentTask ? (
-                  <Text className={'text-muted-foreground text-sm'}>
-                    Subtask of “{parentTask.title}”
-                  </Text>
-                ) : (
-                  <Text className={'text-sm text-red-500'} role={'alert'}>
-                    {parentError?.message ?? 'Parent task not found.'}
-                  </Text>
-                )}
-              </View>
-            ) : null}
-            {errors.title ? (
-              <Text className={'px-6 text-sm text-red-500'} role={'alert'}>
-                {errors.title.message}
-              </Text>
-            ) : null}
-
-            <View className={'px-6 pb-6 pt-0'}>
-              <Controller
-                name={'description'}
-                control={control}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    placeholder={'Description'}
-                    className={
-                      'placeholder:text-muted-foreground/80 w-full min-w-0 px-0 py-2 text-base font-medium'
-                    }
-                    multiline
-                    onChangeText={(text) => {
-                      if (formError) {
-                        setFormError(null);
-                      }
-                      onChange(text);
-                    }}
-                    onBlur={onBlur}
-                    value={value ?? ''}
-                  />
-                )}
-              />
-            </View>
-
-            {selectedLabels.size > 0 && (
-              <View className={'flex-1 flex-row px-6'}>
-                <Pressable
-                  onPress={() => {
-                    Keyboard.dismiss();
-                    router.push('/pickers/pick-label');
+                    setTitleInputValue(text);
+                    onChange(text);
                   }}
-                  className={'mb-4'}>
-                  <Card>
-                    <Card.Body>
-                      <View className={'flex-row items-center gap-2'}>
-                        <Ionicons name={'pricetag-outline'} size={18} />
-                        <Text>
-                          {Array.from(selectedLabels)
-                            .map((labelId) => {
-                              const label = allLabels.find((l) => l.id === labelId);
-                              return label?.name;
-                            })
-                            .filter(Boolean)
-                            .join(', ')}
-                        </Text>
-                      </View>
-                    </Card.Body>
-                  </Card>
-                </Pressable>
-              </View>
-            )}
-
-            <ScrollView
-              horizontal={true}
-              keyboardShouldPersistTaps="handled"
-              showsHorizontalScrollIndicator={false}
-              className={'px-6'}>
-              {isSubtask ? (
-                <View
+                  onBlur={onBlur}
+                  value={titleInputValue}
+                  placeholder={'New Task'}
+                  multiline
                   className={
-                    'border-border mr-4 flex flex-row items-center gap-2 rounded-md border bg-gray-200 px-4 py-2'
-                  }>
-                  <Ionicons name={'git-branch-outline'} size={18} />
-                  <Text className={'max-w-[180px]'} numberOfLines={1}>
-                    {parentLoading
-                      ? 'Loading parent…'
-                      : (parentTask?.title ?? parentError?.message ?? 'Parent not found')}
-                  </Text>
-                </View>
-              ) : null}
-
-              <Pressable
-                onPress={() => {
-                  if (!canSelectList) {
-                    return;
+                    'placeholder:text-muted-foreground/80 w-full min-w-0 px-0 py-2 text-2xl font-semibold'
                   }
-                  Keyboard.dismiss();
-                  router.push('/pickers/inbox-picker');
-                }}
-                disabled={!canSelectList}
-                className={cn(!canSelectList && 'opacity-60')}>
-                <Card className={'border border-gray-200'}>
-                  <Card.Body>
-                    <View className={'flex-row items-center gap-2'}>
-                      <Ionicons name={'file-tray-outline'} size={18} />
-                      <Text>{activeProjectName}</Text>
-                    </View>
-                  </Card.Body>
-                </Card>
-              </Pressable>
+                  autoFocus
+                />
+              )}
+              name={'title'}
+              control={control}
+            />
+          </View>
 
+          {isSubtask ? (
+            <View className={'px-6 pt-2'}>
+              {parentLoading ? (
+                <Text className={'text-muted-foreground text-sm'}>Loading parent task…</Text>
+              ) : parentTask ? (
+                <Text className={'text-muted-foreground text-sm'}>
+                  Subtask of “{parentTask.title}”
+                </Text>
+              ) : (
+                <Text className={'text-sm text-red-500'} role={'alert'}>
+                  {parentError?.message ?? 'Parent task not found.'}
+                </Text>
+              )}
+            </View>
+          ) : null}
+          {errors.title ? (
+            <Text className={'px-6 text-sm text-red-500'} role={'alert'}>
+              {errors.title.message}
+            </Text>
+          ) : null}
+
+          <View className={'px-6 pb-6 pt-0'}>
+            <Controller
+              name={'description'}
+              control={control}
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  placeholder={'Description'}
+                  className={
+                    'placeholder:text-muted-foreground/80 w-full min-w-0 px-0 py-2 text-base font-medium'
+                  }
+                  multiline
+                  onChangeText={(text) => {
+                    if (formError) {
+                      setFormError(null);
+                    }
+                    onChange(text);
+                  }}
+                  onBlur={onBlur}
+                  value={value ?? ''}
+                />
+              )}
+            />
+          </View>
+
+          {selectedLabels.size > 0 && (
+            <View className={'flex-1 flex-row px-6'}>
               <Pressable
                 onPress={() => {
                   Keyboard.dismiss();
-                  router.push('/pickers/date-picker');
+                  router.push('/pickers/pick-label');
                 }}
-                className={'ml-4 mr-4'}>
-                <Card className={'border border-gray-200'}>
+                className={'mb-4'}>
+                <Card>
                   <Card.Body>
                     <View className={'flex-row items-center gap-2'}>
-                      <Ionicons name={'calendar-outline'} size={18} />
-                      <Text>{formatDueDate(dueDate)}</Text>
-                    </View>
-                  </Card.Body>
-                </Card>
-              </Pressable>
-
-              <Pressable onPress={() => handlePriorityButtonPress()} className={'mr-4'}>
-                <Card
-                  className={'border border-gray-200'}
-                  style={{
-                    backgroundColor: priority > 0 ? getPriorityBgColor(priority) : '#e5e7eb',
-                  }}>
-                  <Card.Body>
-                    <View className={'flex-row items-center gap-2'}>
-                      <Ionicons
-                        name={priority > 0 ? 'flag' : 'flag-outline'}
-                        size={18}
-                        color={priority > 0 ? getPriorityColor(priority) : undefined}
-                      />
-                      <Text
-                        style={{
-                          color: priority > 0 ? getPriorityColor(priority) : undefined,
-                        }}>
-                        {getPriorityLabel(priority)}
+                      <Ionicons name={'pricetag-outline'} size={18} />
+                      <Text>
+                        {Array.from(selectedLabels)
+                          .map((labelId) => {
+                            const label = allLabels.find((l) => l.id === labelId);
+                            return label?.name;
+                          })
+                          .filter(Boolean)
+                          .join(', ')}
                       </Text>
                     </View>
                   </Card.Body>
                 </Card>
               </Pressable>
+            </View>
+          )}
 
-              {selectedLabels.size === 0 && (
-                <Pressable onPress={() => router.push('/pickers/pick-label')} className={'mr-4'}>
-                  <Card className={'border border-gray-200'}>
-                    <Card.Body>
-                      <View className={'flex-row items-center gap-2'}>
-                        <Ionicons name={'pricetag-outline'} size={18} />
-                        <Text>Labels</Text>
-                      </View>
-                    </Card.Body>
-                  </Card>
-                </Pressable>
-              )}
-            </ScrollView>
-            {formError ? (
-              <Text className={'px-6 pt-4 text-sm text-red-500'} role={'alert'}>
-                {formError}
-              </Text>
+          <ScrollView
+            horizontal={true}
+            keyboardShouldPersistTaps="handled"
+            showsHorizontalScrollIndicator={false}
+            className={'px-6'}>
+            {isSubtask ? (
+              <View
+                className={
+                  'border-border mr-4 flex flex-row items-center gap-2 rounded-md border bg-gray-200 px-4 py-2'
+                }>
+                <Ionicons name={'git-branch-outline'} size={18} />
+                <Text className={'max-w-[180px]'} numberOfLines={1}>
+                  {parentLoading
+                    ? 'Loading parent…'
+                    : (parentTask?.title ?? parentError?.message ?? 'Parent not found')}
+                </Text>
+              </View>
             ) : null}
-          </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
 
-      <PatternSuggestionsPopover
-        ref={patternPopoverRef}
-        patterns={parsedPatterns}
-        onApplyDate={handleApplyDate}
-        onApplyLabel={handleApplyLabel}
-        onApplyPriority={handleApplyPriority}
-        onDismiss={handleDismissPopover}
-      />
+            <Pressable
+              onPress={() => {
+                if (!canSelectList) {
+                  return;
+                }
+                Keyboard.dismiss();
+                router.push('/pickers/inbox-picker');
+              }}
+              disabled={!canSelectList}
+              className={cn(!canSelectList && 'opacity-60')}>
+              <Card className={'border border-gray-200'}>
+                <Card.Body>
+                  <View className={'flex-row items-center gap-2'}>
+                    <Ionicons name={'file-tray-outline'} size={18} />
+                    <Text>{activeProjectName}</Text>
+                  </View>
+                </Card.Body>
+              </Card>
+            </Pressable>
+
+            <Pressable
+              onPress={() => {
+                Keyboard.dismiss();
+                router.push('/pickers/date-picker');
+              }}
+              className={'ml-4 mr-4'}>
+              <Card className={'border border-gray-200'}>
+                <Card.Body>
+                  <View className={'flex-row items-center gap-2'}>
+                    <Ionicons name={'calendar-outline'} size={18} />
+                    <Text>{formatDueDate(dueDate)}</Text>
+                  </View>
+                </Card.Body>
+              </Card>
+            </Pressable>
+
+            <Pressable onPress={() => handlePriorityButtonPress()} className={'mr-4'}>
+              <Card
+                className={'border border-gray-200'}
+                style={{
+                  backgroundColor: priority > 0 ? getPriorityBgColor(priority) : '#e5e7eb',
+                }}>
+                <Card.Body>
+                  <View className={'flex-row items-center gap-2'}>
+                    <Ionicons
+                      name={priority > 0 ? 'flag' : 'flag-outline'}
+                      size={18}
+                      color={priority > 0 ? getPriorityColor(priority) : undefined}
+                    />
+                    <Text
+                      style={{
+                        color: priority > 0 ? getPriorityColor(priority) : undefined,
+                      }}>
+                      {getPriorityLabel(priority)}
+                    </Text>
+                  </View>
+                </Card.Body>
+              </Card>
+            </Pressable>
+
+            {selectedLabels.size === 0 && (
+              <Pressable onPress={() => router.push('/pickers/pick-label')} className={'mr-4'}>
+                <Card className={'border border-gray-200'}>
+                  <Card.Body>
+                    <View className={'flex-row items-center gap-2'}>
+                      <Ionicons name={'pricetag-outline'} size={18} />
+                      <Text>Labels</Text>
+                    </View>
+                  </Card.Body>
+                </Card>
+              </Pressable>
+            )}
+          </ScrollView>
+          {formError ? (
+            <Text className={'px-6 pt-4 text-sm text-red-500'} role={'alert'}>
+              {formError}
+            </Text>
+          ) : null}
+        </ScrollView>
+        <KeyboardStickyView>
+          {shouldShowSuggestions && (
+            <PatternSuggestionsCard
+              patterns={parsedPatterns}
+              onApplyDate={handleApplyDate}
+              onApplyLabel={handleApplyLabel}
+              onApplyPriority={handleApplyPriority}
+              onDismiss={handleDismissSuggestions}
+            />
+          )}
+        </KeyboardStickyView>
+      </View>
     </>
   );
 }

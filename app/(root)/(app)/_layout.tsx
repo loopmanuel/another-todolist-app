@@ -121,7 +121,7 @@ export default function AppLayout() {
         name="task/new"
         options={{
           title: '',
-          presentation: 'formSheet',
+          presentation: 'modal',
           sheetAllowedDetents: 'fitToContents',
           sheetGrabberVisible: false,
           sheetCornerRadius: 30,
