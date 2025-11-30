@@ -324,7 +324,7 @@ export default function NewTask() {
               control={control}
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  placeholder={'Description'}
+                  placeholder={'Notes'}
                   className={
                     'placeholder:text-muted-foreground/80 w-full min-w-0 px-0 py-2 text-base font-medium'
                   }
@@ -399,11 +399,11 @@ export default function NewTask() {
               }}
               disabled={!canSelectList}
               className={cn(!canSelectList && 'opacity-60')}>
-              <Card className={'border border-gray-200'}>
+              <Card className={'border border-gray-200 py-3'}>
                 <Card.Body>
                   <View className={'flex-row items-center gap-2'}>
                     <Ionicons name={'file-tray-outline'} size={18} />
-                    <Text>{activeProjectName}</Text>
+                    <Text className={'text-sm font-medium'}>{activeProjectName}</Text>
                   </View>
                 </Card.Body>
               </Card>
@@ -414,9 +414,9 @@ export default function NewTask() {
                 Keyboard.dismiss();
                 router.push('/pickers/date-picker');
               }}
-              className={'ml-4 mr-4'}>
+              className={'ml-3 mr-3'}>
               <Card
-                className={'border border-gray-200'}
+                className={'border border-gray-200 py-3'}
                 style={{
                   backgroundColor: dueDate ? '#dbeafe' : '#e5e7eb',
                 }}>
@@ -428,6 +428,7 @@ export default function NewTask() {
                       color={dueDate ? '#3b82f6' : undefined}
                     />
                     <Text
+                      className={'text-sm font-medium'}
                       style={{
                         color: dueDate ? '#3b82f6' : undefined,
                       }}>
@@ -438,9 +439,9 @@ export default function NewTask() {
               </Card>
             </Pressable>
 
-            <Pressable onPress={() => handlePriorityButtonPress()} className={'mr-4'}>
+            <Pressable onPress={() => handlePriorityButtonPress()} className={'mr-3'}>
               <Card
-                className={'border border-gray-200'}
+                className={'border border-gray-200 py-3'}
                 style={{
                   backgroundColor: priority > 0 ? getPriorityBgColor(priority) : '#e5e7eb',
                 }}>
@@ -452,6 +453,7 @@ export default function NewTask() {
                       color={priority > 0 ? getPriorityColor(priority) : undefined}
                     />
                     <Text
+                      className={'text-sm font-medium'}
                       style={{
                         color: priority > 0 ? getPriorityColor(priority) : undefined,
                       }}>
@@ -463,12 +465,12 @@ export default function NewTask() {
             </Pressable>
 
             {selectedLabels.size === 0 && (
-              <Pressable onPress={() => router.push('/pickers/pick-label')} className={'mr-4'}>
-                <Card className={'border border-gray-200'}>
+              <Pressable onPress={() => router.push('/pickers/pick-label')} className={'mr-3'}>
+                <Card className={'border border-gray-200 py-3'}>
                   <Card.Body>
                     <View className={'flex-row items-center gap-2'}>
                       <Ionicons name={'pricetag-outline'} size={18} />
-                      <Text>Labels</Text>
+                      <Text className={'text-sm font-medium'}>Labels</Text>
                     </View>
                   </Card.Body>
                 </Card>
