@@ -1,37 +1,135 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { View, Pressable, ScrollView } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withTiming,
-  runOnJS,
 } from 'react-native-reanimated';
 import { Card } from 'heroui-native';
 import { Text } from '@/components/ui/text';
 import { Ionicons } from '@expo/vector-icons';
+import { UseFormSetValue } from 'react-hook-form';
+import { usePatternSuggestionsStore } from '@/store/pattern-suggestions-store';
+import { useTaskFormStore } from '@/store/task-form-store';
 import type { ParsedPatterns } from '../parsing/types';
 
 interface PatternSuggestionsCardProps {
   patterns: ParsedPatterns;
-  onApplyDate: (date: string, patternText: string, normalizedText: string) => void;
-  onApplyLabel: (labelId: string | undefined, labelName: string, patternText: string) => void;
-  onApplyPriority: (priority: number, patternText: string) => void;
-  onDismiss: () => void;
-  visible: boolean;
+  titleInputValue: string;
+  setTitleInputValue: (value: string) => void;
+  setValue: UseFormSetValue<any>;
+  inputRef?: React.RefObject<any>;
 }
 
 export const PatternSuggestionsCard: React.FC<PatternSuggestionsCardProps> = ({
   patterns,
-  onApplyDate,
-  onApplyLabel,
-  onApplyPriority,
-  onDismiss,
-  visible,
+  titleInputValue,
+  setTitleInputValue,
+  setValue,
+  inputRef,
 }) => {
   const translateY = useSharedValue(100);
   const opacity = useSharedValue(0);
 
+  // Get stores
+  const { dismissedPatterns, dismissPattern, dismissAllCurrentPatterns } =
+    usePatternSuggestionsStore();
+  const { addLabel, setPriority } = useTaskFormStore();
+
+  // Determine if suggestions should be shown
+  const visible = useMemo(() => {
+    if (!patterns.hasPatterns || titleInputValue.trim().length === 0) {
+      return false;
+    }
+
+    // Check if there are any new patterns that haven't been dismissed
+    const currentPatternKeys = [
+      ...patterns.dates.map((d) => `date:${d.text}`),
+      ...patterns.labels.map((l) => `label:${l.text}`),
+      ...patterns.priorities.map((p) => `priority:${p.text}`),
+    ];
+
+    return currentPatternKeys.some((key) => !dismissedPatterns.has(key));
+  }, [patterns, titleInputValue, dismissedPatterns]);
+
+  // Handle applying date pattern
+  const handleApplyDate = useCallback(
+    (dateString: string, patternText: string, normalizedText: string) => {
+      setValue('dueDate', dateString, { shouldDirty: true, shouldValidate: true });
+
+      // Replace the pattern text with normalized text
+      const patternIndex = titleInputValue.indexOf(patternText);
+      if (patternIndex !== -1) {
+        const newTitle =
+          titleInputValue.slice(0, patternIndex) +
+          normalizedText +
+          titleInputValue.slice(patternIndex + patternText.length);
+
+        const cursorPos = patternIndex + normalizedText.length;
+
+        // Update state first
+        setTitleInputValue(newTitle);
+        setValue('title', newTitle);
+
+        // Focus management for cursor position
+        if (inputRef?.current) {
+          inputRef.current.blur();
+          setTimeout(() => {
+            if (inputRef.current) {
+              inputRef.current.focus();
+              setTimeout(() => {
+                if (inputRef.current) {
+                  inputRef.current.setNativeProps({
+                    selection: { start: cursorPos, end: cursorPos },
+                  });
+                }
+              }, 10);
+            }
+          }, 10);
+        }
+      }
+
+      // Dismiss this pattern
+      dismissPattern(`date:${patternText}`);
+    },
+    [titleInputValue, setValue, setTitleInputValue, inputRef, dismissPattern]
+  );
+
+  // Handle applying label pattern
+  const handleApplyLabel = useCallback(
+    (labelId: string | undefined, labelName: string, patternText: string) => {
+      if (labelId) {
+        addLabel(labelId);
+      } else {
+        console.log('Creating new label not yet implemented:', labelName);
+      }
+
+      dismissPattern(`label:${patternText}`);
+    },
+    [addLabel, dismissPattern]
+  );
+
+  // Handle applying priority pattern
+  const handleApplyPriority = useCallback(
+    (priorityLevel: number, patternText: string) => {
+      setPriority(priorityLevel);
+      dismissPattern(`priority:${patternText}`);
+    },
+    [setPriority, dismissPattern]
+  );
+
+  // Handle dismissing all suggestions
+  const handleDismissAll = useCallback(() => {
+    const currentPatternKeys = [
+      ...patterns.dates.map((d) => `date:${d.text}`),
+      ...patterns.labels.map((l) => `label:${l.text}`),
+      ...patterns.priorities.map((p) => `priority:${p.text}`),
+    ];
+
+    dismissAllCurrentPatterns(currentPatternKeys);
+  }, [patterns, dismissAllCurrentPatterns]);
+
+  // Animation effect
   useEffect(() => {
     if (visible && patterns.hasPatterns) {
       // Slide in from bottom
@@ -65,7 +163,7 @@ export const PatternSuggestionsCard: React.FC<PatternSuggestionsCardProps> = ({
             {/* Header */}
             <View className="flex-row items-center justify-between">
               <Text className="text-base font-semibold">Suggestions</Text>
-              <Pressable onPress={onDismiss} className="p-1">
+              <Pressable onPress={handleDismissAll} className="p-1">
                 <Ionicons name="close-outline" size={20} />
               </Pressable>
             </View>
@@ -83,7 +181,7 @@ export const PatternSuggestionsCard: React.FC<PatternSuggestionsCardProps> = ({
                     key={`date-${index}`}
                     className="flex-row items-center gap-2 rounded-lg bg-blue-50 px-3 py-2"
                     onPress={() => {
-                      onApplyDate(date.suggestedDate, date.text, date.normalizedText);
+                      handleApplyDate(date.suggestedDate, date.text, date.normalizedText);
                     }}>
                     <View className="size-8 items-center justify-center rounded-full bg-blue-100">
                       <Ionicons name="calendar-outline" size={16} color="#3b82f6" />
@@ -100,7 +198,7 @@ export const PatternSuggestionsCard: React.FC<PatternSuggestionsCardProps> = ({
                     key={`label-${index}`}
                     className="flex-row items-center gap-2 rounded-lg bg-purple-50 px-3 py-2"
                     onPress={() => {
-                      onApplyLabel(label.labelId, label.labelName, label.text);
+                      handleApplyLabel(label.labelId, label.labelName, label.text);
                     }}>
                     <View className="size-8 items-center justify-center rounded-full bg-purple-100">
                       <Ionicons name="pricetag-outline" size={16} color="#a855f7" />
@@ -117,7 +215,7 @@ export const PatternSuggestionsCard: React.FC<PatternSuggestionsCardProps> = ({
                     key={`priority-${index}`}
                     className="flex-row items-center gap-2 rounded-lg bg-orange-50 px-3 py-2"
                     onPress={() => {
-                      onApplyPriority(priority.priority, priority.text);
+                      handleApplyPriority(priority.priority, priority.text);
                     }}>
                     <View className="size-8 items-center justify-center rounded-full bg-orange-100">
                       <Ionicons

@@ -7,7 +7,8 @@
       "Bash(mkdir:*)",
       "Bash(cp:*)",
       "Bash(cat:*)",
-      "Bash(npm run generate:types:*)"
+      "Bash(npm run generate:types:*)",
+      "Bash(npm run lint)"
     ],
     "deny": [],
     "ask": []

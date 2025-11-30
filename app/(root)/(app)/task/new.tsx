@@ -1,22 +1,10 @@
 import { Text } from '@/components/ui/text';
-import {
-  ActivityIndicator,
-  Keyboard,
-  Platform,
-  Pressable,
-  ScrollView,
-  TextInput,
-  View,
-} from 'react-native';
-import {
-  KeyboardToolbar,
-  KeyboardAvoidingView,
-  KeyboardStickyView,
-} from 'react-native-keyboard-controller';
+import { ActivityIndicator, Keyboard, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { Card } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -96,13 +84,12 @@ export default function NewTask() {
 
   // Pattern parsing state
   const [titleInputValue, setTitleInputValue] = useState('');
-  const [dismissedPatterns, setDismissedPatterns] = useState<Set<string>>(new Set());
 
   // Date picker state (shared with date-picker screen)
   const { selectedDate, clearDate } = useDatePickerStore();
   const [listMMKV, setListMMKV] = useMMKVString(TASK_LIST_STORAGE_KEY);
   const { user } = useAuthStore((state) => ({ user: state.user }));
-  const { selectedLabels, priority, clearAll, setPriority, addLabel } = useTaskFormStore();
+  const { selectedLabels, priority, clearAll } = useTaskFormStore();
   const {
     data: parentTask,
     isLoading: parentLoading,
@@ -116,22 +103,6 @@ export default function NewTask() {
     titleInputValue,
     allLabels.map((l) => ({ id: l.id, name: l.name, color: l.color }))
   );
-
-  // Determine if suggestions should be shown based on patterns
-  const shouldShowSuggestions = useMemo(() => {
-    if (!parsedPatterns.hasPatterns || titleInputValue.trim().length === 0) {
-      return false;
-    }
-
-    // Check if there are any new patterns that haven't been dismissed
-    const currentPatternKeys = [
-      ...parsedPatterns.dates.map((d) => `date:${d.text}`),
-      ...parsedPatterns.labels.map((l) => `label:${l.text}`),
-      ...parsedPatterns.priorities.map((p) => `priority:${p.text}`),
-    ];
-
-    return currentPatternKeys.some((key) => !dismissedPatterns.has(key));
-  }, [parsedPatterns, titleInputValue, dismissedPatterns]);
 
   const parentProject = useMemo(() => {
     if (!parentTask?.project_id) {
@@ -214,100 +185,6 @@ export default function NewTask() {
 
     router.push('/pickers/priority-select');
   };
-
-  // Pattern application handlers
-  const handleApplyDate = useCallback(
-    (dateString: string, patternText: string, normalizedText: string) => {
-      setValue('dueDate', dateString, { shouldDirty: true, shouldValidate: true });
-
-      // Replace the pattern text with normalized text (auto-completes "tomorr" to "tomorrow")
-      const patternIndex = titleInputValue.indexOf(patternText);
-      if (patternIndex !== -1) {
-        const newTitle =
-          titleInputValue.slice(0, patternIndex) +
-          normalizedText +
-          titleInputValue.slice(patternIndex + patternText.length);
-
-        const cursorPos = patternIndex + normalizedText.length;
-
-        // Update state first - this will trigger TextInput to re-render with new value
-        setTitleInputValue(newTitle);
-        setValue('title', newTitle);
-
-        // Force TextInput to update by blurring and refocusing
-        if (inputRef.current) {
-          inputRef.current.blur();
-          setTimeout(() => {
-            if (inputRef.current) {
-              inputRef.current.focus();
-              // Set cursor position after refocus
-              setTimeout(() => {
-                if (inputRef.current) {
-                  inputRef.current.setNativeProps({
-                    selection: { start: cursorPos, end: cursorPos },
-                  });
-                }
-              }, 10);
-            }
-          }, 10);
-        }
-      }
-
-      // Add this pattern to dismissed list so it doesn't show again
-      setDismissedPatterns((prev) => {
-        const next = new Set(prev);
-        next.add(`date:${patternText}`);
-        return next;
-      });
-    },
-    [titleInputValue, setValue]
-  );
-
-  const handleApplyLabel = useCallback(
-    (labelId: string | undefined, labelName: string, patternText: string) => {
-      // If label exists, use its ID; otherwise create new label
-      if (labelId) {
-        addLabel(labelId);
-      } else {
-        // Note: For new labels, we'd need to create them first
-        // For now, we'll just skip new labels in Phase 1
-        console.log('Creating new label not yet implemented:', labelName);
-      }
-
-      // Add this pattern to dismissed list so it doesn't show again
-      setDismissedPatterns((prev) => {
-        const next = new Set(prev);
-        next.add(`label:${patternText}`);
-        return next;
-      });
-    },
-    [addLabel]
-  );
-
-  const handleApplyPriority = useCallback(
-    (priorityLevel: number, patternText: string) => {
-      setPriority(priorityLevel);
-
-      // Add this pattern to dismissed list so it doesn't show again
-      setDismissedPatterns((prev) => {
-        const next = new Set(prev);
-        next.add(`priority:${patternText}`);
-        return next;
-      });
-    },
-    [setPriority]
-  );
-
-  const handleDismissSuggestions = useCallback(() => {
-    // Add all current patterns to the dismissed set
-    setDismissedPatterns((prev) => {
-      const next = new Set(prev);
-      parsedPatterns.dates.forEach((d) => next.add(`date:${d.text}`));
-      parsedPatterns.labels.forEach((l) => next.add(`label:${l.text}`));
-      parsedPatterns.priorities.forEach((p) => next.add(`priority:${p.text}`));
-      return next;
-    });
-  }, [parsedPatterns]);
 
   const submit = handleSubmit(async (data) => {
     Keyboard.dismiss();
@@ -594,11 +471,10 @@ export default function NewTask() {
         <KeyboardStickyView>
           <PatternSuggestionsCard
             patterns={parsedPatterns}
-            visible={shouldShowSuggestions}
-            onApplyDate={handleApplyDate}
-            onApplyLabel={handleApplyLabel}
-            onApplyPriority={handleApplyPriority}
-            onDismiss={handleDismissSuggestions}
+            titleInputValue={titleInputValue}
+            setTitleInputValue={setTitleInputValue}
+            setValue={setValue}
+            inputRef={inputRef}
           />
         </KeyboardStickyView>
       </View>
