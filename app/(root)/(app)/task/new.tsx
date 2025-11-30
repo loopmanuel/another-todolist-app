@@ -592,15 +592,14 @@ export default function NewTask() {
           ) : null}
         </ScrollView>
         <KeyboardStickyView>
-          {shouldShowSuggestions && (
-            <PatternSuggestionsCard
-              patterns={parsedPatterns}
-              onApplyDate={handleApplyDate}
-              onApplyLabel={handleApplyLabel}
-              onApplyPriority={handleApplyPriority}
-              onDismiss={handleDismissSuggestions}
-            />
-          )}
+          <PatternSuggestionsCard
+            patterns={parsedPatterns}
+            visible={shouldShowSuggestions}
+            onApplyDate={handleApplyDate}
+            onApplyLabel={handleApplyLabel}
+            onApplyPriority={handleApplyPriority}
+            onDismiss={handleDismissSuggestions}
+          />
         </KeyboardStickyView>
       </View>
     </>
