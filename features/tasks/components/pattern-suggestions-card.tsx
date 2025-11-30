@@ -113,9 +113,43 @@ export const PatternSuggestionsCard: React.FC<PatternSuggestionsCardProps> = ({
   const handleApplyPriority = useCallback(
     (priorityLevel: number, patternText: string) => {
       setPriority(priorityLevel);
+
+      // Remove the priority pattern from the title
+      const patternIndex = titleInputValue.indexOf(patternText);
+      if (patternIndex !== -1) {
+        const newTitle =
+          titleInputValue.slice(0, patternIndex) +
+          titleInputValue.slice(patternIndex + patternText.length);
+
+        // Remove any extra spaces that might be left
+        const trimmedTitle = newTitle.replace(/\s+/g, ' ').trim();
+
+        // Update state
+        setTitleInputValue(trimmedTitle);
+        setValue('title', trimmedTitle);
+
+        // Focus management for cursor position
+        if (inputRef?.current) {
+          inputRef.current.blur();
+          setTimeout(() => {
+            if (inputRef.current) {
+              inputRef.current.focus();
+              setTimeout(() => {
+                if (inputRef.current) {
+                  const cursorPos = patternIndex;
+                  inputRef.current.setNativeProps({
+                    selection: { start: cursorPos, end: cursorPos },
+                  });
+                }
+              }, 10);
+            }
+          }, 10);
+        }
+      }
+
       dismissPattern(`priority:${patternText}`);
     },
-    [setPriority, dismissPattern]
+    [setPriority, dismissPattern, titleInputValue, setTitleInputValue, setValue, inputRef]
   );
 
   // Handle dismissing all suggestions
