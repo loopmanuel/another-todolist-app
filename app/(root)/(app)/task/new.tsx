@@ -415,11 +415,24 @@ export default function NewTask() {
                 router.push('/pickers/date-picker');
               }}
               className={'ml-4 mr-4'}>
-              <Card className={'border border-gray-200'}>
+              <Card
+                className={'border border-gray-200'}
+                style={{
+                  backgroundColor: dueDate ? '#dbeafe' : '#e5e7eb',
+                }}>
                 <Card.Body>
                   <View className={'flex-row items-center gap-2'}>
-                    <Ionicons name={'calendar-outline'} size={18} />
-                    <Text>{formatDueDate(dueDate)}</Text>
+                    <Ionicons
+                      name={dueDate ? 'calendar' : 'calendar-outline'}
+                      size={18}
+                      color={dueDate ? '#3b82f6' : undefined}
+                    />
+                    <Text
+                      style={{
+                        color: dueDate ? '#3b82f6' : undefined,
+                      }}>
+                      {formatDueDate(dueDate)}
+                    </Text>
                   </View>
                 </Card.Body>
               </Card>
