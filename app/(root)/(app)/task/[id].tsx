@@ -27,7 +27,8 @@ import { TaskCard, formatDueLabel } from '@/features/tasks/components/task-card'
 import { getPriorityLabel, getPriorityColor } from '@/features/tasks/utils/priority';
 import dayjs from 'dayjs';
 import { useDatePickerStore } from '@/store/date-picker-store';
-import { TimePickerModal, formatTime } from '@/components/time-picker-modal';
+import { formatTime } from '@/components/time-picker-modal';
+import { useTimePickerStore } from '@/store/time-picker-store';
 
 const TaskFormSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(200, 'Max 200 characters'),
@@ -245,8 +246,7 @@ export default function TaskDetails() {
   const canAddSubtask = Boolean(task?.id && hasUser);
 
   const [isOpen, setIsOpen] = useState(false);
-  const [estimatedTimeModalOpen, setEstimatedTimeModalOpen] = useState(false);
-  const [actualTimeModalOpen, setActualTimeModalOpen] = useState(false);
+  const { setSelectedTime: setTimePickerTime } = useTimePickerStore();
 
   const handleDelete = useCallback(async () => {
     if (!task || !user?.id) return;
@@ -266,41 +266,35 @@ export default function TaskDetails() {
     }
   }, [task, user?.id, deleteTask, router]);
 
-  const handleEstimatedTimeSave = useCallback(
-    async (minutes: number) => {
-      if (!task || !user?.id) return;
+  // Listen for time picker changes and update task
+  const { selectedTime: pickerTime, context: pickerContext } = useTimePickerStore();
 
+  useEffect(() => {
+    if (pickerTime === null || !pickerContext || !task || !user?.id) return;
+
+    const updateTime = async () => {
       try {
-        await updateTask({
-          taskId: task.id,
-          projectId: task.project_id,
-          payload: { estimated_time: minutes || null },
-        });
+        if (pickerContext === 'estimated') {
+          await updateTask({
+            taskId: task.id,
+            projectId: task.project_id,
+            payload: { estimated_time: pickerTime || null },
+          });
+        } else if (pickerContext === 'actual') {
+          await updateTask({
+            taskId: task.id,
+            projectId: task.project_id,
+            payload: { actual_time: pickerTime || null },
+          });
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unable to update time.';
         Alert.alert('Update failed', message);
       }
-    },
-    [task, user?.id, updateTask]
-  );
+    };
 
-  const handleActualTimeSave = useCallback(
-    async (minutes: number) => {
-      if (!task || !user?.id) return;
-
-      try {
-        await updateTask({
-          taskId: task.id,
-          projectId: task.project_id,
-          payload: { actual_time: minutes || null },
-        });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Unable to update time.';
-        Alert.alert('Update failed', message);
-      }
-    },
-    [task, user?.id, updateTask]
-  );
+    void updateTime();
+  }, [pickerTime, pickerContext, task, user?.id, updateTask]);
 
   const handleSubtaskDragEnd = useCallback(
     async ({ data }: { data: SubtaskWithCounts[] }) => {
@@ -516,20 +510,6 @@ export default function TaskDetails() {
               )}
             </View>
           </Pressable>
-
-          <Pressable
-            onPress={() => setEstimatedTimeModalOpen(true)}
-            className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
-            <Ionicons name={'time-outline'} size={18} />
-            <Text>{formatTime(task.estimated_time)} (Estimated)</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setActualTimeModalOpen(true)}
-            className={'flex flex-row items-center gap-2 py-3'}>
-            <Ionicons name={'hourglass-outline'} size={18} />
-            <Text>{formatTime(task.actual_time)} (Actual)</Text>
-          </Pressable>
         </Card.Body>
       </Card>
 
@@ -603,22 +583,6 @@ export default function TaskDetails() {
           </Dialog.Portal>
         </Dialog>
       </View>
-
-      <TimePickerModal
-        isOpen={estimatedTimeModalOpen}
-        onOpenChange={setEstimatedTimeModalOpen}
-        title="Estimated Time"
-        value={task.estimated_time ?? 0}
-        onSave={handleEstimatedTimeSave}
-      />
-
-      <TimePickerModal
-        isOpen={actualTimeModalOpen}
-        onOpenChange={setActualTimeModalOpen}
-        title="Actual Time"
-        value={task.actual_time ?? 0}
-        onSave={handleActualTimeSave}
-      />
     </ScrollView>
   );
 }

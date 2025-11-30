@@ -143,6 +143,18 @@ export default function AppLayout() {
         }}
       />
       <Stack.Screen
+        name="pickers/time-picker"
+        options={{
+          title: 'Choose Time',
+          presentation: 'modal',
+          sheetAllowedDetents: 'fitToContents',
+          sheetGrabberVisible: true,
+          sheetCornerRadius: 30,
+          headerShown: false,
+          sheetExpandsWhenScrolledToEdge: false,
+        }}
+      />
+      <Stack.Screen
         name="pickers/priority-select"
         options={{
           title: 'Choose Priority',

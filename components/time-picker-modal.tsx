@@ -12,7 +12,13 @@ interface TimePickerModalProps {
   onSave: (minutes: number) => void;
 }
 
-export function TimePickerModal({ isOpen, onOpenChange, title, value = 0, onSave }: TimePickerModalProps) {
+export function TimePickerModal({
+  isOpen,
+  onOpenChange,
+  title,
+  value = 0,
+  onSave,
+}: TimePickerModalProps) {
   const [hours, setHours] = useState(Math.floor(value / 60));
   const [minutes, setMinutes] = useState(value % 60);
   const [showPicker, setShowPicker] = useState<'hours' | 'minutes' | null>(null);
@@ -60,17 +66,19 @@ export function TimePickerModal({ isOpen, onOpenChange, title, value = 0, onSave
           <Dialog.Close className="-mb-2 self-end" />
           <View className="mb-5 gap-1.5">
             <Dialog.Title>{title}</Dialog.Title>
-            <Dialog.Description>
-              Set the time in hours and minutes
-            </Dialog.Description>
+            <Dialog.Description>Set the time in hours and minutes</Dialog.Description>
           </View>
 
+          <View></View>
+
           <View className="mb-4 flex-row items-center justify-center gap-4">
+            <Text>Time picker</Text>
+
             {/* Hours */}
             <View className="items-center gap-2">
-              <Text className="text-sm text-muted-foreground">Hours</Text>
+              <Text className="text-muted-foreground text-sm">Hours</Text>
               <Button
-                variant="bordered"
+                variant={'tertiary'}
                 className="min-w-20"
                 onPress={() => setShowPicker('hours')}>
                 <Button.Label>
@@ -83,13 +91,15 @@ export function TimePickerModal({ isOpen, onOpenChange, title, value = 0, onSave
 
             {/* Minutes */}
             <View className="items-center gap-2">
-              <Text className="text-sm text-muted-foreground">Minutes</Text>
+              <Text className="text-muted-foreground text-sm">Minutes</Text>
               <Button
-                variant="bordered"
+                variant="tertiary"
                 className="min-w-20"
                 onPress={() => setShowPicker('minutes')}>
                 <Button.Label>
-                  <Text className="text-2xl font-semibold">{minutes.toString().padStart(2, '0')}</Text>
+                  <Text className="text-2xl font-semibold">
+                    {minutes.toString().padStart(2, '0')}
+                  </Text>
                 </Button.Label>
               </Button>
             </View>

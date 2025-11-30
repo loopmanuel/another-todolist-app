@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Alert, Pressable, View, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Alert, Pressable, View } from 'react-native';
 import { Checkbox } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -220,7 +220,7 @@ export function TaskCard({
           <Text className={cn('text-lg font-medium', isCompleted && 'text-gray-600 line-through')}>
             {task.title}
           </Text>
-          <View className="mt-2 flex flex-row flex-wrap items-center gap-3">
+          <View className="flex flex-row flex-wrap items-center gap-3">
             {task.priority > 0 ? (
               <View className="flex w-fit flex-row items-center justify-center gap-1 py-1">
                 <Ionicons
