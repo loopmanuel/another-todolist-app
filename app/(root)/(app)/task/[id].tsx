@@ -374,21 +374,16 @@ export default function TaskDetails() {
         options={{
           headerRight: () =>
             !saveDisabled ? (
-              <View className={'flex flex-row items-center justify-between pr-4 pt-6'}>
-                <Button
-                  className={'rounded-full'}
-                  isIconOnly
-                  onPress={() => void onSubmit()}
-                  isDisabled={saveDisabled || isSubmitting || isUpdatingTask}>
-                  <Button.Label>
-                    {isSubmitting || isUpdatingTask ? (
-                      <ActivityIndicator size={'small'} />
-                    ) : (
-                      <Ionicons name={'checkmark-outline'} size={22} />
-                    )}
-                  </Button.Label>
-                </Button>
-              </View>
+              <Pressable
+                className={'px-2'}
+                onPress={() => void onSubmit()}
+                disabled={saveDisabled || isSubmitting || isUpdatingTask}>
+                {isSubmitting || isUpdatingTask ? (
+                  <ActivityIndicator size={'small'} />
+                ) : (
+                  <Ionicons name={'checkmark-outline'} size={22} />
+                )}
+              </Pressable>
             ) : null,
         }}
       />

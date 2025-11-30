@@ -1,7 +1,7 @@
 import { Text } from '@/components/ui/text';
 import { ActivityIndicator, Keyboard, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
-import { Card } from 'heroui-native';
+import { Card, useToast } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -12,6 +12,7 @@ import { useMMKVString } from 'react-native-mmkv';
 import { useAuthStore } from '@/store/auth-store';
 import { useTaskFormStore } from '@/store/task-form-store';
 import { useDatePickerStore } from '@/store/date-picker-store';
+import { usePatternSuggestionsStore } from '@/store/pattern-suggestions-store';
 import { useListsQuery } from '@/features/lists/queries/use-lists';
 import { useLabelsQuery } from '@/features/labels/queries/use-labels';
 import { useCreateTaskMutation } from '@/features/tasks/mutations/use-create-task';
@@ -62,6 +63,8 @@ export default function NewTask() {
 
   const inset = useSafeAreaInsets();
 
+  const { toast } = useToast();
+
   const params = useLocalSearchParams<{
     parent_id?: string | string[];
     list_id?: string | string[];
@@ -90,6 +93,7 @@ export default function NewTask() {
   const [listMMKV, setListMMKV] = useMMKVString(TASK_LIST_STORAGE_KEY);
   const { user } = useAuthStore((state) => ({ user: state.user }));
   const { selectedLabels, priority, clearAll } = useTaskFormStore();
+  const { clearDismissedPatterns } = usePatternSuggestionsStore();
   const {
     data: parentTask,
     isLoading: parentLoading,
@@ -214,7 +218,7 @@ export default function NewTask() {
     }
 
     try {
-      await createTask({
+      const createdTask = await createTask({
         createdBy: user.id,
         projectId: targetProjectId, // Can be null for inbox tasks
         parentId: parentTaskId,
@@ -225,15 +229,30 @@ export default function NewTask() {
         priority,
       });
 
+      // Clear the form
       reset({
         title: '',
         description: '',
         dueDate: null,
       });
+      setTitleInputValue('');
       clearDate();
       clearAll();
+      clearDismissedPatterns();
       setFormError(null);
-      router.back();
+
+      toast.show({
+        variant: 'default',
+        label: 'Task created',
+        description: createdTask.title,
+        actionLabel: 'View Task',
+        onActionPress: () => router.push(`/task/${createdTask.id}`),
+      });
+
+      // Focus back on title input for next task
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to create task.';
       setFormError(message);

@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner-native';
 
 import type { Tables, TablesInsert } from '@/supabase/database.types';
 import { supabase } from '@/utils/supabase';
@@ -70,11 +69,6 @@ export function useCreateTaskMutation() {
       return data;
     },
     onSuccess: (data, variables) => {
-      // Show success toast
-      toast.success('Task created', {
-        description: data.title,
-      });
-
       // Invalidate project queries if task was assigned to a project
       if (variables.projectId) {
         void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
