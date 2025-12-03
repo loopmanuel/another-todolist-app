@@ -312,7 +312,7 @@ export default function ListDetails() {
         }}
         ListFooterComponent={<View style={{ height: 50 }} />}
         contentContainerStyle={{
-          paddingTop: 50,
+          paddingTop: 20,
           paddingBottom: 120,
           paddingHorizontal: 16,
         }}
