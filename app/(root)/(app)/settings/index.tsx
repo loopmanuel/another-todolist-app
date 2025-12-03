@@ -1,9 +1,10 @@
 import { Alert, Pressable, ScrollView, View } from 'react-native';
-import { Button, Card, useThemeColor } from 'heroui-native';
+import { Accordion, Button, Card, useThemeColor } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/store/auth-store';
 import { Text } from '@/components/ui/text';
 import { useRouter } from 'expo-router';
+import { StyledIcon } from '@/components/styled-icon';
 
 export default function Settings() {
   const router = useRouter();
@@ -24,6 +25,46 @@ export default function Settings() {
   return (
     <ScrollView className={'pb-safe flex-1'}>
       <View className={'px-6 pt-6'}>
+        <Accordion isCollapsible={false} variant="surface" className={'mb-4'}>
+          <Accordion.Item value={'sound and notification'}>
+            <Accordion.Trigger>
+              <Text>Sound and notification</Text>
+              <Accordion.Indicator>
+                <StyledIcon name="chevron-forward" size={16} className="text-muted" />
+              </Accordion.Indicator>
+            </Accordion.Trigger>
+          </Accordion.Item>
+
+          <Accordion.Item value={'labels'}>
+            <Accordion.Trigger>
+              <Text>Labels</Text>
+              <Accordion.Indicator>
+                <StyledIcon name="chevron-forward" size={16} className="text-muted" />
+              </Accordion.Indicator>
+            </Accordion.Trigger>
+          </Accordion.Item>
+        </Accordion>
+
+        <Accordion isCollapsible={false} variant="surface" className={'mb-4'}>
+          <Accordion.Item value={'sound and notification'}>
+            <Accordion.Trigger>
+              <Text>Help & Feedback</Text>
+              <Accordion.Indicator>
+                <StyledIcon name="chevron-forward" size={16} className="text-muted" />
+              </Accordion.Indicator>
+            </Accordion.Trigger>
+          </Accordion.Item>
+
+          <Accordion.Item value={'sound and notification'}>
+            <Accordion.Trigger>
+              <Text>Follow Us</Text>
+              <Accordion.Indicator>
+                <StyledIcon name="chevron-forward" size={16} className="text-muted" />
+              </Accordion.Indicator>
+            </Accordion.Trigger>
+          </Accordion.Item>
+        </Accordion>
+
         {/* Labels Card */}
         <Pressable onPress={() => router.push('/settings/labels')}>
           <Card className={'mb-4'}>
@@ -34,9 +75,7 @@ export default function Settings() {
                 </View>
                 <View>
                   <Text className={'text-foreground text-base font-semibold'}>Labels</Text>
-                  <Text className={'text-muted-foreground text-sm'}>
-                    Manage your task labels
-                  </Text>
+                  <Text className={'text-muted-foreground text-sm'}>Manage your task labels</Text>
                 </View>
               </View>
               <Ionicons name={'chevron-forward'} size={20} color={'#9ca3af'} />
