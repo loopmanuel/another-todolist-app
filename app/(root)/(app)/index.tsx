@@ -14,6 +14,7 @@ import NewFab from '@/components/new-fab';
 import { ListTile } from '@/features/lists/components/list-tile';
 import { useListsQuery } from '@/features/lists/queries/use-lists';
 import { useProjectTaskCountsQuery } from '@/features/tasks/queries/use-project-task-counts';
+import { useViewTaskCountsQuery } from '@/features/tasks/queries/use-view-task-counts';
 import { useReorderListsMutation } from '@/features/lists/mutations/use-reorder-lists';
 import type { Tables } from '@/supabase/database.types';
 import { useAuthStore } from '@/store/auth-store';
@@ -59,6 +60,7 @@ export default function Home() {
   }));
   const { data: lists = [], isLoading } = useListsQuery(user?.id ?? undefined);
   const { data: taskCounts = {} } = useProjectTaskCountsQuery(user?.id);
+  const { data: viewCounts } = useViewTaskCountsQuery(user?.id);
   const { mutateAsync: reorderLists } = useReorderListsMutation();
 
   // Separate favorites from regular lists
@@ -129,25 +131,41 @@ export default function Home() {
           <View className={'pt-10'}>
             {/* Main Header Section */}
             <View className="mb-6">
-              {mainHeaderList.map((item) => (
-                <TouchableOpacity
-                  key={item.title}
-                  className="mb-4 flex flex-row items-center gap-3"
-                  onPress={() => {
-                    if (item.to) {
-                      router.push(item.to);
-                    }
-                  }}>
-                  <View className="bg-surface h-11 w-11 items-center justify-center rounded-xl">
-                    <Ionicons name={item.icon} size={20} color={item.color} />
-                  </View>
-                  <View className="flex-1">
-                    <Text className={'text-base font-semibold'} numberOfLines={1}>
-                      {item.title}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
+              {mainHeaderList.map((item) => {
+                const count =
+                  item.title === 'Inbox'
+                    ? viewCounts?.inbox
+                    : item.title === 'Today'
+                      ? viewCounts?.today
+                      : item.title === 'Upcoming'
+                        ? viewCounts?.upcoming
+                        : undefined;
+
+                return (
+                  <TouchableOpacity
+                    key={item.title}
+                    className="mb-4 flex flex-row items-center gap-3"
+                    onPress={() => {
+                      if (item.to) {
+                        router.push(item.to);
+                      }
+                    }}>
+                    <View className="bg-surface h-11 w-11 items-center justify-center rounded-xl">
+                      <Ionicons name={item.icon} size={20} color={item.color} />
+                    </View>
+                    <View className="flex-1">
+                      <Text className={'text-base font-semibold'} numberOfLines={1}>
+                        {item.title}
+                      </Text>
+                    </View>
+                    {count !== undefined && count > 0 && (
+                      <View className={'h-6 w-6 items-center justify-center rounded-md bg-gray-200'}>
+                        <Text className={'text-muted text-sm font-medium'}>{count}</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             {/* Favorites Section */}
