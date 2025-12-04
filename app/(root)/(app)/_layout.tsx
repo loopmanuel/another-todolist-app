@@ -21,13 +21,21 @@ export default function AppLayout() {
         contentStyle: {
           backgroundColor: themeColorBackground,
         },
+        headerLargeTitle: true,
+        headerTransparent: true,
+        // headerBlurEffect: 'systemChromeMaterial',
+        headerLargeTitleShadowVisible: false,
+        headerShadowVisible: true,
+        headerLargeStyle: {
+          // NEW: Make the large title transparent to match the background.
+          backgroundColor: 'transparent',
+        },
       }}>
       <Stack.Screen
         name="index"
         options={{
           title: '',
           headerShown: true,
-          headerTransparent: true,
           headerLeft: () => (
             <Pressable className={'px-2.5'} onPress={() => router.push('/settings')}>
               <Ionicons name={'settings-outline'} size={20} />
@@ -44,9 +52,7 @@ export default function AppLayout() {
         name="upcoming"
         options={{
           title: 'Upcoming',
-          headerTransparent: true,
-          headerShadowVisible: false,
-          headerBackButtonDisplayMode: 'minimal',
+          headerLargeTitle: false,
         }}
       />
       <Stack.Screen
@@ -87,7 +93,7 @@ export default function AppLayout() {
         options={{
           title: 'Add List',
           presentation: 'modal',
-          headerTransparent: true,
+          headerLargeTitle: false,
         }}
       />
       <Stack.Screen
@@ -164,6 +170,8 @@ export default function AppLayout() {
           sheetCornerRadius: 30,
           headerShown: true,
           sheetExpandsWhenScrolledToEdge: false,
+          headerLargeTitle: false,
+          headerTransparent: false,
         }}
       />
       <Stack.Screen

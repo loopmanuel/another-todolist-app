@@ -57,13 +57,6 @@ export default function ListDetails() {
 
   const [open, setOpen] = useState(false);
 
-  const isRefreshing = isRefetchingList || isRefetchingTasks;
-  const handleRefresh = useCallback(async () => {
-    // Stagger refresh operations for smoother transitions
-    await refetchList();
-    await refetchTasks();
-  }, [refetchList, refetchTasks]);
-
   const handleToggleHideCompleted = useCallback(async () => {
     if (!projectId || !user?.id || !list) return;
 
