@@ -1,42 +1,92 @@
 import { View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Calendar, CalendarProps } from 'react-native-calendars';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 
 import { useDatePickerStore } from '@/store/date-picker-store';
+import { useTaskQuery } from '@/features/tasks/queries/use-task';
+import { useUpdateTaskMutation } from '@/features/tasks/mutations/use-update-task';
+import { useAuthStore } from '@/store/auth-store';
 
 type DayPress = Parameters<NonNullable<CalendarProps['onDayPress']>>[0];
 
 export default function DatePicker() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ taskId?: string }>();
+  const taskId = params.taskId;
 
-  const { selectedDate, setSelectedDate, clearDate, getTodayLocal } = useDatePickerStore();
+  const { user } = useAuthStore((state) => ({ user: state.user }));
+  const { selectedDate: storeSelectedDate, setSelectedDate: setStoreSelectedDate, clearDate: clearStoreDate, getTodayLocal } = useDatePickerStore();
 
-  const onDayPress = useCallback(
-    (day: DayPress) => {
-      setSelectedDate(day.dateString);
-    },
-    [setSelectedDate]
+  // Fetch task data if editing an existing task
+  const { data: task } = useTaskQuery({ taskId, createdBy: user?.id });
+  const { mutateAsync: updateTask } = useUpdateTaskMutation();
+
+  // Use local state for current selection
+  const [selectedDate, setSelectedDate] = useState<string | null>(
+    taskId && task ? (task.due_at ? dayjs(task.due_at).format('YYYY-MM-DD') : null) : storeSelectedDate
   );
 
-  const handleClear = useCallback(() => {
-    clearDate();
+  // Initialize selected date from task when editing
+  useEffect(() => {
+    if (taskId && task) {
+      setSelectedDate(task.due_at ? dayjs(task.due_at).format('YYYY-MM-DD') : null);
+    }
+  }, [taskId, task]);
+
+  const saveDate = useCallback(
+    async (date: string | null) => {
+      if (taskId && task) {
+        // Save directly to database for existing tasks
+        await updateTask({
+          taskId: task.id,
+          projectId: task.project_id,
+          payload: {
+            due_at: date ? `${date}T12:00:00.000Z` : null,
+          },
+        });
+      } else {
+        // For new tasks, update the store
+        if (date) {
+          setStoreSelectedDate(date);
+        } else {
+          clearStoreDate();
+        }
+      }
+    },
+    [taskId, task, updateTask, setStoreSelectedDate, clearStoreDate]
+  );
+
+  const onDayPress = useCallback(
+    async (day: DayPress) => {
+      setSelectedDate(day.dateString);
+      await saveDate(day.dateString);
+    },
+    [saveDate]
+  );
+
+  const handleClear = useCallback(async () => {
+    setSelectedDate(null);
+    await saveDate(null);
     router.dismiss();
-  }, [clearDate, router]);
+  }, [saveDate, router]);
 
-  const handleToday = useCallback(() => {
-    setSelectedDate(getTodayLocal());
-  }, [setSelectedDate, getTodayLocal]);
+  const handleToday = useCallback(async () => {
+    const today = getTodayLocal();
+    setSelectedDate(today);
+    await saveDate(today);
+  }, [saveDate, getTodayLocal]);
 
-  const handleTomorrow = useCallback(() => {
+  const handleTomorrow = useCallback(async () => {
     const tomorrow = dayjs().add(1, 'day').format('YYYY-MM-DD');
     setSelectedDate(tomorrow);
-  }, [setSelectedDate]);
+    await saveDate(tomorrow);
+  }, [saveDate]);
 
-  const handleNextMonday = useCallback(() => {
+  const handleNextMonday = useCallback(async () => {
     const today = dayjs();
     const currentDay = today.day(); // 0 = Sunday, 1 = Monday, etc.
 
@@ -55,7 +105,8 @@ export default function DatePicker() {
 
     const nextMonday = today.add(daysUntilMonday, 'day').format('YYYY-MM-DD');
     setSelectedDate(nextMonday);
-  }, [setSelectedDate]);
+    await saveDate(nextMonday);
+  }, [saveDate]);
 
   const marked = useMemo(() => {
     if (!selectedDate) return {};

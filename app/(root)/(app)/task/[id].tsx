@@ -24,8 +24,6 @@ import { useUpdateTaskMutation } from '@/features/tasks/mutations/use-update-tas
 import { useSubtasksQuery, type SubtaskWithCounts } from '@/features/tasks/queries/use-subtasks';
 import { TaskCard, formatDueLabel } from '@/features/tasks/components/task-card';
 import { getPriorityLabel, getPriorityColor } from '@/features/tasks/utils/priority';
-import dayjs from 'dayjs';
-import { useDatePickerStore } from '@/store/date-picker-store';
 import { formatTime } from '@/components/time-picker-modal';
 import { useTimePickerStore } from '@/store/time-picker-store';
 
@@ -57,7 +55,6 @@ export default function TaskDetails() {
   });
   const { data: lists = [], isLoading: listsLoading } = useListsQuery(user?.id ?? undefined);
 
-  const { selectedDate, setSelectedDate } = useDatePickerStore();
   const currentList = lists.find((list) => list.id === task?.project_id);
   const completedSubtasks = subtasks.filter((item) => item.status === 'done').length;
   const totalSubtasks = subtasks.length;
@@ -97,12 +94,11 @@ export default function TaskDetails() {
 
     setEditingTaskId(taskId);
     setStorePriority(task.priority);
-    setSelectedDate(task.due_at ? dayjs(task.due_at).format('YYYY-MM-DD') : null);
 
-    // Note: Labels are now managed directly in the pick-label screen, not through the store
+    // Note: Labels and dates are now managed directly in their picker screens, not through the store
 
     isInitializedRef.current = true;
-  }, [task, taskId, setEditingTaskId, setStorePriority, setSelectedDate]);
+  }, [task, taskId, setEditingTaskId, setStorePriority]);
 
   // Watch for priority changes from the store
   const prevPriorityRef = useRef<number | undefined>(undefined);
@@ -127,30 +123,8 @@ export default function TaskDetails() {
   // Note: Label updates are now handled directly in the pick-label screen
   // No need to watch for label changes from the store here
 
-  // Watch for date changes from the store
-  const prevDateRef = useRef<string>('');
-  useEffect(() => {
-    if (!task || !user?.id || !isInitializedRef.current) return;
-
-    const currentTaskDate = task.due_at ? dayjs(task.due_at).format('YYYY-MM-DD') : '';
-    const currentDate = selectedDate ?? '';
-
-    if (prevDateRef.current === '') {
-      prevDateRef.current = currentTaskDate;
-      return;
-    }
-
-    if (currentDate !== currentTaskDate && currentDate !== prevDateRef.current) {
-      prevDateRef.current = currentDate;
-      void updateTask({
-        taskId: task.id,
-        projectId: task.project_id,
-        payload: {
-          due_at: currentDate ? `${currentDate}T12:00:00.000Z` : null,
-        },
-      });
-    }
-  }, [selectedDate, task, user?.id, updateTask]);
+  // Note: Date updates are now handled directly in the date-picker screen
+  // No need to watch for date changes from the store here
 
   const handleToggleStatus = useCallback(
     async (nextSelected: boolean) => {
@@ -428,7 +402,7 @@ export default function TaskDetails() {
           </Pressable>
 
           <Pressable
-            onPress={() => router.push('/pickers/date-picker')}
+            onPress={() => router.push(`/pickers/date-picker?taskId=${taskId}`)}
             className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
             <Ionicons name={'calendar-outline'} size={18} />
             <Text>{formatDueLabel(task.due_at)}</Text>
