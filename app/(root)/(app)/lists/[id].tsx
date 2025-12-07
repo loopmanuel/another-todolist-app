@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, View } from 'react-native';
 
 import DraggableFlatList, {
@@ -19,11 +19,14 @@ import { useReorderTasksMutation } from '@/features/tasks/mutations/use-reorder-
 import { useAuthStore } from '@/store/auth-store';
 import { TaskCard } from '@/features/tasks/components/task-card';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BottomSheet from '@gorhom/bottom-sheet';
 
 export default function ListDetails() {
   const router = useRouter();
 
   const insets = useSafeAreaInsets();
+
+  const optionsSheetRef = useRef<BottomSheet | null>(null);
 
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const projectId = useMemo(() => {
@@ -54,8 +57,6 @@ export default function ListDetails() {
   const { mutateAsync: toggleFavorite } = useToggleFavoriteMutation();
   const { mutateAsync: deleteList, isPending: isDeletingList } = useDeleteListMutation();
   const { mutateAsync: reorderTasks } = useReorderTasksMutation();
-
-  const [open, setOpen] = useState(false);
 
   const handleToggleHideCompleted = useCallback(async () => {
     if (!projectId || !user?.id || !list) return;
@@ -182,13 +183,13 @@ export default function ListDetails() {
                 </Popover.Trigger>
                 <Popover.Portal>
                   <Popover.Overlay className="bg-black/15" />
-                  <Popover.Content presentation="bottom-sheet" detached>
+                  <Popover.Content ref={optionsSheetRef} presentation="bottom-sheet" detached>
                     <View className="gap-4">
                       <View className="gap-2">
                         <Pressable
                           className="flex-row items-center gap-3 rounded-lg p-3"
                           onPress={() => {
-                            setOpen(false);
+                            optionsSheetRef.current?.close();
                             if (projectId) {
                               router.push({
                                 pathname: '/lists/edit',
@@ -207,6 +208,7 @@ export default function ListDetails() {
                         <Pressable
                           className="flex-row items-center gap-3 rounded-lg p-3"
                           onPress={() => {
+                            optionsSheetRef.current?.close();
                             void handleToggleHideCompleted();
                           }}>
                           <View className="bg-primary/10 size-10 items-center justify-center rounded-full">
@@ -229,6 +231,7 @@ export default function ListDetails() {
                         <Pressable
                           className="flex-row items-center gap-3 rounded-lg p-3"
                           onPress={() => {
+                            optionsSheetRef.current?.close();
                             void handleToggleFavorite();
                           }}>
                           <View className="bg-warning/10 size-10 items-center justify-center rounded-full">
@@ -253,7 +256,7 @@ export default function ListDetails() {
                         <Pressable
                           className="bg-destructive/5 flex-row items-center gap-3 rounded-lg p-3"
                           onPress={() => {
-                            setOpen(false);
+                            optionsSheetRef.current?.close();
                             Alert.alert(
                               'Delete List',
                               `Are you sure you want to delete "${list?.name}"? This action cannot be undone.`,

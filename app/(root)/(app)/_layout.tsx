@@ -74,8 +74,8 @@ export default function AppLayout() {
         name="search"
         options={{
           presentation: 'modal',
-          headerShown: false,
-          animation: 'slide_from_bottom',
+          headerShown: true,
+          headerLargeTitle: false,
         }}
       />
       <Stack.Screen
@@ -101,6 +101,7 @@ export default function AppLayout() {
         options={{
           title: 'Edit List',
           presentation: 'modal',
+          headerLargeTitle: false,
           sheetCornerRadius: 30,
           headerTransparent: true,
         }}
@@ -117,8 +118,8 @@ export default function AppLayout() {
           headerTransparent: true,
           sheetExpandsWhenScrolledToEdge: true,
           headerLeft: () => (
-            <Pressable className={'px-2'} onPress={() => router.dismiss()}>
-              <Ionicons name={'close-outline'} size={24} />
+            <Pressable className={'px-1.5'} onPress={() => router.dismiss()}>
+              <Ionicons name={'close'} size={24} />
             </Pressable>
           ),
         }}
