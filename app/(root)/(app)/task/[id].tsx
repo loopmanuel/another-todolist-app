@@ -242,6 +242,7 @@ export default function TaskDetails() {
 
         await reorderTasks({
           projectId: task.project_id,
+          parentTaskId: task.id,
           tasks: updates,
         });
       } catch (err) {

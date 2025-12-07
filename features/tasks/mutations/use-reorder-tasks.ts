@@ -7,6 +7,7 @@ import { taskKeys } from '../queries/keys';
 
 export type ReorderTasksVariables = {
   projectId: string | null;
+  parentTaskId?: string | null;
   tasks: Array<{
     id: string;
     sortOrder: number;
@@ -42,6 +43,14 @@ export function useReorderTasksMutation() {
     onSuccess: (_data, variables) => {
       if (variables.projectId) {
         void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
+      }
+
+      // If reordering subtasks, also invalidate the parent task query
+      if (variables.parentTaskId) {
+        void queryClient.invalidateQueries({ queryKey: taskKeys.task(variables.parentTaskId) });
+        void queryClient.invalidateQueries({
+          queryKey: taskKeys.subtasks(variables.parentTaskId)
+        });
       }
     },
   });
