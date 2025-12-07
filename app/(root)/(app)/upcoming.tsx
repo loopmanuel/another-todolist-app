@@ -1,5 +1,10 @@
 import { View, ActivityIndicator } from 'react-native';
-import { AgendaList, CalendarProvider, ExpandableCalendar } from 'react-native-calendars';
+import {
+  AgendaList,
+  CalendarProvider,
+  ExpandableCalendar,
+  WeekCalendar,
+} from 'react-native-calendars';
 import { useRouter } from 'expo-router';
 import { useMemo, useCallback } from 'react';
 
@@ -126,6 +131,7 @@ export default function UpcomingScreen() {
           minDate={today}
           hideArrows
         />
+
         <AgendaList
           sections={sections}
           renderItem={renderItem}

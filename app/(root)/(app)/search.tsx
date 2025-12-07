@@ -10,6 +10,9 @@ import { useAuthStore } from '@/store/auth-store';
 import { cn } from '@/lib/utils';
 import { TextField } from 'heroui-native';
 import { TaskCard } from '@/features/tasks/components/task-card';
+import { ListTile } from '@/features/lists/components/list-tile';
+import { useProjectTaskCountsQuery } from '@/features/tasks/queries/use-project-task-counts';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 export default function SearchScreen() {
   const router = useRouter();
@@ -38,6 +41,8 @@ export default function SearchScreen() {
     isFetching: tasksFetching,
   } = useSearchTasksQuery(debouncedQuery, user?.id);
 
+  const { data: taskCounts = {} } = useProjectTaskCountsQuery(user?.id);
+
   const isTyping = searchQuery !== debouncedQuery && searchQuery.trim().length > 0;
   const isSearching = isTyping || listsFetching || tasksFetching;
   const hasQuery = debouncedQuery.trim().length > 0;
@@ -45,7 +50,7 @@ export default function SearchScreen() {
   const showEmptyState = hasQuery && !isSearching && !hasResults;
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1">
       {/* Header */}
       <View className="border-border flex flex-row items-center gap-3 border-b px-4 py-4">
         <Pressable onPress={() => router.back()} className="p-1">
@@ -75,7 +80,7 @@ export default function SearchScreen() {
       </View>
 
       {/* Results */}
-      <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView className="flex-1" keyboardShouldPersistTaps="handled">
         {!hasQuery ? (
           <View className="py-20">
             <Text className="text-muted-foreground text-center">
@@ -96,30 +101,12 @@ export default function SearchScreen() {
           <View className="py-4">
             {/* Lists Section */}
             {lists.length > 0 && (
-              <View className="mb-6">
-                <Text className="text-muted-foreground mb-3 px-4 text-sm font-semibold uppercase">
+              <View className="mb-6 px-4">
+                <Text className="text-muted-foreground mb-3 text-sm font-semibold uppercase">
                   Lists ({lists.length})
                 </Text>
                 {lists.map((list) => (
-                  <Pressable
-                    key={list.id}
-                    onPress={() => {
-                      router.dismiss();
-                      router.push(`/lists/${list.id}`);
-                    }}
-                    className={cn(
-                      'border-border flex-row items-center gap-3 border-b px-4 py-3 active:bg-gray-50'
-                    )}>
-                    <View
-                      className="h-10 w-10 items-center justify-center rounded-full"
-                      style={{ backgroundColor: list.color || '#9ca3af' }}>
-                      <Text className="text-lg">{list.icon || '📋'}</Text>
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-base font-medium">{list.name}</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-                  </Pressable>
+                  <ListTile key={list.id} list={list} uncompletedCount={taskCounts[list.id] || 0} />
                 ))}
               </View>
             )}
@@ -147,7 +134,7 @@ export default function SearchScreen() {
             )}
           </View>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

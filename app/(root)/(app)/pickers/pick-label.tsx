@@ -1,17 +1,20 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, TextInput, View } from 'react-native';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { Text } from '@/components/ui/text';
 import BackButton from '@/components/ui/back-button';
 import { Button, Checkbox } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import type { Tables } from '@/supabase/database.types';
 import { useLabelsQuery } from '@/features/labels/queries/use-labels';
 import { useCreateLabelMutation } from '@/features/labels/mutations/use-create-label';
 import { useAuthStore } from '@/store/auth-store';
 import { useTaskFormStore } from '@/store/task-form-store';
+import { useTaskLabelsQuery } from '@/features/tasks/queries/use-task-labels';
+import { useUpdateTaskLabelsMutation } from '@/features/tasks/mutations/use-update-task-labels';
+import { useTaskQuery } from '@/features/tasks/queries/use-task';
 
 type LabelRow = Tables<'labels'>;
 
@@ -40,9 +43,17 @@ function getRandomColor() {
 
 export default function PickLabel() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ taskId?: string }>();
+  const taskId = params.taskId;
+
   const { user } = useAuthStore((state) => ({ user: state.user }));
   const { selectedLabels: storeSelectedLabels, setSelectedLabels: setStoreSelectedLabels } =
     useTaskFormStore();
+
+  // Fetch task data if editing an existing task
+  const { data: task } = useTaskQuery({ taskId, createdBy: user?.id });
+  const { data: taskLabels = [], isLoading: taskLabelsLoading } = useTaskLabelsQuery({ taskId });
+  const { mutateAsync: updateTaskLabels } = useUpdateTaskLabelsMutation();
 
   const {
     data: labels = [],
@@ -53,7 +64,16 @@ export default function PickLabel() {
   const { mutateAsync: createLabel, isPending: isCreating } = useCreateLabelMutation();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLabels, setSelectedLabels] = useState<Set<string>>(storeSelectedLabels);
+  const [selectedLabels, setSelectedLabels] = useState<Set<string>>(
+    taskId ? new Set() : storeSelectedLabels
+  );
+
+  // Initialize selected labels from task when editing
+  useEffect(() => {
+    if (taskId && !taskLabelsLoading && taskLabels.length > 0) {
+      setSelectedLabels(new Set(taskLabels.map((label) => label.id)));
+    }
+  }, [taskId, taskLabels, taskLabelsLoading]);
 
   // Filter labels based on search query
   const filteredLabels = useMemo(() => {
@@ -70,17 +90,33 @@ export default function PickLabel() {
     return labels.find((label) => label.name.toLowerCase() === searchQuery.toLowerCase());
   }, [labels, searchQuery]);
 
-  const handleToggleLabel = useCallback((labelId: string) => {
-    setSelectedLabels((prev) => {
-      const next = new Set(prev);
-      if (next.has(labelId)) {
-        next.delete(labelId);
-      } else {
-        next.add(labelId);
-      }
-      return next;
-    });
-  }, []);
+  const handleToggleLabel = useCallback(
+    async (labelId: string) => {
+      setSelectedLabels((prev) => {
+        const next = new Set(prev);
+        if (next.has(labelId)) {
+          next.delete(labelId);
+        } else {
+          next.add(labelId);
+        }
+
+        // If editing an existing task, save directly to database
+        if (taskId && task) {
+          void updateTaskLabels({
+            taskId: task.id,
+            projectId: task.project_id,
+            labelIds: Array.from(next),
+          });
+        } else {
+          // For new tasks, update the store
+          setStoreSelectedLabels(next);
+        }
+
+        return next;
+      });
+    },
+    [taskId, task, updateTaskLabels, setStoreSelectedLabels]
+  );
 
   const handleCreateAndSelect = useCallback(async () => {
     if (!user?.id || !searchQuery.trim()) {
@@ -95,20 +131,38 @@ export default function PickLabel() {
       });
 
       // Select the newly created label
-      setSelectedLabels((prev) => new Set(prev).add(newLabel.id));
+      setSelectedLabels((prev) => {
+        const next = new Set(prev).add(newLabel.id);
+
+        // If editing an existing task, save directly to database
+        if (taskId && task) {
+          void updateTaskLabels({
+            taskId: task.id,
+            projectId: task.project_id,
+            labelIds: Array.from(next),
+          });
+        } else {
+          // For new tasks, update the store
+          setStoreSelectedLabels(next);
+        }
+
+        return next;
+      });
       setSearchQuery('');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to create label.';
       Alert.alert('Create failed', message);
     }
-  }, [createLabel, searchQuery, user?.id]);
+  }, [createLabel, searchQuery, user?.id, taskId, task, updateTaskLabels, setStoreSelectedLabels]);
 
   const handleDone = useCallback(() => {
-    // Save selected labels to store
-    setStoreSelectedLabels(selectedLabels);
+    // Only save to store for new tasks (not editing existing tasks)
+    if (!taskId) {
+      setStoreSelectedLabels(selectedLabels);
+    }
     // Navigate back
     router.back();
-  }, [router, selectedLabels, setStoreSelectedLabels]);
+  }, [router, selectedLabels, setStoreSelectedLabels, taskId]);
 
   const renderLabelItem = useCallback<ListRenderItem<LabelRow>>(
     ({ item }) => {

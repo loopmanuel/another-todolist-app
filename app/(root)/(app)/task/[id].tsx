@@ -15,7 +15,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTaskQuery } from '@/features/tasks/queries/use-task';
 import { useTaskLabelsQuery } from '@/features/tasks/queries/use-task-labels';
 import { useUpdateTaskStatusMutation } from '@/features/tasks/mutations/use-update-task-status';
-import { useUpdateTaskLabelsMutation } from '@/features/tasks/mutations/use-update-task-labels';
 import { useDeleteTaskMutation } from '@/features/tasks/mutations/use-delete-task';
 import { useReorderTasksMutation } from '@/features/tasks/mutations/use-reorder-tasks';
 import { useAuthStore } from '@/store/auth-store';
@@ -45,8 +44,6 @@ export default function TaskDetails() {
 
   const { user } = useAuthStore((state) => ({ user: state.user }));
   const {
-    selectedLabels,
-    setSelectedLabels,
     priority: storePriority,
     setPriority: setStorePriority,
     setEditingTaskId,
@@ -88,7 +85,6 @@ export default function TaskDetails() {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const { mutateAsync: updateTaskStatus } = useUpdateTaskStatusMutation();
   const { mutateAsync: updateTask, isPending: isUpdatingTask } = useUpdateTaskMutation();
-  const { mutateAsync: updateTaskLabels } = useUpdateTaskLabelsMutation();
   const { mutateAsync: deleteTask, isPending: isDeletingTask } = useDeleteTaskMutation();
   const { mutateAsync: reorderTasks } = useReorderTasksMutation();
   const [formError, setFormError] = useState<string | null>(null);
@@ -103,21 +99,10 @@ export default function TaskDetails() {
     setStorePriority(task.priority);
     setSelectedDate(task.due_at ? dayjs(task.due_at).format('YYYY-MM-DD') : null);
 
-    if (!labelsLoading) {
-      setSelectedLabels(new Set(taskLabels.map((label) => label.id)));
-    }
+    // Note: Labels are now managed directly in the pick-label screen, not through the store
 
     isInitializedRef.current = true;
-  }, [
-    task,
-    taskId,
-    taskLabels,
-    labelsLoading,
-    setEditingTaskId,
-    setStorePriority,
-    setSelectedDate,
-    setSelectedLabels,
-  ]);
+  }, [task, taskId, setEditingTaskId, setStorePriority, setSelectedDate]);
 
   // Watch for priority changes from the store
   const prevPriorityRef = useRef<number | undefined>(undefined);
@@ -139,34 +124,8 @@ export default function TaskDetails() {
     }
   }, [storePriority, task, user?.id, updateTask]);
 
-  // Watch for label changes from the store
-  const prevLabelIdsRef = useRef<string>('');
-  useEffect(() => {
-    if (!task || !user?.id || !isInitializedRef.current || labelsLoading) return;
-
-    const currentTaskLabelIds = taskLabels
-      .map((l) => l.id)
-      .sort()
-      .join(',');
-    const selectedLabelIdsStr = Array.from(selectedLabels).sort().join(',');
-
-    if (prevLabelIdsRef.current === '') {
-      prevLabelIdsRef.current = currentTaskLabelIds;
-      return;
-    }
-
-    if (
-      selectedLabelIdsStr !== currentTaskLabelIds &&
-      selectedLabelIdsStr !== prevLabelIdsRef.current
-    ) {
-      prevLabelIdsRef.current = selectedLabelIdsStr;
-      void updateTaskLabels({
-        taskId: task.id,
-        projectId: task.project_id,
-        labelIds: Array.from(selectedLabels),
-      });
-    }
-  }, [selectedLabels, task, taskLabels, user?.id, labelsLoading, updateTaskLabels]);
+  // Note: Label updates are now handled directly in the pick-label screen
+  // No need to watch for label changes from the store here
 
   // Watch for date changes from the store
   const prevDateRef = useRef<string>('');
@@ -490,8 +449,8 @@ export default function TaskDetails() {
           </Pressable>
 
           <Pressable
-            onPress={() => router.push('/pickers/pick-label')}
-            className={'flex flex-row items-center gap-2 border-b border-b-gray-200 py-3'}>
+            onPress={() => router.push(`/pickers/pick-label?taskId=${taskId}`)}
+            className={'flex flex-row items-center gap-2 border-b-gray-200 py-3 pb-0'}>
             <Ionicons name={'pricetags-outline'} size={18} />
             <View className={'flex-1 flex-row flex-wrap gap-2'}>
               {labelsLoading ? (

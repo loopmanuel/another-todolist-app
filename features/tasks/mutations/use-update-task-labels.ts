@@ -43,7 +43,13 @@ export function useUpdateTaskLabelsMutation() {
       }
     },
     onSuccess: (_data, variables) => {
+      // Invalidate the task query
       void queryClient.invalidateQueries({ queryKey: taskKeys.task(variables.taskId) });
+
+      // Invalidate the task labels query specifically
+      void queryClient.invalidateQueries({
+        queryKey: [...taskKeys.task(variables.taskId), 'labels']
+      });
 
       if (variables.projectId) {
         void queryClient.invalidateQueries({ queryKey: taskKeys.project(variables.projectId) });
