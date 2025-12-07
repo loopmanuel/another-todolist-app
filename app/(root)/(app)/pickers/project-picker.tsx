@@ -3,22 +3,29 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, View } from 'react-nat
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Card } from 'heroui-native';
+// @ts-ignore
+import tinycolor from 'tinycolor2';
 
 import BackButton from '@/components/ui/back-button';
 import { Text } from '@/components/ui/text';
 import { useAuthStore } from '@/store/auth-store';
 import { useListsQuery } from '@/features/lists/queries/use-lists';
 import { useUpdateTaskMutation } from '@/features/tasks/mutations/use-update-task';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ProjectPicker() {
   const router = useRouter();
+
+  const inset = useSafeAreaInsets();
+
   const params = useLocalSearchParams<{ currentProjectId?: string; taskId?: string }>();
   const { user } = useAuthStore((state) => ({ user: state.user }));
   const { data: lists = [], isLoading } = useListsQuery(user?.id ?? undefined);
   const { mutateAsync: updateTask, isPending: isUpdating } = useUpdateTaskMutation();
 
   const currentProjectId = useMemo(
-    () => (Array.isArray(params.currentProjectId) ? params.currentProjectId[0] : params.currentProjectId),
+    () =>
+      Array.isArray(params.currentProjectId) ? params.currentProjectId[0] : params.currentProjectId,
     [params.currentProjectId]
   );
 
@@ -81,9 +88,11 @@ export default function ProjectPicker() {
   }
 
   return (
-    <ScrollView className={'pb-safe flex-1'}>
+    <ScrollView className={'pb-safe flex-1'} style={{ paddingTop: inset.top }}>
       <Stack.Screen
         options={{
+          title: 'Select List',
+          headerLargeTitle: false,
           headerLeft: () => (
             <Pressable className={'px-1 py-1'} onPress={() => router.dismiss()}>
               <Ionicons name={'chevron-back-outline'} size={24} />
@@ -109,32 +118,38 @@ export default function ProjectPicker() {
         }}
       />
 
-      <View className={'px-6 pt-4'}>
-        <Text className={'text-2xl font-semibold'}>Move to project</Text>
-        <Text className={'text-muted-foreground mt-1 text-base'}>
-          Choose which project this task belongs to.
-        </Text>
-      </View>
-
       <View className={'px-6 pt-6'}>
         {isLoading ? (
           <ActivityIndicator />
         ) : lists.length === 0 ? (
           <Text className={'text-muted-foreground text-base'}>
-            Create a project first to move tasks.
+            Create a list first to move tasks.
           </Text>
         ) : (
           <View className={'gap-3'}>
             {lists.map((item) => {
               const isCurrent = currentProjectId === item.id;
               const isSelected = selectedProjectId === item.id;
+              const accentColor = item.color?.trim() || '#e5e7eb';
+
               return (
                 <Pressable
                   key={item.id}
                   className={
-                    'border-border flex flex-row items-center justify-between rounded-2xl border bg-white px-4 py-3'
+                    'border-border flex flex-row items-center gap-3 rounded-2xl border bg-white px-4 py-3'
                   }
                   onPress={() => handleSelect(item.id)}>
+                  <View
+                    className="h-11 w-11 items-center justify-center rounded-xl"
+                    style={{
+                      backgroundColor: tinycolor(accentColor).setAlpha(0.3).toRgbString(),
+                    }}>
+                    {item.icon ? (
+                      <Text className={'text-xl'}>{item.icon}</Text>
+                    ) : (
+                      <Ionicons name="list-outline" size={20} color="#111827" />
+                    )}
+                  </View>
                   <View className={'flex-1 pr-3'}>
                     <Text className={'text-lg font-semibold'} numberOfLines={1}>
                       {item.name}
