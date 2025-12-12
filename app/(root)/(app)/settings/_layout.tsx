@@ -7,7 +7,15 @@ export default function SettingLayout() {
 
   return (
     <Stack>
-      <Stack.Screen name={'index'} options={{ title: 'Settings' }} />
+      <Stack.Screen
+        name={'index'}
+        options={{
+          title: 'Settings',
+          headerTransparent: true,
+          headerLargeTitle: true,
+          headerLargeTitleShadowVisible: true,
+        }}
+      />
       <Stack.Screen name={'appearance'} options={{ title: 'Appearance' }} />
       <Stack.Screen name={'labels'} options={{ title: 'Labels' }} />
       <Stack.Screen name={'notifications'} options={{ title: 'Notifications' }} />

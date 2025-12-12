@@ -155,6 +155,8 @@ export default function SearchScreen() {
             )}
           </View>
         )}
+
+        <View style={{ paddingBottom: inset.bottom, paddingTop: inset.top }} />
       </KeyboardAwareScrollView>
     </View>
   );

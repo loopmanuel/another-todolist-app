@@ -6,9 +6,13 @@ import { Text } from '@/components/ui/text';
 import { useRouter } from 'expo-router';
 import { StyledIcon } from '@/components/styled-icon';
 import { settingsNavigation } from '@/lib/constants/navigation';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Settings() {
   const router = useRouter();
+
+  const inset = useSafeAreaInsets();
+
   const dangerColor = useThemeColor('danger');
 
   const { signOut, user } = useAuthStore((state) => ({
@@ -24,12 +28,12 @@ export default function Settings() {
   };
 
   return (
-    <ScrollView className={'pb-safe flex-1'}>
+    <ScrollView className={'flex-1'} style={{ paddingTop: inset.top + 60 }}>
       <View className={'px-6 pt-6'}>
         {settingsNavigation.map((section) => (
           <View key={section.id} className={'mb-4'}>
             {section.title && (
-              <Text className={'text-muted-foreground mb-3 text-xs font-semibold uppercase'}>
+              <Text className={'mx-2 mb-3 text-xs font-semibold uppercase text-gray-500'}>
                 {section.title}
               </Text>
             )}
@@ -73,6 +77,8 @@ export default function Settings() {
           <Button.Label>Logout</Button.Label>
         </Button>
       </View>
+
+      <View style={{ paddingBottom: inset.bottom, paddingTop: inset.top }} />
     </ScrollView>
   );
 }
