@@ -1,21 +1,22 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Ionicons } from '@expo/vector-icons';
 import { Stack, useNavigation, useRouter } from 'expo-router';
 
 import { useSearchListsQuery } from '@/features/lists/queries/use-search-lists';
 import { useSearchTasksQuery } from '@/features/tasks/queries/use-search-tasks';
 import { useAuthStore } from '@/store/auth-store';
-import { cn } from '@/lib/utils';
-import { TextField } from 'heroui-native';
 import { TaskCard } from '@/features/tasks/components/task-card';
 import { ListTile } from '@/features/lists/components/list-tile';
 import { useProjectTaskCountsQuery } from '@/features/tasks/queries/use-project-task-counts';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function SearchScreen() {
   const router = useRouter();
+
+  const inset = useSafeAreaInsets();
+
   const navigation = useNavigation();
   const { user } = useAuthStore((state) => ({ user: state.user }));
   const [searchQuery, setSearchQuery] = useState('');
@@ -79,8 +80,6 @@ export default function SearchScreen() {
     <View className="flex-1">
       <Stack.Screen
         options={{
-          title: '',
-          headerTransparent: false,
           headerSearchBarOptions: {
             placeholder: 'Search lists and tasks...',
             autoFocus: true,
@@ -99,7 +98,10 @@ export default function SearchScreen() {
       />
 
       {/* Results */}
-      <KeyboardAwareScrollView className="flex-1" keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView
+        className="flex-1"
+        keyboardShouldPersistTaps="handled"
+        style={{ paddingTop: inset.top, paddingBottom: inset.bottom }}>
         {!hasQuery ? (
           <View className="py-20">
             <Text className="text-muted-foreground text-center">
@@ -113,7 +115,7 @@ export default function SearchScreen() {
         ) : showEmptyState ? (
           <View className="py-20">
             <Text className="text-muted-foreground text-center">
-              No results found for "{debouncedQuery}"
+              No results found for &#34;{debouncedQuery}&#34;
             </Text>
           </View>
         ) : (

@@ -73,6 +73,7 @@ export default function AppLayout() {
       <Stack.Screen
         name="search"
         options={{
+          title: 'Search',
           presentation: 'modal',
           headerShown: true,
           headerLargeTitle: false,
