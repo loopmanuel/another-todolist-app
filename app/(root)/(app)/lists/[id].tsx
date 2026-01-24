@@ -104,7 +104,10 @@ export default function ListDetails() {
 
   const handleDragEnd = useCallback(
     async ({ data }: { data: TaskWithSubtaskCounts[] }) => {
-      if (!projectId) return;
+      if (!projectId) {
+        setIsDragging(false);
+        return;
+      }
 
       try {
         // Assign new sort_order values based on position
@@ -119,6 +122,8 @@ export default function ListDetails() {
         });
       } catch (err) {
         console.error('Failed to reorder tasks:', err);
+      } finally {
+        setIsDragging(false);
       }
     },
     [projectId, reorderTasks]
@@ -142,6 +147,8 @@ export default function ListDetails() {
     },
     [router, list?.hide_completed_tasks]
   );
+
+  const [isDragging, setIsDragging] = useState(false);
 
   const listEmpty = (
     <View className="py-10">
@@ -298,14 +305,21 @@ export default function ListDetails() {
         data={tasks}
         keyExtractor={(item) => item.id}
         renderItem={renderTaskItem}
+        onDragBegin={() => {
+          setIsDragging(true);
+        }}
         onDragEnd={handleDragEnd}
         ListEmptyComponent={listEmpty}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
-        maintainVisibleContentPosition={{
-          minIndexForVisible: 0,
-        }}
+        maintainVisibleContentPosition={
+          isDragging
+            ? undefined
+            : {
+                minIndexForVisible: 0,
+              }
+        }
         ListFooterComponent={<View style={{ height: 50 }} />}
         contentContainerStyle={{
           paddingTop: 20,

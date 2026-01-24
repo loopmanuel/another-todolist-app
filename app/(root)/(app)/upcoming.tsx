@@ -67,6 +67,12 @@ export default function UpcomingScreen() {
     return marked;
   }, [sections, isDark]);
 
+  // Create a stable key for the calendar based on marked dates
+  const calendarKey = useMemo(() => {
+    const dates = Object.keys(markedDates).sort().join(',');
+    return `calendar-expandable-${dates || 'empty'}`;
+  }, [markedDates]);
+
   const renderItem = useCallback(
     ({ item }: { item: any }) => {
       return (
@@ -123,7 +129,8 @@ export default function UpcomingScreen() {
           todayButtonTextColor: isDark ? '#60a5fa' : '#3b82f6',
         }}>
         <ExpandableCalendar
-          key={`calendar-${Object.keys(markedDates).length}`}
+          testID={'calendar'}
+          key={calendarKey}
           firstDay={0}
           markedDates={markedDates}
           theme={calendarTheme}
