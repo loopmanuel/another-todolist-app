@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from 'heroui-native';
 import { useMMKVString } from 'react-native-mmkv';
+import tinycolor from 'tinycolor2';
 
 import BackButton from '@/components/ui/back-button';
 import { Text } from '@/components/ui/text';
@@ -75,14 +76,26 @@ export default function InboxPicker() {
           <View className={'gap-3'}>
             {lists.map((item) => {
               const isSelected = selectedListId === item.id;
+              const accentColor = item.color?.trim() ? item.color : '#e5e7eb';
               return (
                 <Pressable
                   key={item.id}
-                  className={
-                    'border-border flex flex-row items-center justify-between rounded-2xl border bg-white px-4 py-3'
-                  }
+                  className={'flex flex-row items-center gap-3 rounded-2xl bg-white px-4 py-3'}
                   onPress={() => handleSelect(item.id)}>
-                  <View className={'flex-1 pr-3'}>
+                  <View
+                    className="h-11 w-11 items-center justify-center rounded-xl"
+                    style={{
+                      backgroundColor: tinycolor(accentColor ?? '#ffffff')
+                        .setAlpha(0.3)
+                        .toRgbString(),
+                    }}>
+                    {item.icon ? (
+                      <Text className={'text-xl'}>{item.icon}</Text>
+                    ) : (
+                      <Ionicons name="list-outline" size={20} color="#111827" />
+                    )}
+                  </View>
+                  <View className={'flex-1'}>
                     <Text className={'text-lg font-semibold'} numberOfLines={1}>
                       {item.name}
                     </Text>

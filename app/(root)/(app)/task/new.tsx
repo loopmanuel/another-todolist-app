@@ -4,7 +4,7 @@ import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { Card, useToast } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,6 +13,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useTaskFormStore } from '@/store/task-form-store';
 import { useDatePickerStore } from '@/store/date-picker-store';
 import { usePatternSuggestionsStore } from '@/store/pattern-suggestions-store';
+import tinycolor from 'tinycolor2';
 import { useListsQuery } from '@/features/lists/queries/use-lists';
 import { useLabelsQuery } from '@/features/labels/queries/use-labels';
 import { useCreateTaskMutation } from '@/features/tasks/mutations/use-create-task';
@@ -58,6 +59,13 @@ type TaskForm = z.infer<typeof TaskSchema>;
 
 // List is no longer required - tasks can go to Inbox by default
 
+function getParamId(value?: string | string[]) {
+  if (!value) {
+    return undefined;
+  }
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export default function NewTask() {
   const router = useRouter();
 
@@ -69,18 +77,8 @@ export default function NewTask() {
     parent_id?: string | string[];
     list_id?: string | string[];
   }>();
-  const parentTaskId = useMemo(() => {
-    if (!params.parent_id) {
-      return undefined;
-    }
-    return Array.isArray(params.parent_id) ? params.parent_id[0] : params.parent_id;
-  }, [params.parent_id]);
-  const listParamId = useMemo(() => {
-    if (!params.list_id) {
-      return undefined;
-    }
-    return Array.isArray(params.list_id) ? params.list_id[0] : params.list_id;
-  }, [params.list_id]);
+  const parentTaskId = useMemo(() => getParamId(params.parent_id), [params.parent_id]);
+  const listParamId = useMemo(() => getParamId(params.list_id), [params.list_id]);
   const isSubtask = Boolean(parentTaskId);
   const inputRef = React.useRef<TextInput>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -123,9 +121,18 @@ export default function NewTask() {
     return lists.find((list) => list.id === selectedListId) ?? null;
   }, [lists, selectedListId]);
   const canSelectList = !isSubtask && Boolean(user?.id);
-  const activeProjectName = isSubtask
-    ? (parentProject?.name ?? (listsLoading ? 'Loading list…' : 'Parent list'))
-    : (selectedList?.name ?? (listsLoading ? 'Loading list…' : 'Inbox'));
+  const activeProjectName = useMemo(() => {
+    if (isSubtask) {
+      return parentProject?.name ?? (listsLoading ? 'Loading list…' : 'Parent list');
+    }
+    return selectedList?.name ?? (listsLoading ? 'Loading list…' : 'Inbox');
+  }, [isSubtask, parentProject?.name, selectedList?.name, listsLoading]);
+  const listAccentColor = useMemo(() => {
+    if (!selectedList?.color) {
+      return '#e5e7eb';
+    }
+    return selectedList.color.trim().length > 0 ? selectedList.color : '#e5e7eb';
+  }, [selectedList?.color]);
 
   // RHF defaults: use selectedDate if present, else null
   const initialDue = useMemo(() => selectedDate ?? null, [selectedDate]); // stable default
@@ -184,11 +191,17 @@ export default function NewTask() {
   const dueDate = watch('dueDate');
   const { mutateAsync: createTask, isPending } = useCreateTaskMutation();
 
-  const handlePriorityButtonPress = () => {
+  const clearFormError = useCallback(() => {
+    if (formError) {
+      setFormError(null);
+    }
+  }, [formError]);
+
+  const handlePriorityButtonPress = useCallback(() => {
     Keyboard.dismiss();
 
     router.push('/pickers/priority-select');
-  };
+  }, [router]);
 
   const submit = handleSubmit(async (data) => {
     Keyboard.dismiss();
@@ -295,9 +308,7 @@ export default function NewTask() {
                 <TextInput
                   ref={inputRef}
                   onChangeText={(text) => {
-                    if (formError) {
-                      setFormError(null);
-                    }
+                    clearFormError();
                     setTitleInputValue(text);
                     onChange(text);
                   }}
@@ -349,9 +360,7 @@ export default function NewTask() {
                   }
                   multiline
                   onChangeText={(text) => {
-                    if (formError) {
-                      setFormError(null);
-                    }
+                    clearFormError();
                     onChange(text);
                   }}
                   onBlur={onBlur}
@@ -361,8 +370,9 @@ export default function NewTask() {
             />
           </View>
 
-          {selectedLabels.size > 0 && (
-            <View className={'flex-1 flex-row px-6'}>
+<ScrollView horizontal={true} keyboardShouldPersistTaps="handled" showsHorizontalScrollIndicator={false} className={'px-4'}>
+            {selectedLabels.size > 0 && (
+            <View className={'flex-1 flex-row px-2'}>
               <Pressable
                 onPress={() => {
                   Keyboard.dismiss();
@@ -373,21 +383,30 @@ export default function NewTask() {
                   <Card.Body>
                     <View className={'flex-row items-center gap-2'}>
                       <Ionicons name={'pricetag-outline'} size={18} />
-                      <Text>
-                        {Array.from(selectedLabels)
-                          .map((labelId) => {
-                            const label = allLabels.find((l) => l.id === labelId);
-                            return label?.name;
-                          })
-                          .filter(Boolean)
-                          .join(', ')}
-                      </Text>
+                      <View className={'flex-row flex-wrap gap-2'}>
+                        {Array.from(selectedLabels).map((labelId) => {
+                          const label = allLabels.find((l) => l.id === labelId);
+                          if (!label) {
+                            return null;
+                          }
+                          return (
+                            <View
+                              key={label.id}
+                              className={'flex-row items-center rounded-full px-2 py-1'}
+                              style={{ backgroundColor: label.color || '#6366f1' }}>
+                              <Text className={'text-xs font-medium text-white'}>{label.name}</Text>
+                            </View>
+                          );
+                        })}
+                      </View>
                     </View>
                   </Card.Body>
                 </Card>
               </Pressable>
             </View>
           )}
+</ScrollView>
+
 
           <ScrollView
             horizontal={true}
@@ -418,15 +437,39 @@ export default function NewTask() {
               }}
               disabled={!canSelectList}
               className={cn(!canSelectList && 'opacity-60')}>
-              <Card className={'border border-gray-200 py-3'}>
+              <Card
+                className={'border border-gray-200 py-3'}
+                style={{
+                  backgroundColor: selectedList
+                    ? tinycolor(listAccentColor ?? '#ffffff').setAlpha(0.15).toRgbString()
+                    : '#e5e7eb',
+                }}>
                 <Card.Body>
                   <View className={'flex-row items-center gap-2'}>
-                    <Ionicons name={'file-tray-outline'} size={18} />
+                    {selectedList ? (
+                      <View
+                        className={'h-6 w-6 items-center justify-center rounded-md'}
+                        style={{
+                          backgroundColor: tinycolor(listAccentColor ?? '#ffffff')
+                            .setAlpha(0.35)
+                            .toRgbString(),
+                        }}>
+                        {selectedList.icon ? (
+                          <Text className={'text-xs'}>{selectedList.icon}</Text>
+                        ) : (
+                          <Ionicons name={'list-outline'} size={14} color="#111827" />
+                        )}
+                      </View>
+                    ) : (
+                      <Ionicons name={'file-tray-outline'} size={18} />
+                    )}
                     <Text className={'text-sm font-medium'}>{activeProjectName}</Text>
                   </View>
                 </Card.Body>
               </Card>
             </Pressable>
+
+            {dueDate ? <Text>has date</Text> : <Text>no date</Text>}
 
             <Pressable
               onPress={() => {
