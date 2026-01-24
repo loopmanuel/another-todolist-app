@@ -106,7 +106,20 @@ export default function Today() {
       )}
       renderItem={({ item }) => (
         <View className="mb-3">
-          <TaskCard task={item} onPress={(task) => router.push(`/task/${task.id}`)} />
+          <TaskCard
+            task={item}
+            onPress={(task) => router.push(`/task/${task.id}`)}
+            showProject
+            projectInfo={
+              item.project
+                ? {
+                    name: item.project.name,
+                    color: item.project.color,
+                    icon: item.project.icon,
+                  }
+                : undefined
+            }
+          />
         </View>
       )}
       contentInsetAdjustmentBehavior="automatic"
