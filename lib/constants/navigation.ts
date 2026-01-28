@@ -86,14 +86,14 @@ export const settingsNavigation: SettingsSection[] = [
         title: 'Privacy Policy',
         icon: 'shield-checkmark-outline',
         iconColor: '#22c55e', // green
-        route: '/settings/privacy',
+        route: '/settings/privacy-policy',
       },
       {
         id: 'terms',
         title: 'Terms of Service',
         icon: 'document-text-outline',
         iconColor: '#f59e0b', // amber
-        route: '/settings/terms',
+        route: '/settings/terms-of-use',
       },
       {
         id: 'version',

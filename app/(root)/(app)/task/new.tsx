@@ -469,8 +469,6 @@ export default function NewTask() {
               </Card>
             </Pressable>
 
-            {dueDate ? <Text>has date</Text> : <Text>no date</Text>}
-
             <Pressable
               onPress={() => {
                 Keyboard.dismiss();

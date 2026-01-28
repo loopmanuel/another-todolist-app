@@ -70,6 +70,8 @@ export function TaskCard({
   projectInfo,
 }: TaskCardProps) {
   const { user } = useAuthStore((state) => ({ user: state.user }));
+  const isOverdue =
+    Boolean(task.due_at) && dayjs(task.due_at).isBefore(dayjs(), 'day') && task.status !== 'done';
 
   const { mutateAsync: updateTaskStatus } = useUpdateTaskStatusMutation();
 
@@ -202,7 +204,7 @@ export function TaskCard({
     <Animated.View style={animatedStyle}>
       <Pressable
         className={cn(
-          'border-border flex flex-row gap-4 rounded-3xl border bg-white p-4',
+          'border-border flex flex-row gap-4 rounded-3xl border bg-white px-4 py-3',
           isActive && 'opacity-90 shadow-lg'
         )}
         onPress={() => (onPress ? onPress(task) : undefined)}
@@ -241,8 +243,14 @@ export function TaskCard({
 
             {task.due_at ? (
               <View className="flex w-fit flex-row items-center justify-center gap-1 py-1">
-                <Ionicons name={'calendar-outline'} size={14} />
-                <Text className="text-sm">{formatDueLabel(task.due_at)}</Text>
+                <Ionicons
+                  name={'calendar-outline'}
+                  size={14}
+                  color={isOverdue ? '#ef4444' : undefined}
+                />
+                <Text className="text-sm" style={{ color: isOverdue ? '#ef4444' : undefined }}>
+                  {formatDueLabel(task.due_at)}
+                </Text>
               </View>
             ) : null}
 

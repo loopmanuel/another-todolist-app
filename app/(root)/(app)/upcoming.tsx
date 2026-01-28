@@ -1,10 +1,5 @@
 import { View, ActivityIndicator } from 'react-native';
-import {
-  AgendaList,
-  CalendarProvider,
-  ExpandableCalendar,
-  WeekCalendar,
-} from 'react-native-calendars';
+import { AgendaList, CalendarProvider, ExpandableCalendar } from 'react-native-calendars';
 import { useRouter } from 'expo-router';
 import { useMemo, useCallback } from 'react';
 
@@ -128,16 +123,16 @@ export default function UpcomingScreen() {
         theme={{
           todayButtonTextColor: isDark ? '#60a5fa' : '#3b82f6',
         }}>
-        <ExpandableCalendar
-          testID={'calendar'}
-          key={calendarKey}
-          firstDay={0}
-          markedDates={markedDates}
-          theme={calendarTheme}
-          disableAllTouchEventsForDisabledDays
-          minDate={today}
-          hideArrows
-        />
+        {/*<ExpandableCalendar*/}
+        {/*  testID={'calendar'}*/}
+        {/*  key={calendarKey}*/}
+        {/*  firstDay={0}*/}
+        {/*  markedDates={markedDates}*/}
+        {/*  theme={calendarTheme}*/}
+        {/*  disableAllTouchEventsForDisabledDays*/}
+        {/*  minDate={today}*/}
+        {/*  hideArrows*/}
+        {/*/>*/}
 
         <AgendaList
           sections={sections}

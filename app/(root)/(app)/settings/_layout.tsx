@@ -6,7 +6,7 @@ export default function SettingLayout() {
   const router = useRouter();
 
   return (
-    <Stack>
+    <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
       <Stack.Screen
         name={'index'}
         options={{
@@ -37,7 +37,7 @@ export default function SettingLayout() {
         options={{
           title: 'Edit Label',
           presentation: 'modal',
-          headerTransparent: true,
+          headerTransparent: false,
           headerLeft: () => (
             <Pressable className={'px-2'} onPress={() => router.back()}>
               <Ionicons name={'close-outline'} size={24} />

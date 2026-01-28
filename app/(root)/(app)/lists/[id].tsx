@@ -327,20 +327,25 @@ export default function ListDetails() {
           paddingHorizontal: 16,
         }}
       />
-      <View className={'absolute bottom-10 w-full px-4'}>
-        <Button
-          variant={'secondary'}
-          onPress={() => {
-            if (projectId) {
-              router.push({
-                pathname: '/task/new',
-                params: { list_id: projectId },
-              });
-            }
-          }}>
-          <Button.Label>Add Task</Button.Label>
-        </Button>
-      </View>
+
+      <Button
+        className={'absolute right-6'}
+        style={{
+          bottom: 16 + insets.bottom,
+        }}
+        variant={'primary'}
+        size={'lg'}
+        isIconOnly
+        onPress={() => {
+          if (projectId) {
+            router.push({
+              pathname: '/task/new',
+              params: { list_id: projectId },
+            });
+          }
+        }}>
+        <Ionicons name="add" size={28} color="#ffffff" />
+      </Button>
     </>
   );
 }

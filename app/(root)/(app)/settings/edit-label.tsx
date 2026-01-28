@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import { Keyboard, Pressable, TextInput, View } from 'react-native';
-import { Button } from 'heroui-native';
+import { Keyboard, Pressable, TextInput, View, Alert } from 'react-native';
+import { Button, TextField } from 'heroui-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Text } from '@/components/ui/text';
@@ -9,7 +9,6 @@ import { useUpdateLabelMutation } from '@/features/labels/mutations/use-update-l
 import { useDeleteLabelMutation } from '@/features/labels/mutations/use-delete-label';
 import { useLabelsQuery } from '@/features/labels/queries/use-labels';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { Alert } from 'react-native';
 
 const LABEL_COLORS = [
   '#ef4444', // red
@@ -92,23 +91,19 @@ export default function EditLabelModal() {
   return (
     <KeyboardAwareScrollView
       className="flex-1"
-      contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 40 }}
-      keyboardShouldPersistTaps="handled">
-      <View className="mb-6">
-        <Text className="text-foreground text-center text-lg font-semibold">Edit Label</Text>
-      </View>
-
+      contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 24, paddingBottom: 40 }}>
       {/* Label Name Input */}
       <View className="mb-4">
-        <Text className="text-muted-foreground mb-2 text-sm font-medium">Label Name</Text>
-        <TextInput
-          value={editedName}
-          onChangeText={setEditedName}
-          placeholder="Enter label name"
-          placeholderTextColor="#9ca3af"
-          className="border-border text-foreground rounded-lg border px-4 py-3"
-          autoFocus
-        />
+        <TextField>
+          <TextField.Label>Label Name</TextField.Label>
+          <TextField.Input
+            value={editedName}
+            onChangeText={setEditedName}
+            placeholder="Enter label name"
+            placeholderTextColor="#9ca3af"
+            autoFocus
+          />
+        </TextField>
       </View>
 
       {/* Color Picker */}
