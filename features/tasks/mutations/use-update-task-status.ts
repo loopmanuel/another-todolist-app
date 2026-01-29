@@ -43,6 +43,10 @@ export function useUpdateTaskStatusMutation() {
         if (variables.parentId) {
           void queryClient.invalidateQueries({ queryKey: taskKeys.subtasks(variables.parentId) });
         }
+        // Refresh list screens that hide completed tasks.
+        void queryClient.invalidateQueries({ queryKey: [...taskKeys.all, 'today'] });
+        void queryClient.invalidateQueries({ queryKey: [...taskKeys.all, 'inbox'] });
+        void queryClient.invalidateQueries({ queryKey: [...taskKeys.all, 'upcoming'] });
       };
 
       // Delay invalidation if requested (for animations)

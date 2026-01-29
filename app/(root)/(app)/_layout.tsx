@@ -37,12 +37,12 @@ export default function AppLayout() {
           title: '',
           headerShown: true,
           headerLeft: () => (
-            <Pressable className={'px-2.5'} onPress={() => router.push('/settings')}>
+            <Pressable className={'px-2'} onPress={() => router.push('/settings')}>
               <Ionicons name={'settings-outline'} size={20} />
             </Pressable>
           ),
           headerRight: () => (
-            <Pressable className={'px-2.5'} onPress={() => router.push('/search')}>
+            <Pressable className={'px-2'} onPress={() => router.push('/search')}>
               <Ionicons name={'search-outline'} size={20} />
             </Pressable>
           ),

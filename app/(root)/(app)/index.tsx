@@ -1,12 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
-import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import DraggableFlatList, {
   RenderItemParams,
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
 import { Ionicons } from '@expo/vector-icons';
-import { Button } from 'heroui-native';
 import { Href, useRouter } from 'expo-router';
 
 import { Text } from '@/components/ui/text';
@@ -110,15 +109,6 @@ export default function Home() {
     <View className={'bg-background relative flex-1 px-6'}>
       <NewFab />
 
-      <Button
-        className={'absolute bottom-12 left-4 z-10'}
-        size={'sm'}
-        variant={'tertiary'}
-        onPress={() => router.push('/lists/new')}>
-        <Ionicons name={'add-circle-outline'} size={24} />
-        <Button.Label>New List</Button.Label>
-      </Button>
-
       <DraggableFlatList
         data={regularLists}
         keyExtractor={(item) => item.id}
@@ -142,7 +132,7 @@ export default function Home() {
                         : undefined;
 
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={item.title}
                     className="mb-4 flex flex-row items-center gap-3"
                     onPress={() => {
@@ -154,16 +144,22 @@ export default function Home() {
                       <Ionicons name={item.icon} size={20} color={item.color} />
                     </View>
                     <View className="flex-1">
-                      <Text className={'text-base font-semibold'} numberOfLines={1}>
+                      <Text
+                        className={'text-base font-semibold'}
+                        numberOfLines={1}
+                        pointerEvents="none">
                         {item.title}
                       </Text>
                     </View>
                     {count !== undefined && count > 0 && (
-                      <View className={'h-6 w-6 items-center justify-center rounded-md bg-gray-200'}>
-                        <Text className={'text-muted text-sm font-medium'}>{count}</Text>
+                      <View
+                        className={'h-6 w-6 items-center justify-center rounded-md bg-gray-200'}>
+                        <Text className={'text-muted text-sm font-medium'} pointerEvents="none">
+                          {count}
+                        </Text>
                       </View>
                     )}
-                  </TouchableOpacity>
+                  </Pressable>
                 );
               })}
             </View>

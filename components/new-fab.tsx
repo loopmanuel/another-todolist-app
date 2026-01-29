@@ -1,32 +1,31 @@
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Button } from 'heroui-native';
+import React from 'react';
 
 export default function NewFab() {
   const router = useRouter();
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <TouchableOpacity
-      style={styles.fab}
-      activeOpacity={0.8}
-      onPress={() => router.push('/task/new')}>
-      <Ionicons name={'add-outline'} size={28} color={'#fff'} />
-    </TouchableOpacity>
+    <View
+      className={'absolute left-0 mx-6 flex w-full flex-1 flex-row items-center justify-between'}
+      style={{
+        bottom: 32 + insets.bottom,
+        zIndex: 20,
+        elevation: 20,
+      }}>
+      <Button size={'sm'} variant={'tertiary'} onPress={() => router.push('/lists/new')}>
+        <Ionicons name={'add-circle-outline'} size={24} />
+        <Button.Label>New List</Button.Label>
+      </Button>
+
+      <Button isIconOnly size={'lg'} onPress={() => router.push('/task/new')}>
+        <Ionicons name={'add-outline'} size={28} color={'#fff'} />
+      </Button>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  fab: {
-    position: 'absolute',
-    zIndex: 100,
-    bottom: 36,
-    right: 14,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#000',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
-  },
-});
